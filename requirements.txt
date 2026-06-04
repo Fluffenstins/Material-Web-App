@@ -4,3 +4,4 @@ niimprint
 pyserial
 dateutils
 flask
+gunicorn

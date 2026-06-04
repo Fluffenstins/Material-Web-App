@@ -69,5 +69,5 @@ class CustomLabel:
         return path
 
 if __name__ == '__main__':
-    label = CustomLabel("01NA012345")
+    label = CustomLabel("App", 'https://material-web-app.onrender.com/')
     label.save()
