@@ -4,25 +4,28 @@ import random
 import string
 
 
-
 ITEM_SPACE = {}
 
 
 class CoreMaterialObj:
-    def __init__(self):
+    def __init__(self, name=None, save_data=None):
         self.date_format = '%m/%d/%Y %H:%M:%S'
 
-        self.id = self._generate_id()
+        if save_data is not None and 'id' in save_data:
+            self.id = save_data['id']
+        else:
+            self.id = self._generate_id()
+
         ITEM_SPACE[self.id] = self
 
-        self.name = None
+        self.name = name
         self.type = None
         self.tags = None
-        self.action_history = []
         self.comments = []
         self.description = None
         self.associated_people = []
         self.creation_date = None
+        self.action_history = []
 
         self.indexed_values = [
             'name',
@@ -49,6 +52,12 @@ class CoreMaterialObj:
             ret[key] = value
         return ret
 
+    def load_from_json(self, data):
+        for key in self.indexed_values:
+            if key not in data:
+                continue
+            self.__setattr__(key, data[key])
+
     def lookup(self, obj_id):
         return ITEM_SPACE[obj_id]
 
@@ -65,8 +74,8 @@ class CoreMaterialObj:
 
 
 class Tag(CoreMaterialObj):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'tag'
         self.value = None
         self.parent_id = None
@@ -76,10 +85,13 @@ class Tag(CoreMaterialObj):
             'parent_id'
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
 
 class User(CoreMaterialObj):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'user'
         self.username = None
         self.password = None
@@ -93,14 +105,17 @@ class User(CoreMaterialObj):
             'favourites'
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
     @property
     def person(self):
         return self.lookup(self.person_id)
 
 
 class Person(CoreMaterialObj):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'person'
         self.name = None
         self.role = None
@@ -114,18 +129,57 @@ class Person(CoreMaterialObj):
             'user_id'
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
     @property
     def user(self):
         return self.lookup(self.user_id)
 
 
+class CataloguedItem(CoreMaterialObj):
+    def __init__(self, item_id=None, mpn=None, description=None, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
+        self.description = description
+        self.mpn = mpn
+        self.item_id = item_id
+        self.correct_item = None
+        self.deprecated_items = []
+
+        self.indexed_values += [
+            'item_id',
+            'mpn',
+            'description',
+            'correct_item',
+            'deprecated_items'
+        ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
+
+    def get_item(self):
+        if self.correct_item is not None:
+            return self.lookup(self.correct_item).get_item
+        return self
+
+    def item_match(self, text):
+        if text == self.item_id or text == self.mpn:
+            return True
+
+        for alias in self.deprecated_items:
+            deprecated_item = self.lookup(alias)
+            if deprecated_item.item_match():
+                return True
+
+        return False
+
+
 class Material(CoreMaterialObj):
-    def __init__(self, item_id):
-        super().__init__()
+    def __init__(self, item_id=None, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'material'
         self.item_id = item_id
         self.parent_site = None
-        self.aliases = []
         self.qty = 0
         self.qty_received = 0
         self.borrows = []
@@ -135,25 +189,27 @@ class Material(CoreMaterialObj):
             'parent_site',
             'qty',
             'qty_received',
-            'borrows',
-            'aliases'
+            'borrows'
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
     def item_match(self, text):
-        if self.item_id == text:
-            return True
-        for alias in self.aliases:
-            if alias == text:
-                return True
-        return False
+        return self.item.item_match(text)
+
+    @property
+    def item(self):
+        return self.lookup(self.item_id).get_item()
 
 
 class Site(CoreMaterialObj):
-    def __init__(self, site_type):
-        super().__init__()
+    def __init__(self, site_id=None, site_type=None, address=None, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'site'
         self.site_type = site_type
-        self.site_id = None
+        self.site_id = site_id
+        self.address = address
         self.parent_site_ids = []
         if self.site_type == 'project':
             self.material_counted_in_inventory = False
@@ -171,13 +227,16 @@ class Site(CoreMaterialObj):
             'site_children'
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
     @property
     def site(self):
         return self.lookup(self.site_id)
 
     def find_site(self, site_id):
 
-        if self.site_id == site_id:
+        if self.site_id.lower() == site_id.lower():
             return self
 
         for site in self.site_children:
@@ -218,34 +277,51 @@ class Site(CoreMaterialObj):
 
 
 class Stage(CoreMaterialObj):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'stage'
 
         self.indexed_values += [
         ]
 
+        if save_data is not None:
+            self.load_from_json(save_data)
+
 
 class Action(CoreMaterialObj):
-    def __init__(self, action_type, date_str=None, **data):
-        super().__init__()
+    def __init__(self, action_type=None, date_str=None, save_data=None, **data):
+        super().__init__(save_data=save_data)
         self.type = 'action'
         self.action_type = action_type
         self.data = data
+        self.processed = False
 
         self.creation_date = self.get_date(date_str)
 
         self.indexed_values += [
             'action_type',
-            'data'
+            'data',
+            'processed'
         ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
 
 
 class Comment(CoreMaterialObj):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
         self.type = 'comment'
         self.parent_id = None
         self.text = None
         self.user = None
+
+        self.indexed_values += [
+            'parent_id',
+            'text',
+            'user'
+        ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
 

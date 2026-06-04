@@ -3,3 +3,4 @@ qrcode
 niimprint
 pyserial
 dateutils
+flask

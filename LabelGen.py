@@ -6,7 +6,7 @@ import textwrap
 class CustomLabel:
     def __init__(self, text=None, content=None):
         self.dimensions = (600, 360)
-        self.default_path = "label.png"
+        self.default_path = "label"
         self.font = ImageFont.truetype("Resources/Arial Bold.ttf", 30)
         self.qr_code_border = 15
         self.chars_per_line = 14
@@ -64,7 +64,8 @@ class CustomLabel:
         if path is None:
             path = self.default_path
         img = self.compile_image()
-        img.save(path)
+        img.save(f"{path}.png")
+        img.save(f"{path}.pdf", "PDF")
         return path
 
 if __name__ == '__main__':

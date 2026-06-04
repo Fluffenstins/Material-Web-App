@@ -1,5 +1,5 @@
 import json
-from MaterialCore import Action, Material, Site
+from MaterialCore import Action, Material, Site, User, Person, CataloguedItem
 import logging
 import logging.handlers
 import queue
@@ -31,6 +31,7 @@ class CoreMaterialManager:
         self.material = {}
         self.people = {}
         self.users = {}
+        self.items = {}
         self.action_history = []
 
         self.logger = MaterialLogging()
@@ -40,8 +41,18 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.people, "people")
         self._save_core_dict_json(self.users, "users")
+        self._save_core_dict_json(self.items, "items")
 
         self._save_core_list_json(self.action_history, "action_history")
+
+    def load_json(self):
+        self.sites = self._load_core_dict_json('sites', Site)
+        self.material = self._load_core_dict_json('material', Material)
+        self.people = self._load_core_dict_json('people', Person)
+        self.users = self._load_core_dict_json('users', User)
+        self.items = self._load_core_dict_json('items', CataloguedItem)
+
+        self.action_history = self._load_core_list_json('action_history', Action)
 
     def _save_core_dict_json(self, core_dict, save_name):
         save_data = {obj_id: obj.json() for obj_id, obj in core_dict.items()}
@@ -50,8 +61,20 @@ class CoreMaterialManager:
 
     def _save_core_list_json(self, core_list, save_name):
         save_data = [obj.json() for obj in core_list]
-        with open(f"{self.save_loc}/{save_name}", 'w') as file:
+        with open(f"{self.save_loc}/{save_name}.json", 'w') as file:
             json.dump(save_data, file)
+
+    def _load_core_dict_json(self, save_name, core_class):
+        with open(f"{self.save_loc}/{save_name}.json") as file:
+            raw_data = json.load(file)
+        ret = {key: core_class(save_data=data) for key, data in raw_data.items()}
+        return ret
+
+    def _load_core_list_json(self, save_name, core_class):
+        with open(f"{self.save_loc}/{save_name}.json") as file:
+            raw_data = json.load(file)
+        ret = [core_class(data=data) for data in raw_data]
+        return ret
 
     def ensure_material(self, site, item_id):
         material_obj = site.find_material(item_id)
@@ -67,8 +90,17 @@ class CoreMaterialManager:
             if site_obj is not None:
                 return site_obj
 
-        site = self.create_site(site_type)
+        site = self.create_site(site_type=site_type, site_id=site_id)
         return site
+
+    def ensure_item(self, item_id):
+        for obj_id, item in self.items.items():
+            if item.item_id.lower() == item_id:
+                # call get_item to get the correct item, because there may be duplicates
+                return item.get_item()
+
+        item = self.create_item(item_id=item_id)
+        return item
 
     def find_site(self, site_id):
         for obj_id, site in self.sites.items():
@@ -80,8 +112,8 @@ class CoreMaterialManager:
         material_obj = site.find_material(item_id)
         return material_obj
 
-    def create_site(self, site_type, parent_site_ids=()):
-        action = Action('create_site', site_type=site_type, parent_site_ids=parent_site_ids)
+    def create_site(self, site_id, site_type, parent_site_ids=()):
+        action = Action('create_site', site_type=site_type, parent_site_ids=parent_site_ids, site_id=site_id)
         site = self.enact_action(action)
         return site
 
@@ -90,12 +122,17 @@ class CoreMaterialManager:
         material_obj = self.enact_action(action)
         return material_obj
 
+    def create_item(self, item_id, mpn=None, description=None):
+        action = Action('create_item', item_id=item_id, mpn=mpn, description=description)
+        item = self.enact_action(action)
+        return item
+
     def create_person(self):
         pass
 
     def receive(self, user_id, project_id, item_id, qty, location, date_str=None):
         action = Action(
-            'receive',
+            action_type='receive',
             user=user_id,
             project_id=project_id,
             item_id=item_id,
@@ -106,14 +143,30 @@ class CoreMaterialManager:
         action.description = "Receive material."
         self.enact_action(action)
 
+    def move_out(self, user_id, project_id, item_id, qty, location, date_str=None):
+        action = Action(
+            action_type='move_out',
+            user=user_id,
+            project_id=project_id,
+            item_id=item_id,
+            qty=qty,
+            location=location,
+            date_str=date_str
+        )
+        action.description = f"Move out material from {location} to {project_id}."
+        self.enact_action(action)
+
     def enact_action(self, action):
         action_dict = {
             'receive': self._receive,
             'create_material': self._create_material,
-            'create_site': self._create_site
+            'create_site': self._create_site,
+            'move_out': self._move_out,
+            'create_item': self._create_item
         }
         ret = action_dict[action.action_type](action)
         self.action_history.append(action)
+        action.processed = True
         return ret
 
     def _create_material(self, action):
@@ -123,7 +176,9 @@ class CoreMaterialManager:
 
         site = self.sites[site_id]
 
-        material_obj = Material(item_id)
+        item_obj = self.ensure_item(item_id)
+
+        material_obj = Material(item_id=item_obj.id, name=item_id)
         material_obj.parent_site = site.id
         self.material[material_obj.id] = material_obj
 
@@ -134,6 +189,24 @@ class CoreMaterialManager:
 
         return material_obj
 
+    def _create_item(self, action):
+
+        item_id = action.data['item_id']
+        mpn = action.data['mpn']
+        description = action.data['description']
+
+        item_obj = CataloguedItem(
+            item_id=item_id,
+            mpn=mpn,
+            description=description
+        )
+
+        self.items[item_obj.id] = item_obj
+
+        item_obj.add_action(action)
+
+        return item_obj
+
     def _create_site(self, action):
 
         try:
@@ -141,8 +214,10 @@ class CoreMaterialManager:
         except KeyError:
             parent_site_ids = []
         site_type = action.data['site_type']
+        site_id = action.data['site_id']
 
-        site_obj = Site(site_type)
+        # Create the site
+        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id)
         self.sites[site_obj.id] = site_obj
 
         for parent_site_id in parent_site_ids:
@@ -172,21 +247,22 @@ class CoreMaterialManager:
             print(f"Bad Qty: {action.json()}")
             qty = 0
 
-        location = self.ensure_site('location', location)
-        project = self.ensure_site('project', project_id)
+        if location is None:
+            location = 'Default Location'
 
-        location_material_obj = self.ensure_material(location, item_id)
-        project_material_obj = self.ensure_material(project, item_id)
-
+        location_site = self.ensure_site('location', location)
+        location_material_obj = self.ensure_material(location_site, item_id)
         location_material_obj.qty_received += qty
         location_material_obj.qty += qty
-
-        project_material_obj.qty_received += qty
-
-        location.add_action(action)
-        project.add_action(action)
         location_material_obj.add_action(action)
-        project_material_obj.add_action(action)
+        location_site.add_action(action)
+
+        if project_id is not None:
+            project = self.ensure_site('project', project_id)
+            project_material_obj = self.ensure_material(project, item_id)
+            project_material_obj.qty_received += qty
+            project.add_action(action)
+            project_material_obj.add_action(action)
 
     def _move_out(self, action):
         user_name = action.data['user']
@@ -195,8 +271,15 @@ class CoreMaterialManager:
         qty = action.data['qty']
         location = action.data['location']
 
-        if type(qty) is str:
-            qty = int(qty)
+        try:
+            if type(qty) is str:
+                qty = int(qty)
+        except ValueError:
+            print(f"Bad Qty: {action.json()}")
+            qty = 0
+
+        if location is None:
+            location = 'Default Location'
 
         location = self.ensure_site('location', location)
         project = self.ensure_site('project', project_id)
@@ -211,6 +294,10 @@ class CoreMaterialManager:
         project.add_action(action)
         location_material_obj.add_action(action)
         project_material_obj.add_action(action)
+
+    def connect_northumberland(self):
+        northumberland_site = self.find_site('24-176')
+
 
 
 class ContinuousMaterialManager(CoreMaterialManager):
@@ -242,6 +329,8 @@ class ContinuousMaterialManager(CoreMaterialManager):
             self.receive(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
         elif instruct_type.find('move') != -1:
             date_str, project_id, item_id, qty, user, recipient, contractor, yard = instruct[1:9]
+            user_id = None
+            self.move_out(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
 
     def create_action_from_legacy(self):
         # action = Action()
