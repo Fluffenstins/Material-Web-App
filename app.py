@@ -11,6 +11,34 @@ MATERIAL_APP = ContinuousMaterialManager()
 MATERIAL_APP.load_json()
 
 
+def fill_json(obj_json):
+    for key, val in obj_json.items():
+        if key in ['id']:
+            continue
+        if type(val) != str:
+            continue
+        try:
+            obj_json[key] = ITEM_SPACE[val].json()
+        except KeyError:
+            pass
+
+    def prune_keys(given_dict, pruned_keys):
+        for key in list(given_dict.keys()):
+            if key not in pruned_keys:
+                continue
+            given_dict[key] = 'PRUNED'
+            # del given_dict[key]
+
+        for key, val in given_dict.items():
+            if type(val) is dict:
+                prune_keys(val, pruned_keys)
+        return given_dict
+
+    prune_keys(obj_json, {'action_history'})
+
+    return obj_json
+
+
 def load_webpage(path):
     with open(path, 'r', encoding='utf8') as file:
         ret = file.read()
@@ -35,7 +63,7 @@ def hello_world():
 def material_url():
     item_id = request.args.get('item_id', default="")
     material_obj = ITEM_SPACE[item_id]
-    print(material_obj)
+    print(fill_json(material_obj.json()))
     return render_template(
         "MaterialPage.html",
         qr_code_url=f"{request.url_root}downloadQRCode?obj_id={material_obj.id}",
