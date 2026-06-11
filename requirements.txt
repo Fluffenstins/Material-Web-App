@@ -4,4 +4,5 @@ niimprint
 pyserial
 dateutils
 flask
-gunicorn
+flask_login
+bcrypt

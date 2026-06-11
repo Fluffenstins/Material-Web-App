@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Inventory Item</title>
+<title>NuBuild Site</title>
 
 <style>
 body {
@@ -35,6 +35,7 @@ body {
 .container {
   padding: 16px;
   flex: 1;
+  margin-bottom: 50px;
 }
 
 .card {
@@ -126,9 +127,7 @@ border-bottom: 1px solid #ddd;
 border-bottom: none;
 }
 
-.receive { background: #28a745; }
-.move { background: #dc3545; }
-.stage { background: #ffc107; color: black; }
+.set_parent { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
 
 @media (max-width: 480px) {
@@ -140,10 +139,7 @@ border-bottom: none;
 </head>
 
 <body>
-
-<div class="header">
-  <button class="back-btn" onclick="history.back()">← Back</button>
-</div>
+{% include "Header.html" %}
 
 <div class="container">
 
@@ -164,27 +160,47 @@ border-bottom: none;
     </div>
 
     <div class="field">
-      <div class="label">Child Sites</div>
-	  
-     
+      <div class="label">Material</div>
 	
-	{% for item in material_children %}
-    <ul class="child-list" id="ExampleChild">
-        <li class="update-btn" onclick="handleButtonUrl('/material?item_id={{item.id}}', false)">
-            <span>{{item.item.item_id}}</span>
-        </li>
-    </ul>
-	{% endfor %}
+	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=true %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
 	
     </div>
+
+    <div class="field">
+      <div class="label">Parent Site</div>
+	
+	{% with search_list_id="parent_sites", item_type="Site", material_children=parent_sites, hide_by_default=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+    </div>
+
+    <div class="field">
+      <div class="label">Child Sites</div>
+	
+	{% with search_list_id="child_sites", item_type="Site", material_children=site_children, hide_by_default=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+    </div>
+
+    <div class="field">
+      <div class="label">Action History</div>
+	
+	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+    </div>
+
     
 
 </div>
 
 <div class="bottom-bar">
-  <button class="action-btn receive">Receive</button>
-  <button class="action-btn move">Move Out</button>
-  <button class="action-btn stage">Stage</button>
+  <button class="action-btn set_parent"  onclick="handleButtonUrl('{{set_parent_url}}', false)">Set Parent</button>
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}', true)">Get QR Code</button>
 </div>
 

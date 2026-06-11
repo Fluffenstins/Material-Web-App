@@ -35,6 +35,7 @@ body {
 .container {
   padding: 16px;
   flex: 1;
+  margin-bottom: 50px;
 }
 
 .card {
@@ -124,9 +125,7 @@ input {
 
 <body>
 
-<div class="header">
-  <button class="back-btn" onclick="history.back()">← Back</button>
-</div>
+{% include "Header.html" %}
 
 <div class="container">
 
@@ -148,8 +147,14 @@ input {
 
     <div class="field">
       <div class="label">Location</div>
-      <div class="value" id="location">{{material_obj.lookup(material_obj.parent_site).name}}</div>
+      <div class="value" id="location">{{material_obj.lookup(material_obj.parent_site).path}}</div>
     </div>
+
+    <div class="field">
+      <div class="label">Received to Date</div>
+      <div class="value" id="receivedQty">{{material_obj.qty_received}}</div>
+    </div>
+
 
     <div class="field">
       <div class="label">Current Count</div>
@@ -169,6 +174,17 @@ input {
       <button class="update-btn" onclick="updateCount()">Update Count</button>
     </div>
   </div>
+  
+  
+
+    <div class="field">
+      <div class="label">Action History</div>
+	
+	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+    </div>
 
 </div>
 

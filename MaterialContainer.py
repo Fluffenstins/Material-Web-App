@@ -37,6 +37,7 @@ class CoreMaterialManager:
         self.logger = MaterialLogging()
 
     def save_json(self):
+        print("This should be saved asynchronously!")
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.people, "people")
@@ -65,15 +66,21 @@ class CoreMaterialManager:
             json.dump(save_data, file)
 
     def _load_core_dict_json(self, save_name, core_class):
-        with open(f"{self.save_loc}/{save_name}.json") as file:
-            raw_data = json.load(file)
+        try:
+            with open(f"{self.save_loc}/{save_name}.json") as file:
+                raw_data = json.load(file)
+        except FileNotFoundError:
+            raw_data = {}
         ret = {key: core_class(save_data=data) for key, data in raw_data.items()}
         return ret
 
     def _load_core_list_json(self, save_name, core_class):
-        with open(f"{self.save_loc}/{save_name}.json") as file:
-            raw_data = json.load(file)
-        ret = [core_class(data=data) for data in raw_data]
+        try:
+            with open(f"{self.save_loc}/{save_name}.json") as file:
+                raw_data = json.load(file)
+        except FileNotFoundError:
+            raw_data = []
+        ret = [core_class(save_data=data) for data in raw_data]
         return ret
 
     def ensure_material(self, site, item_id):
@@ -103,6 +110,8 @@ class CoreMaterialManager:
         return item
 
     def find_site(self, site_id):
+        if not site_id:
+            return None
         for obj_id, site in self.sites.items():
             ret = site.find_site(site_id)
             if ret is not None:
@@ -111,6 +120,19 @@ class CoreMaterialManager:
     def find_material(self, site, item_id):
         material_obj = site.find_material(item_id)
         return material_obj
+
+    def find_user(self, email):
+        if email is None:
+            return None
+        try:
+            return self.users[email]
+        except KeyError:
+            pass
+        email = email.lower()
+        for obj_id, user in self.users.items():
+            if user.email.lower() == email:
+                return user
+        return None
 
     def create_site(self, site_id, site_type, parent_site_ids=()):
         action = Action('create_site', site_type=site_type, parent_site_ids=parent_site_ids, site_id=site_id)
@@ -127,8 +149,11 @@ class CoreMaterialManager:
         item = self.enact_action(action)
         return item
 
-    def create_person(self):
-        pass
+    def create_user(self, email, password, first_name, last_name):
+        # if the provided password is not already encrypted, Grady, I will lose it on you.
+        action = Action('create_user', email=email, password=password, first_name=first_name, last_name=last_name)
+        user = self.enact_action(action)
+        return user
 
     def receive(self, user_id, project_id, item_id, qty, location, date_str=None):
         action = Action(
@@ -156,17 +181,33 @@ class CoreMaterialManager:
         action.description = f"Move out material from {location} to {project_id}."
         self.enact_action(action)
 
+    def set_site_parent(self, user_id, site_id, parent_site_id):
+        action = Action(
+            action_type='set_site_parent',
+            user=user_id,
+            site_id=site_id,
+            parent_site_id=parent_site_id
+        )
+        action.description = "Parent site set."
+        self.enact_action(action)
+
     def enact_action(self, action):
         action_dict = {
             'receive': self._receive,
             'create_material': self._create_material,
             'create_site': self._create_site,
             'move_out': self._move_out,
-            'create_item': self._create_item
+            'create_item': self._create_item,
+            'create_user': self._create_user,
+            'set_site_parent': self._set_site_parent
         }
-        ret = action_dict[action.action_type](action)
+        try:
+            ret = action_dict[action.action_type](action)
+            action.processed = True
+        except Exception as e:
+            raise e
+            return e
         self.action_history.append(action)
-        action.processed = True
         return ret
 
     def _create_material(self, action):
@@ -186,6 +227,11 @@ class CoreMaterialManager:
 
         site.add_action(action)
         material_obj.add_action(action)
+        item_obj.add_action(action)
+
+        action.add_output('site_id', site.id)
+        action.add_output('material_id', material_obj.id)
+        action.add_output('catalogue_item_id', item_obj.id)
 
         return material_obj
 
@@ -205,6 +251,8 @@ class CoreMaterialManager:
 
         item_obj.add_action(action)
 
+        action.add_output('catalogued_item_id', item_obj.id)
+
         return item_obj
 
     def _create_site(self, action):
@@ -214,7 +262,7 @@ class CoreMaterialManager:
         except KeyError:
             parent_site_ids = []
         site_type = action.data['site_type']
-        site_id = action.data['site_id']
+        site_id = action.data['site_id'].strip()
 
         # Create the site
         site_obj = Site(site_type=site_type, site_id=site_id, name=site_id)
@@ -231,6 +279,8 @@ class CoreMaterialManager:
 
         site_obj.add_action(action)
 
+        action.add_output('site_id', site_obj.id)
+
         return site_obj
 
     def _receive(self, action):
@@ -239,6 +289,7 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         qty = action.data['qty']
         location = action.data['location']
+        date_str = action.data['date_str']
 
         try:
             if type(qty) is str:
@@ -252,17 +303,30 @@ class CoreMaterialManager:
 
         location_site = self.ensure_site('location', location)
         location_material_obj = self.ensure_material(location_site, item_id)
+
         location_material_obj.qty_received += qty
         location_material_obj.qty += qty
+        # add site actions
+        location_site.add_action(action)
+        # add material actions
         location_material_obj.add_action(action)
         location_site.add_action(action)
+        # add catalogue actions
+        location_material_obj.item.add_action(action)
+
+        action.add_output('location_id', location_site.id)
+        action.add_output('location_material_id', location_material_obj.id)
 
         if project_id is not None:
             project = self.ensure_site('project', project_id)
             project_material_obj = self.ensure_material(project, item_id)
             project_material_obj.qty_received += qty
+            # add site actions
             project.add_action(action)
+            # add material actions
             project_material_obj.add_action(action)
+            action.add_output('project_id', project.id)
+            action.add_output('project_material_id', project_material_obj.id)
 
     def _move_out(self, action):
         user_name = action.data['user']
@@ -290,14 +354,70 @@ class CoreMaterialManager:
         location_material_obj.qty -= qty
         project_material_obj.qty += qty
 
+        # add site actions
         location.add_action(action)
         project.add_action(action)
+        # add material actions
         location_material_obj.add_action(action)
         project_material_obj.add_action(action)
+        # add catalogue actions
+        location_material_obj.item.add_action(action)
+
+        action.add_output('location_id', location.id)
+        action.add_output('project_item_id', location_material_obj.id)
+        action.add_output('project_id', project.id)
+        action.add_output('project_item_id', project_material_obj.id)
+
+    def _create_user(self, action):
+        email = action.data['email']
+        first_name = action.data['first_name']
+        last_name = action.data['last_name']
+        password = action.data['password']
+
+        existing_user = self.find_user(email)
+        if existing_user is not None:
+            raise KeyError("Email already exists. Please provide a new email, reset password, or login using previous credentials.")
+
+        new_user = User(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        self.users[new_user.id] = new_user
+
+        new_user.add_action(action)
+
+        action.add_output('location_id', new_user.id)
+
+        return new_user
+
+    def _set_site_parent(self, action):
+        user_id = action.data['user']
+        site_id = action.data['site_id']
+        parent_side_id = action.data['parent_site_id']
+
+        user_obj = self.find_user(user_id)
+        parent_site_obj = self.find_site(parent_side_id)
+        site_obj = self.find_site(site_id)
+
+        went_through = site_obj.attach_site_parent(parent_site_obj)
+
+        print(f"Did it go through? {went_through}")
+
+        parent_site_obj.add_action(action)
+        site_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('site_id', site_obj.id)
+        action.add_output('parent_side_id', parent_site_obj.id)
+
+        if not went_through:
+            raise AttributeError("Unable to assign site parent.")
 
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')
-
 
 
 class ContinuousMaterialManager(CoreMaterialManager):

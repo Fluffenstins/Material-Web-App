@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inventory Item</title>
+
+<style>
+
+.child-list {
+list-style: none;
+padding: 0;
+}
+
+.child-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 10px;
+border-bottom: 1px solid #ddd;
+}
+
+.child-item:last-child {
+border-bottom: none;
+}
+
+
+.{{search_list_id}}-update-btn{ border: 1px solid #ddd; margin-top: -1px; background-color: #f6f6f6; padding: 12px; text-decoration: none; font-size: 18px; color: black; display: block }
+#myInput { width: 100%; padding: 12px; margin-bottom: 6px; border: 1px solid #ddd; }
+    #myUL { list-style-type: none; padding: 0; margin: 0; }
+    #myUL li a { border: 1px solid #ddd; margin-top: -1px; background-color: #f6f6f6; padding: 12px; text-decoration: none; font-size: 18px; color: black; display: none }
+    #myUL li a:hover { background-color: #eee; }
+	
+</style>
+</head>
+
+
+<body>
+<div class="field">
+
+  <input type="text" id="{{search_list_id}}_input" onkeyup="{{search_list_id}}_filterList()" placeholder="Search for {{item_type}}..">
+	
+    <ul class="child-list" id="{{search_list_id}}_list">
+	{% for item in material_children %}
+		<li class="{{search_list_id}}-update-btn" onclick="{{search_list_id}}HandleButtonUrl('{{item['id']}}', false)">
+			<span>{{item['text']}}</span>
+		</li>
+	{% endfor %}
+    </ul>
+	
+</div>
+
+
+  <script>
+  
+  function {{search_list_id}}_hide_all() {
+  
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+    for (i = 0; i < li.length; i++) {
+       li[i].style.display = "none"; // Hides item
+    }
+  }
+  
+  function {{search_list_id}}_show_all() {
+  
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+    for (i = 0; i < li.length; i++) {
+       li[i].style.display = ""; // Hides item
+    }
+  }
+  
+  function {{search_list_id}}_filterList() {
+    // Declare variables
+	console.log("{{search_list_id}}");
+    var input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById('{{search_list_id}}_input');
+    filter = input.value.toUpperCase(); // Case-insensitive matching
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+	console.log(filter);
+
+	if (filter=="") {
+		{% if hide_by_default %}
+			{{search_list_id}}_hide_all();
+		{% else %}
+			{{search_list_id}}_show_all();
+		{% endif %}
+		return;
+	}
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (i = 0; i < li.length; i++) {
+      a = li[i].getElementsByTagName("span")[0];
+      txtValue = a.textContent || a.innerText;
+	  console.log(txtValue);
+      
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        li[i].style.display = ""; // Shows item
+      } else {
+        li[i].style.display = "none"; // Hides item
+      }
+    }
+  }
+	function {{search_list_id}}HandleButtonUrl(action, open_new_window) {
+	console.log(action);
+	
+		{% if call_api %}
+			const url = new URL(window.location.href);
+			// Add your query parameter
+			url.searchParams.set("{{search_list_id}}", action);
+			// Update the browser's address bar smoothly
+			//window.history.pushState({}, '', url);
+			window.location.assign(url);
+		{% else %}
+			if (open_new_window) {
+				window.open("/?obj_id=" + action, '_blank');
+			} else {
+				//console.log("Trying to go to: " + action);
+				window.location.assign("/?obj_id=" + action);
+				// window.location.assign("/");
+			}
+		{% endif %}
+	
+	}
+	
+	{% if hide_by_default %}
+		{{search_list_id}}_hide_all();
+	{% else %}
+		{{search_list_id}}_show_all();
+	{% endif %}
+	
+  </script>
+
+
+</body>
+</html>

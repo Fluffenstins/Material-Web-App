@@ -122,6 +122,5 @@ class CommandLineManagerExplorer:
         return obj_json
 
 
-
 if __name__ == '__main__':
     explorer = CommandLineManagerExplorer()

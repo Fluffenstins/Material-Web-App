@@ -2,6 +2,7 @@ from datetime import datetime
 from dateutil import parser
 import random
 import string
+import bcrypt
 
 
 ITEM_SPACE = {}
@@ -37,6 +38,10 @@ class CoreMaterialObj:
             'associated_people',
             'creation_date'
         ]
+
+    @property
+    def display_name(self):
+        return self.name
 
     def _generate_id(self):
         characters = string.ascii_letters + string.digits
@@ -90,27 +95,70 @@ class Tag(CoreMaterialObj):
 
 
 class User(CoreMaterialObj):
-    def __init__(self, save_data=None, **kwargs):
+    def __init__(self, email='', password='', first_name='', last_name='', save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'user'
-        self.username = None
+        self.email = email
         self.password = None
-        self.person_id = None
+        self.first_name = first_name
+        self.last_name = last_name
+        self.roles = None
         self.favourites = []
+        # I think the person/user separation is going to be removed
+        self.person_id = None
 
         self.indexed_values += [
-            'username',
             'password',
             'person_id',
-            'favourites'
+            'first_name',
+            'last_name',
+            'email',
+            'favourites',
+            'roles'
         ]
 
         if save_data is not None:
             self.load_from_json(save_data)
+        else:
+            self.password = self.hash_password(password)
+
+    @property
+    def display_name(self):
+        return self.full_name
 
     @property
     def person(self):
         return self.lookup(self.person_id)
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def hash_password(self, password):
+        password = password.encode('utf-8')
+        password_hash = bcrypt.hashpw(password, bcrypt.gensalt(12))
+        password_hash = password_hash.decode('utf-8')
+        return password_hash
+
+    def check_password(self, password):
+        password_bytes = password.encode('utf-8')
+        password_hash = self.password.encode('utf-8')
+        ret = bcrypt.checkpw(password_bytes, password_hash)
+        return ret
+
+
+class Role(CoreMaterialObj):
+    def __init__(self, name=None, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
+        self.type = 'role'
+        self.name = name
+
+        self.indexed_values += [
+            'name'
+        ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
 
 
 class Person(CoreMaterialObj):
@@ -157,6 +205,10 @@ class CataloguedItem(CoreMaterialObj):
         if save_data is not None:
             self.load_from_json(save_data)
 
+    @property
+    def display_name(self):
+        return f"{self.item_id}"
+
     def get_item(self):
         if self.correct_item is not None:
             return self.lookup(self.correct_item).get_item
@@ -195,6 +247,14 @@ class Material(CoreMaterialObj):
         if save_data is not None:
             self.load_from_json(save_data)
 
+    @property
+    def site(self):
+        return self.lookup(self.parent_site)
+
+    @property
+    def display_name(self):
+        return f"{self.item.item_id}"
+
     def item_match(self, text):
         return self.item.item_match(text)
 
@@ -231,18 +291,25 @@ class Site(CoreMaterialObj):
             self.load_from_json(save_data)
 
     @property
+    def display_name(self):
+        return f"{self.site_id}"
+
+    @property
     def site(self):
         return self.lookup(self.site_id)
 
     def find_site(self, site_id):
 
-        if self.site_id.lower() == site_id.lower():
+        if self.id == site_id:
+            return self
+
+        if self.site_id.lower().strip() == site_id.lower().strip():
             return self
 
         for site in self.site_children:
-            ret = site.find_site(site_id)
+            ret = self.lookup(site).find_site(site_id)
             if ret is not None:
-                return site
+                return self.lookup(site)
 
     def find_material(self, item_id):
         for material_id in self.material_children:
@@ -250,11 +317,15 @@ class Site(CoreMaterialObj):
             if material_obj.item_match(item_id):
                 return material_obj
 
-    def attach_site_child(self, site):
-        self.site_children.append(site.id)
-
-    def attach_site_parent(self, site):
-        self.site_children.append(site.id)
+    def attach_site_parent(self, parent_site, main=False):
+        if parent_site.id in self.parent_site_ids:
+            return False
+        if main:
+            self.parent_site_ids.insert(0, parent_site.id)
+        else:
+            self.parent_site_ids.append(parent_site.id)
+        parent_site.site_children.append(self.id)
+        return True
 
     def count_material(self, item_id, recursive=True):
         count = 0
@@ -275,6 +346,18 @@ class Site(CoreMaterialObj):
         ret = sorted(list(item_ids))
         return ret
 
+    @property
+    def path(self):
+        path = []
+        node = self
+        while True:
+            path.append(node.site_id)
+            if len(node.parent_site_ids) == 0:
+                break
+            node = node.parent_site_ids[0]
+        ret = "/".join(path[::-1])
+        return ret
+
 
 class Stage(CoreMaterialObj):
     def __init__(self, save_data=None, **kwargs):
@@ -289,23 +372,50 @@ class Stage(CoreMaterialObj):
 
 
 class Action(CoreMaterialObj):
-    def __init__(self, action_type=None, date_str=None, save_data=None, **data):
+    def __init__(self, action_type=None, save_data=None, **data):
         super().__init__(save_data=save_data)
         self.type = 'action'
         self.action_type = action_type
         self.data = data
         self.processed = False
+        self.user = None
+        self.output = {}
 
-        self.creation_date = self.get_date(date_str)
+        try:
+            self.creation_date = self.get_date(data['date_str'])
+        except KeyError:
+            self.creation_date = self.get_date()
 
         self.indexed_values += [
             'action_type',
             'data',
-            'processed'
+            'processed',
+            'user',
+            'output'
         ]
 
         if save_data is not None:
             self.load_from_json(save_data)
+
+    def display_text(self):
+        match self.action_type:
+            case "create_material":
+                return f"Material created in {self.lookup(self.data['site']).site_id}: {self.data['item_id']}"
+            case "create_site":
+                return f"Site \"{self.data['site_id']}\" of type \"{self.data['site_type']}\" created."
+            case "receive":
+                return f"{self.data['qty']} received for {self.data['item_id']} at {self.data['location']}"
+            case "move_out":
+                return f"{self.data['qty']} moved out to {self.data['project_id']} for {self.data['item_id']} from {self.data['location']}"
+            case "set_site_parent":
+                return f"Site {self.lookup(self.data['parent_site_id']).site_id} was set as a parent to {self.lookup(self.data['site_id']).site_id}"
+            case _:
+                print(f"no procedure for {self.action_type}")
+                print(self.data)
+                return self.action_type
+
+    def add_output(self, key, value):
+        self.output[key] = value
 
 
 class Comment(CoreMaterialObj):
