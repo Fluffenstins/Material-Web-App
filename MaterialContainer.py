@@ -1,5 +1,5 @@
 import json
-from MaterialCore import Action, Material, Site, User, Person, CataloguedItem
+from MaterialCore import Action, Material, Site, User, Person, CataloguedItem, ITEM_SPACE
 import logging
 import logging.handlers
 import queue
@@ -54,6 +54,10 @@ class CoreMaterialManager:
         self.items = self._load_core_dict_json('items', CataloguedItem)
 
         self.action_history = self._load_core_list_json('action_history', Action)
+
+    def lookup(self, item_id):
+        item_obj = ITEM_SPACE[item_id]
+        return item_obj
 
     def _save_core_dict_json(self, core_dict, save_name):
         save_data = {obj_id: obj.json() for obj_id, obj in core_dict.items()}

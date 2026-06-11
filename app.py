@@ -84,6 +84,12 @@ def list_all_sites():
     return site_objs
 
 
+def list_action_history_breakdown(obj):
+    action_objs = [MATERIAL_APP.lookup(i) for i in obj.action_history[::-1]]
+    action_history = [{'id': i.id, 'text': i.display_text()} for i in action_objs]
+    return action_history
+
+
 @app.route("/")
 def home_page():
     obj_id = request.args.get('obj_id', default="")
@@ -109,7 +115,8 @@ def material_url():
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
-        action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
+        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
+        action_history = list_action_history_breakdown(material_obj)
 
     except AttributeError:
         user_obj = None
@@ -184,7 +191,7 @@ def site_url():
         material_children = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
         parent_sites = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
         site_children = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].name} for i in site_obj.site_children], key=lambda x: x['text'])
-        action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in site_obj.action_history]
+        action_history = list_action_history_breakdown(site_obj)
     else:
         site_id = "Not Found"
         address = "N/A"
