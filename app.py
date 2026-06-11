@@ -5,7 +5,8 @@ from LabelGen import CustomLabel
 from MaterialCore import ITEM_SPACE, Site, Material, Action
 import os
 
-app = Flask(__name__)
+template_dir = os.path.abspath('Templates')
+app = Flask(__name__, template_folder=template_dir)
 app.secret_key = 'dbnfjGYGygJUGYUFYGUGUIYg7Y87G867G87gh8j89ty75F56fd54D54Ds546t7g'
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -323,6 +324,8 @@ def login():
                 return redirect(next_url)
             else:
                 return redirect("site?site_id=OLT1")
+        print("Trying sincerely to log in.")
+        print(f"Path: {template_dir}")
         return render_template(
             "Login.html"
         )
@@ -369,11 +372,6 @@ def forgot_password():
     )
 
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
 if __name__ == '__main__':
+    print(app.template_folder)
     app.run(host='0.0.0.0', port=5000)
