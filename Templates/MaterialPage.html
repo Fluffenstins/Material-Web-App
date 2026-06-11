@@ -132,7 +132,7 @@ input {
   <div class="card">
     <div class="field">
       <div class="label">Item ID</div>
-      <div class="value" id="itemId">{{material_obj.item.item_id}}</div>
+      <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{material_obj.item.id}}')">{{material_obj.item.item_id}}</div>
     </div>
 
     <div class="field">
@@ -147,7 +147,7 @@ input {
 
     <div class="field">
       <div class="label">Location</div>
-      <div class="value" id="location">{{material_obj.lookup(material_obj.parent_site).path}}</div>
+      <div class="value" id="location">{{material_obj.site.path}}</div>
     </div>
 
     <div class="field">

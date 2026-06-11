@@ -354,8 +354,8 @@ class Site(CoreMaterialObj):
             path.append(node.site_id)
             if len(node.parent_site_ids) == 0:
                 break
-            node = node.parent_site_ids[0]
-        ret = "/".join(path[::-1])
+            node = node.lookup(node.parent_site_ids[0])
+        ret = " / ".join(path[::-1])
         return ret
 
 

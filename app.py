@@ -109,6 +109,7 @@ def material_url():
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
         action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
+
     except AttributeError:
         user_obj = None
         action_history = 'N/A'
