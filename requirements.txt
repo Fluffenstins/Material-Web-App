@@ -7,3 +7,4 @@ flask
 flask_login
 bcrypt
 gunicorn
+flask_cors
