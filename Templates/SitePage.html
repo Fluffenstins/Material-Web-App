@@ -128,6 +128,8 @@ border-bottom: 1px solid #ddd;
 border-bottom: none;
 }
 
+.receive { background: #28a745; color: black; }
+.transfer { background: #D96125; }
 .set_parent { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
 
@@ -147,17 +149,17 @@ border-bottom: none;
   <div class="card">
     <div class="field">
       <div class="label">Site ID</div>
-      <div class="value" id="siteId">{{site_id}}</div>
+      <div class="value" id="siteId">{{site_obj.site_id}}</div>
     </div>
 	
     <div class="field">
       <div class="label">Site Type</div>
-      <div class="value" id="siteType">{{site_type}}</div>
+      <div class="value" id="siteType">{{site_obj.site_type}}</div>
     </div>
 
     <div class="field">
       <div class="label">Address</div>
-      <div class="value" id="address">{{address}}</div>
+      <div class="value" id="address">{{site_obj.address}}</div>
     </div>
 
     <div class="field">
@@ -201,6 +203,8 @@ border-bottom: none;
 </div>
 
 <div class="bottom-bar">
+  <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{site_obj.id}}";'>Receive</button>
+  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{site_obj.id}}";'>Transfer Material</button>
   <button class="action-btn set_parent"  onclick="handleButtonUrl('{{set_parent_url}}', false)">Set Parent</button>
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}', true)">Get QR Code</button>
 </div>

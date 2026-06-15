@@ -112,7 +112,7 @@ input {
 }
 
 .receive { background: #28a745; }
-.move { background: #dc3545; }
+.transfer { background: #D96125; }
 .stage { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
 
@@ -190,8 +190,8 @@ input {
 </div>
 
 <div class="bottom-bar">
-  <button class="action-btn receive">Receive</button>
-  <button class="action-btn move">Move Out</button>
+  <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Receive</button>
+  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer Material</button>
   <button class="action-btn stage">Stage</button>
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}')">Get QR Code</button>
 </div>

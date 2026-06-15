@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inventory Item</title>
+
+<style>
+
+.child-list {
+list-style: none;
+padding: 0;
+}
+
+.child-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 10px;
+border-bottom: 1px solid #ddd;
+}
+
+.child-item:last-child {
+border-bottom: none;
+}
+
+
+.error-message {
+  font-size: 14px;
+  color: #ff0000;
+}
+
+
+
+.{{search_list_id}}-update-btn{ border: 1px solid #ddd; margin-top: -1px; background-color: #f6f6f6; padding: 12px; text-decoration: none; font-size: 18px; color: black; display: block }
+#myInput { width: 100%; padding: 12px; margin-bottom: 6px; border: 1px solid #ddd; }
+    #myUL { list-style-type: none; padding: 0; margin: 0; }
+    #myUL li a { border: 1px solid #ddd; margin-top: -1px; background-color: #f6f6f6; padding: 12px; text-decoration: none; font-size: 18px; color: black; display: none }
+    #myUL li a:hover { background-color: #eee; }
+	
+</style>
+</head>
+
+
+<body>
+<div class="field">
+
+  <input type="text" id="{{search_list_id}}_input" onkeyup="{{search_list_id}}_filterList()" placeholder="Search for {{item_type}}.." value={{default_text}}>
+	<div class="error-message" id="{{item_type}}_error">{{item_type}} not found.</div>
+	
+    <ul class="child-list" id="{{search_list_id}}_list">
+	{% for item in material_children %}
+		<li class="{{search_list_id}}-update-btn" onclick="{{search_list_id}}HandleButtonUrl(this.textContent, false)">
+			<span>{{item['text']}}</span>
+		</li>
+	{% endfor %}
+    </ul>
+	
+</div>
+
+
+  <script>
+  
+  function {{search_list_id}}_hide_all() {
+  
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+    for (i = 0; i < li.length; i++) {
+       li[i].style.display = "none"; // Hides item
+    }
+  }
+  
+  function {{search_list_id}}_show_all() {
+  
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+    for (i = 0; i < li.length; i++) {
+       li[i].style.display = ""; // Hides item
+    }
+  }
+  
+  function {{search_list_id}}_filterList() {
+    // Declare variables
+	console.log("{{search_list_id}}");
+    var input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById('{{search_list_id}}_input');
+    filter = input.value.toUpperCase(); // Case-insensitive matching
+    ul = document.getElementById("{{search_list_id}}_list");
+    li = ul.getElementsByTagName('li');
+
+	if (filter=="") {
+		{% if hide_by_default %}
+			{{search_list_id}}_hide_all();
+		{% else %}
+			{{search_list_id}}_show_all();
+		{% endif %}
+		return;
+	}
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (i = 0; i < li.length; i++) {
+      a = li[i].getElementsByTagName("span")[0];
+      txtValue = a.textContent || a.innerText;
+      
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        li[i].style.display = ""; // Shows item
+      } else {
+        li[i].style.display = "none"; // Hides item
+      }
+    }
+  }
+	function {{search_list_id}}HandleButtonUrl(action, open_new_window) {
+		action = action.replace(/[\n\r]+|[\s]{2,}/g, ' ');
+		action = action.trim();
+		input = document.getElementById('{{search_list_id}}_input');
+		input.value = action;
+		{{search_list_id}}_hide_all();
+	}
+	
+  function {{search_list_id}}_error(status) {
+	error_elem = document.getElementById("{{item_type}}_error");
+	if (status) {
+		error_elem.style.display = "";
+	} else {
+		error_elem.style.display = "none";
+	}
+  }
+  
+  function hide_all_errors() {
+	error_elems = document.getElementsByClassName("error-message");
+	for (i = 0; i < error_elems.length; i++) {
+		a = error_elems[i];
+		a.style.display = "none";
+	}
+  }
+  
+	
+	{% if hide_by_default %}
+		{{search_list_id}}_hide_all();
+	{% else %}
+		{{search_list_id}}_show_all();
+	{% endif %}
+	hide_all_errors();
+
+  </script>
+
+</body>
+</html>

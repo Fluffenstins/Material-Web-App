@@ -256,6 +256,8 @@ class Material(CoreMaterialObj):
         return f"{self.item.item_id}"
 
     def item_match(self, text):
+        if text == self.id:
+            return True
         return self.item.item_match(text)
 
     @property
@@ -398,21 +400,36 @@ class Action(CoreMaterialObj):
             self.load_from_json(save_data)
 
     def display_text(self):
+        data = {}
+        for key, value in self.data.items():
+            try:
+                data[key] = self.lookup(value).display_name
+            except (KeyError, TypeError):
+                data[key] = value
+        output = {}
+        for key, value in self.output.items():
+            try:
+                output[key] = self.lookup(value).display_name
+            except (KeyError, TypeError):
+                output[key] = value
+
         match self.action_type:
             case "create_material":
-                return f"Material created in {self.lookup(self.data['site']).site_id}: {self.data['item_id']}"
+                return f"Material created in {self.lookup(self.data['site']).site_id}: {data['item_id']}"
             case "create_site":
-                return f"Site \"{self.data['site_id']}\" of type \"{self.data['site_type']}\" created."
+                return f"Site \"{data['site_id']}\" of type \"{data['site_type']}\" created."
             case "receive":
-                return f"{self.data['qty']} received for {self.data['item_id']} at {self.data['location']}"
+                return f"{data['qty']} received for {data['item_id']} at {data['location']}"
             case "move_out":
-                return f"{self.data['qty']} moved out to {self.data['project_id']} for {self.data['item_id']} from {self.data['location']}"
+                return f"{data['qty']} moved out to {data['project_id']} for {data['item_id']} from {data['location']}"
             case "set_site_parent":
                 return f"Site {self.lookup(self.data['parent_site_id']).site_id} was set as a parent to {self.lookup(self.data['site_id']).site_id}"
             case "create_user":
-                return f"User \"{self.lookup(self.output['user_id']).display_name}\" created"
+                return f"User \"{output['user_id']}\" created"
             case "create_item":
-                return f"Item \"{self.lookup(self.output['catalogued_item_id']).display_name}\" catalogued"
+                return f"Item \"{output['catalogued_item_id']}\" catalogued"
+            case "transfer_material":
+                return f"{data['qty']} of {data['item_id']} transferred to {data['target_id']} from {data['source_id']}"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

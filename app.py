@@ -1,8 +1,8 @@
-from flask import Flask, send_from_directory, request, render_template, redirect
+from flask import Flask, send_from_directory, request, render_template, redirect, jsonify, url_for
 import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
-from MaterialCore import ITEM_SPACE, Site, Material, Action, User, CataloguedItem
+from MaterialCore import Site, Material, Action, User, CataloguedItem
 import os
 
 template_dir = os.path.abspath('Templates')
@@ -51,37 +51,17 @@ def check_credentials(necessary_credential=None):
     user_id = flask_login.current_user.id
 
 
-# def fill_json(obj_json):
-#     for key, val in obj_json.items():
-#         if key in ['id']:
-#             continue
-#         if type(val) != str:
-#             continue
-#         try:
-#             obj_json[key] = ITEM_SPACE[val].json()
-#         except KeyError:
-#             pass
-#
-#     def prune_keys(given_dict, pruned_keys):
-#         for key in list(given_dict.keys()):
-#             if key not in pruned_keys:
-#                 continue
-#             given_dict[key] = 'PRUNED'
-#             # del given_dict[key]
-#
-#         for key, val in given_dict.items():
-#             if type(val) is dict:
-#                 prune_keys(val, pruned_keys)
-#         return given_dict
-#
-#     prune_keys(obj_json, {'action_history'})
-#
-#     return obj_json
-
 def list_all_sites():
     site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items()]
     site_objs = sorted(site_objs, key=lambda x: x['text'])
     return site_objs
+
+
+def list_all_catalogue_items():
+    valid_ids = {val.get_item().id for key, val in MATERIAL_APP.items.items()}
+    catalogue_objs = [{'id': key, 'text': MATERIAL_APP.items[key].item_id} for key in valid_ids]
+    catalogue_objs = sorted(catalogue_objs, key=lambda x: x['text'])
+    return catalogue_objs
 
 
 def list_action_history_breakdown(obj):
@@ -94,7 +74,7 @@ def list_action_history_breakdown(obj):
 def home_page():
     obj_id = request.args.get('obj_id', default="")
     try:
-        obj = ITEM_SPACE[obj_id]
+        obj = MATERIAL_APP.lookup(obj_id)
         print(obj.json())
         if type(obj) is Site:
             return redirect(f"/site?site_id={obj_id}")
@@ -115,11 +95,10 @@ def home_page():
 @flask_login.login_required
 def material_url():
     item_id = request.args.get('item_id', default="")
-    material_obj = ITEM_SPACE[item_id]
+    material_obj = MATERIAL_APP.lookup(item_id)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
-        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
         action_history = list_action_history_breakdown(material_obj)
 
     except AttributeError:
@@ -140,11 +119,10 @@ def material_url():
 @flask_login.login_required
 def user_url():
     user_id = request.args.get('user_id', default="")
-    displayed_user_obj = ITEM_SPACE[user_id]
+    displayed_user_obj = MATERIAL_APP.lookup(user_id)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
-        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
         action_history = list_action_history_breakdown(displayed_user_obj)
 
     except AttributeError:
@@ -172,11 +150,10 @@ def user_chart_url():
 @flask_login.login_required
 def catalogue_url():
     item_id = request.args.get('item_id', default="")
-    catalogue_item_obj = ITEM_SPACE[item_id]
+    catalogue_item_obj = MATERIAL_APP.lookup(item_id)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
-        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
         action_history = list_action_history_breakdown(catalogue_item_obj)
     except AttributeError:
         user_obj = None
@@ -205,10 +182,10 @@ def catalogue_url():
 @flask_login.login_required
 def action_url():
     action_id = request.args.get('action_id', default="")
-    action_obj = ITEM_SPACE[action_id]
+    action_obj = MATERIAL_APP.lookup(action_id)
     print(action_obj.json())
     try:
-        action_user_obj = ITEM_SPACE[action_obj.user]
+        action_user_obj = MATERIAL_APP.lookup(action_obj.user)
     except KeyError:
         action_user_obj = None
 
@@ -221,7 +198,7 @@ def action_url():
 
     for key, value in action_obj.data.items():
         try:
-            interpreted_data[key] = [ITEM_SPACE[value].display_name, f"{request.url_root}?obj_id={value}"]
+            interpreted_data[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
         except:
             interpreted_data[key] = [value]
 
@@ -229,7 +206,7 @@ def action_url():
 
     for key, value in action_obj.output.items():
         try:
-            interpreted_output[key] = [ITEM_SPACE[value].display_name, f"{request.url_root}?obj_id={value}"]
+            interpreted_output[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
         except:
             interpreted_output[key] = [value]
 
@@ -250,16 +227,16 @@ def action_url():
 def site_url():
     site_id = request.args.get('site_id', default="")
     try:
-        site_obj = ITEM_SPACE[site_id]
+        site_obj = MATERIAL_APP.lookup(site_id)
     except KeyError:
         site_obj = MATERIAL_APP.find_site(site_id)
     if site_obj is not None:
         site_id = site_obj.site_id
         site_type = site_obj.site_type
         address = site_obj.address
-        material_children = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
-        parent_sites = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
-        site_children = sorted([{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].name} for i in site_obj.site_children], key=lambda x: x['text'])
+        material_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
+        parent_sites = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
+        site_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.site_children], key=lambda x: x['text'])
         action_history = list_action_history_breakdown(site_obj)
     else:
         site_id = "Not Found"
@@ -279,9 +256,7 @@ def site_url():
         "SitePage.html",
         qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
         set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
-        site_id=site_id,
-        address=address,
-        site_type=site_type,
+        site_obj=site_obj,
         material_children=material_children,
         parent_sites=parent_sites,
         site_children=site_children,
@@ -302,10 +277,7 @@ def set_site_parent_page():
     except AttributeError:
         user_obj = None
 
-    try:
-        site_obj = ITEM_SPACE[site_id]
-    except KeyError:
-        site_obj = MATERIAL_APP.find_site(site_id)
+    site_obj = MATERIAL_APP.find_site(site_id)
 
     parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
 
@@ -325,6 +297,76 @@ def set_site_parent_page():
         user_obj=user_obj,
         site_objs=site_objs,
         current_tab="Site"
+    )
+
+
+@app.route("/receive", methods=['GET'])
+@flask_login.login_required
+def receive_material_page():
+    location_id = request.args.get('location_id', default="")
+    project_id = request.args.get('project_id', default="")
+    catalogue_id = request.args.get('item_id', default="")
+    site_id = request.args.get('site_id', default="")
+    if site_id is not None:
+        site_obj = MATERIAL_APP.find_site(site_id)
+        if site_obj.site_type == 'project':
+            project_id = site_obj.id
+        elif site_obj.site_type == 'location':
+            location_id = site_obj.id
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    location_obj = MATERIAL_APP.find_site(location_id)
+    project_obj = MATERIAL_APP.find_site(project_id)
+    catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
+
+    site_objs = list_all_sites()
+    catalogue_objs = list_all_catalogue_items()
+
+    return render_template(
+        "ReceiveMaterialPage.html",
+        location_obj=location_obj,
+        project_obj=project_obj,
+        catalogue_obj=catalogue_obj,
+        user_obj=user_obj,
+        site_objs=site_objs,
+        catalogue_objs=catalogue_objs,
+        current_tab="Receive"
+    )
+
+
+@app.route("/transfer", methods=['GET'])
+@flask_login.login_required
+def transfer_material_page():
+    source_site_id = request.args.get('source_id', default="")
+    target_site_id = request.args.get('target_id', default="")
+    catalogue_id = request.args.get('item_id', default="")
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    source_obj = MATERIAL_APP.find_site(source_site_id)
+    target_obj = MATERIAL_APP.find_site(target_site_id)
+    catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
+    print(catalogue_id, catalogue_obj)
+
+    site_objs = list_all_sites()
+    catalogue_objs = list_all_catalogue_items()
+
+    return render_template(
+        "TransferMaterialPage.html",
+        source_obj=source_obj,
+        target_obj=target_obj,
+        catalogue_obj=catalogue_obj,
+        user_obj=user_obj,
+        site_objs=site_objs,
+        catalogue_objs=catalogue_objs,
+        current_tab="Transfer Material"
     )
 
 
@@ -351,7 +393,7 @@ def sites_directory_url():
 @app.route("/downloadQRCode")
 def download_qr_code():
     obj_id = request.args.get('obj_id', default=None)
-    obj = ITEM_SPACE[obj_id]
+    obj = MATERIAL_APP.lookup(obj_id)
     label = CustomLabel(obj.id, f"{request.root_url}?obj_id={obj_id}")
     label.save()
     return send_from_directory(
@@ -495,12 +537,76 @@ def api_catalogue_item():
 
 @app.route('/api/receiveMaterial', methods=['POST'])
 def api_receive_material():
-    pass
+    data = request.get_json()
+
+    location = data.get('location')
+    project = data.get('project')
+    item = data.get('item')
+    qty = data.get('qty')
+
+    location_obj = MATERIAL_APP.find_site(location)
+    project_obj = MATERIAL_APP.find_site(project)
+    item_obj = MATERIAL_APP.find_item(item)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if location is None or location_obj is None:
+        return jsonify({"error": f"Location \"{location}\" not found."}), 404
+    if project is not None and project_obj is None:
+        return jsonify({"error": f"Project \"{project}\" not found."}), 404
+    if item is None or (not item):
+        return jsonify({"error": f"No item provided."}), 404
+    if item_obj is None:
+        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+    if qty is None:
+        return jsonify({"error": f"Qty not provided."}), 400
+
+    ret = MATERIAL_APP.receive(
+        user_id=user_obj.id,
+        project_id=project_obj.id,
+        location=location_obj.id,
+        qty=qty,
+        item_id=item_obj.id
+    )
+
+    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 202
 
 
 @app.route('/api/transferMaterial', methods=['POST'])
 def api_transfer_material():
-    pass
+    data = request.get_json()
+
+    source = data.get('source')
+    target = data.get('target')
+    item = data.get('item')
+    qty = data.get('qty')
+
+    source_obj = MATERIAL_APP.find_site(source)
+    target_obj = MATERIAL_APP.find_site(target)
+    item_obj = MATERIAL_APP.find_item(item)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if source is None or source_obj is None:
+        return jsonify({"error": f"Source site \"{source}\" not found."}), 404
+    if target is not None and target_obj is None:
+        return jsonify({"error": f"Project \"{target}\" not found."}), 404
+    if item is None or (not item):
+        return jsonify({"error": f"No item provided."}), 404
+    if item_obj is None:
+        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+    if qty is None:
+        return jsonify({"error": f"Qty not provided."}), 400
+
+    ret = MATERIAL_APP.transfer_material(
+        user_id=user_obj.id,
+        target_id=target_obj.id,
+        source_id=source_obj.id,
+        qty=qty,
+        item_id=item_obj.id
+    )
+
+    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 202
 
 
 @app.route('/api/setInventory', methods=['POST'])

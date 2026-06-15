@@ -88,6 +88,7 @@ class CoreMaterialManager:
         return ret
 
     def ensure_material(self, site, item_id):
+        item_id = item_id.strip()
         material_obj = site.find_material(item_id)
         if material_obj is not None:
             return material_obj
@@ -95,7 +96,11 @@ class CoreMaterialManager:
         return material_obj
 
     def ensure_site(self, site_type, site_id):
-
+        try:
+            site_obj = self.lookup(site_id)
+            return site_obj
+        except KeyError:
+            pass
         for obj_id, site in self.sites.items():
             site_obj = site.find_site(site_id)
             if site_obj is not None:
@@ -105,15 +110,21 @@ class CoreMaterialManager:
         return site
 
     def ensure_item(self, item_id):
-        for obj_id, item in self.items.items():
-            if item.item_id.lower() == item_id:
-                # call get_item to get the correct item, because there may be duplicates
-                return item.get_item()
+        item_id = item_id.strip()
+        item = self.find_item(item_id)
+        if item is not None:
+            return item
 
         item = self.create_item(item_id=item_id)
         return item
 
     def find_site(self, site_id):
+        try:
+            obj = self.lookup(site_id)
+            if type(obj) is Site:
+                return obj
+        except KeyError:
+            pass
         if not site_id:
             return None
         for obj_id, site in self.sites.items():
@@ -122,8 +133,21 @@ class CoreMaterialManager:
                 return ret
 
     def find_material(self, site, item_id):
+        item_id = item_id.strip()
         material_obj = site.find_material(item_id)
         return material_obj
+
+    def find_item(self, item_id):
+        try:
+            item_obj = self.lookup(item_id)
+            return item_obj
+        except KeyError:
+            pass
+        item_id = item_id.strip().lower()
+        for obj_id, item in self.items.items():
+            if item.item_id.lower() == item_id:
+                # call get_item to get the correct item, because there may be duplicates
+                return item.get_item()
 
     def find_user(self, email):
         if email is None:
@@ -144,6 +168,7 @@ class CoreMaterialManager:
         return site
 
     def create_material(self, site, item_id):
+
         action = Action('create_material', site=site.id, item_id=item_id)
         material_obj = self.enact_action(action)
         return material_obj
@@ -170,7 +195,8 @@ class CoreMaterialManager:
             date_str=date_str
         )
         action.description = "Receive material."
-        self.enact_action(action)
+        ret = self.enact_action(action)
+        return ret
 
     def move_out(self, user_id, project_id, item_id, qty, location, date_str=None):
         action = Action(
@@ -184,6 +210,20 @@ class CoreMaterialManager:
         )
         action.description = f"Move out material from {location} to {project_id}."
         self.enact_action(action)
+
+    def transfer_material(self, user_id, source_id, target_id, item_id, qty, date_str=None):
+        action = Action(
+            action_type='transfer_material',
+            user=user_id,
+            source_id=source_id,
+            target_id=target_id,
+            item_id=item_id,
+            qty=qty,
+            date_str=date_str
+        )
+        action.description = f"Transfer material from {source_id} to {target_id}."
+        ret = self.enact_action(action)
+        return ret
 
     def set_site_parent(self, user_id, site_id, parent_site_id):
         action = Action(
@@ -203,7 +243,8 @@ class CoreMaterialManager:
             'move_out': self._move_out,
             'create_item': self._create_item,
             'create_user': self._create_user,
-            'set_site_parent': self._set_site_parent
+            'set_site_parent': self._set_site_parent,
+            'transfer_material': self._transfer_material
         }
         try:
             ret = action_dict[action.action_type](action)
@@ -293,7 +334,7 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         qty = action.data['qty']
         location = action.data['location']
-        date_str = action.data['date_str']
+        # date_str = action.data['date_str']
 
         try:
             if type(qty) is str:
@@ -305,32 +346,41 @@ class CoreMaterialManager:
         if location is None:
             location = 'Default Location'
 
+        user_obj = self.find_user(user_name)
+
+        catalogue_obj = self.ensure_item(item_id)
+        item_id = catalogue_obj.item_id
+
         location_site = self.ensure_site('location', location)
         location_material_obj = self.ensure_material(location_site, item_id)
 
         location_material_obj.qty_received += qty
         location_material_obj.qty += qty
+        # add user actions
+        if user_obj is not None:
+            user_obj.add_action(action)
         # add site actions
         location_site.add_action(action)
         # add material actions
         location_material_obj.add_action(action)
-        location_site.add_action(action)
         # add catalogue actions
-        location_material_obj.item.add_action(action)
+        catalogue_obj.add_action(action)
 
         action.add_output('location_id', location_site.id)
         action.add_output('location_material_id', location_material_obj.id)
 
         if project_id is not None:
-            project = self.ensure_site('project', project_id)
-            project_material_obj = self.ensure_material(project, item_id)
+            project_site = self.ensure_site('project', project_id)
+            project_material_obj = self.ensure_material(project_site, item_id)
             project_material_obj.qty_received += qty
             # add site actions
-            project.add_action(action)
+            project_site.add_action(action)
             # add material actions
             project_material_obj.add_action(action)
-            action.add_output('project_id', project.id)
+            action.add_output('project_id', project_site.id)
             action.add_output('project_material_id', project_material_obj.id)
+
+        return location_material_obj
 
     def _move_out(self, action):
         user_name = action.data['user']
@@ -371,6 +421,45 @@ class CoreMaterialManager:
         action.add_output('project_item_id', location_material_obj.id)
         action.add_output('project_id', project.id)
         action.add_output('project_item_id', project_material_obj.id)
+
+    def _transfer_material(self, action):
+        user_name = action.data['user']
+        source_id = action.data['source_id']
+        target_id = action.data['target_id']
+        item_id = action.data['item_id']
+        qty = action.data['qty']
+
+        try:
+            if type(qty) is str:
+                qty = int(qty)
+        except ValueError:
+            print(f"Bad Qty: {action.json()}")
+            qty = 0
+
+        source_obj = self.ensure_site('location', source_id)
+        target_obj = self.ensure_site('project', target_id)
+
+        source_material_obj = self.ensure_material(source_obj, item_id)
+        target_material_obj = self.ensure_material(target_obj, item_id)
+
+        source_material_obj.qty -= qty
+        target_material_obj.qty += qty
+
+        # add site actions
+        source_obj.add_action(action)
+        target_obj.add_action(action)
+        # add material actions
+        source_material_obj.add_action(action)
+        target_material_obj.add_action(action)
+        # add catalogue actions
+        source_material_obj.item.add_action(action)
+
+        action.add_output('source_id', source_obj.id)
+        action.add_output('source_item_id', source_material_obj.id)
+        action.add_output('target_id', target_obj.id)
+        action.add_output('target_item_id', target_material_obj.id)
+
+        return target_material_obj
 
     def _create_user(self, action):
         email = action.data['email']
