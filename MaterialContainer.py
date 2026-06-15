@@ -436,6 +436,8 @@ class CoreMaterialManager:
             print(f"Bad Qty: {action.json()}")
             qty = 0
 
+        user_obj = self.find_user(user_name)
+
         source_obj = self.ensure_site('location', source_id)
         target_obj = self.ensure_site('project', target_id)
 
@@ -445,6 +447,9 @@ class CoreMaterialManager:
         source_material_obj.qty -= qty
         target_material_obj.qty += qty
 
+        # add user actions
+        if user_obj is not None:
+            user_obj.add_action(action)
         # add site actions
         source_obj.add_action(action)
         target_obj.add_action(action)

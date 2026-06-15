@@ -353,7 +353,6 @@ def transfer_material_page():
     source_obj = MATERIAL_APP.find_site(source_site_id)
     target_obj = MATERIAL_APP.find_site(target_site_id)
     catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
-    print(catalogue_id, catalogue_obj)
 
     site_objs = list_all_sites()
     catalogue_objs = list_all_catalogue_items()
