@@ -1,6 +1,5 @@
 from flask import Flask, send_from_directory, request, render_template, redirect, jsonify, url_for
 import flask_login
-from flask_cors import CORS
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem
@@ -8,7 +7,6 @@ import os
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
-CORS(app, origins=["http://localhost:5000"])
 app.secret_key = 'dbnfjGYGygJUGYUFYGUGUIYg7Y87G867G87gh8j89ty75F56fd54D54Ds546t7g'
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)

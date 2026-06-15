@@ -308,7 +308,7 @@ console.log("Attempting to receive.");
 }
 
 async function post_request(data) {
-	const ret = await fetch("http://192.168.2.71:5000/api/transferMaterial", {
+	const ret = await fetch("/api/transferMaterial", {
   method: "POST",
   body: JSON.stringify(data),
   headers: {
