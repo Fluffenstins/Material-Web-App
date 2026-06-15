@@ -225,6 +225,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def set_inventory(self, user_id, site_id, item_id, qty: int):
+        action = Action(
+            action_type='set_inventory',
+            user=user_id,
+            site_id=site_id,
+            item_id=item_id,
+            qty=qty
+        )
+        ret = self.enact_action(action)
+        return ret
+
     def set_site_parent(self, user_id, site_id, parent_site_id):
         action = Action(
             action_type='set_site_parent',
@@ -244,7 +255,8 @@ class CoreMaterialManager:
             'create_item': self._create_item,
             'create_user': self._create_user,
             'set_site_parent': self._set_site_parent,
-            'transfer_material': self._transfer_material
+            'transfer_material': self._transfer_material,
+            'set_inventory': self._set_inventory
         }
         try:
             ret = action_dict[action.action_type](action)
@@ -513,6 +525,30 @@ class CoreMaterialManager:
 
         if not went_through:
             raise AttributeError("Unable to assign site parent.")
+
+    def _set_inventory(self, action):
+        user_id = action.data['user']
+        site_id = action.data['site_id']
+        item_id = action.data['item_id']
+        qty = action.data['qty']
+
+        user_obj = self.find_user(user_id)
+
+        site_obj = self.find_site(site_id)
+
+        catalogue_item_obj = self.ensure_item(item_id)
+        material_obj = self.ensure_material(site_obj, catalogue_item_obj.item_id)
+
+        material_obj.qty = qty
+
+        action.add_output('site_id', site_obj.id)
+        action.add_output('material_id', material_obj.id)
+
+        material_obj.add_action(action=action)
+        site_obj.add_action(action=action)
+        user_obj.add_action(action=action)
+
+        return material_obj
 
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')

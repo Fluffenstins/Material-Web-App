@@ -228,6 +228,40 @@ function updateCount() {
   // Clear input
   input.value = "";
 }
+
+async function setInventory(site_id, item_id, qty) {
+	
+	const data = {
+	"site_id": site_id,
+	"item": item_id,
+	"qty": qty
+	};
+	let ret = await post_request(data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Receive successful!");
+		//history.back();
+		window.location.replace(document.referrer);
+	}
+	
+	console.log(response_data);
+}
+
+async function post_request(data) {
+	const ret = await fetch("/api/setInventory", {
+  method: "POST",
+  body: JSON.stringify(data),
+  headers: {
+    "Content-type": "application/json; charset=UTF-8"
+  }
+});
+return ret;
+}
+
 function handleButtonUrl(action) {
 			window.open(action, '_blank');
         }

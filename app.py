@@ -610,7 +610,31 @@ def api_transfer_material():
 
 @app.route('/api/setInventory', methods=['POST'])
 def api_set_inventory():
-    pass
+    data = request.get_json()
+    site_id = data.get('site_id')
+    item = data.get('item')
+    qty = data.get('qty')
+
+    site_obj = MATERIAL_APP.find_site(site_id)
+    item_obj = MATERIAL_APP.find_item(item)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if site_obj is None:
+        return jsonify({"error": f"Site \"{site_id}\" not found."}), 404
+    if user_obj is None:
+        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+    if item_obj is None:
+        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+
+    ret = MATERIAL_APP.set_inventory(
+        user_id=user_obj.id,
+        site_id=site_obj.id,
+        qty=qty,
+        item_id=item_obj.id
+    )
+
+    return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 202
 
 
 @app.route('/api/inventoryReport', methods=['GET'])
