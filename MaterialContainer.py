@@ -393,7 +393,7 @@ class CoreMaterialManager:
 
         new_user.add_action(action)
 
-        action.add_output('location_id', new_user.id)
+        action.add_output('user_id', new_user.id)
 
         return new_user
 

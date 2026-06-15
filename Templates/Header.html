@@ -118,7 +118,7 @@ body {
     <!-- Right -->
     <div class="topbar-right">
         <div class="user">
-            <div class="user-icon">G</div>
+            <div class="user-icon"  onclick="handleButtonUrl('/?obj_id={{user_obj.id}}')">{{user_obj.first_name[0].upper()}}</div>
             <span>{{user_obj.first_name}}</span>
         </div>
         <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>

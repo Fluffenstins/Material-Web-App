@@ -409,6 +409,10 @@ class Action(CoreMaterialObj):
                 return f"{self.data['qty']} moved out to {self.data['project_id']} for {self.data['item_id']} from {self.data['location']}"
             case "set_site_parent":
                 return f"Site {self.lookup(self.data['parent_site_id']).site_id} was set as a parent to {self.lookup(self.data['site_id']).site_id}"
+            case "create_user":
+                return f"User \"{self.lookup(self.output['user_id']).display_name}\" created"
+            case "create_item":
+                return f"Item \"{self.lookup(self.output['catalogued_item_id']).display_name}\" catalogued"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

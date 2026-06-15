@@ -2,7 +2,7 @@ from flask import Flask, send_from_directory, request, render_template, redirect
 import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
-from MaterialCore import ITEM_SPACE, Site, Material, Action
+from MaterialCore import ITEM_SPACE, Site, Material, Action, User, CataloguedItem
 import os
 
 template_dir = os.path.abspath('Templates')
@@ -102,6 +102,10 @@ def home_page():
             return redirect(f"/material?item_id={obj_id}")
         if type(obj) is Action:
             return redirect(f"/action?action_id={obj_id}")
+        if type(obj) is User:
+            return redirect(f"/user?user_id={obj_id}")
+        if type(obj) is CataloguedItem:
+            return redirect(f"/catalogue?item_id={obj_id}")
     except KeyError:
         pass
     return redirect("/sites")
@@ -129,6 +133,71 @@ def material_url():
         user_obj=user_obj,
         action_history=action_history,
         current_tab="Material"
+    )
+
+
+@app.route("/user")
+@flask_login.login_required
+def user_url():
+    user_id = request.args.get('user_id', default="")
+    displayed_user_obj = ITEM_SPACE[user_id]
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
+        action_history = list_action_history_breakdown(displayed_user_obj)
+
+    except AttributeError:
+        user_obj = None
+        action_history = 'N/A'
+
+    return render_template(
+        "UserPage.html",
+        qr_code_url=f"{request.url_root}downloadQRCode?obj_id={displayed_user_obj.id}",
+        displayed_user_obj=displayed_user_obj,
+        user_obj=user_obj,
+        action_history=action_history,
+        current_tab="User"
+    )
+
+
+@app.route("/chart")
+def user_chart_url():
+    return render_template(
+        "ChartTemplate.html"
+    )
+
+
+@app.route("/catalogue")
+@flask_login.login_required
+def catalogue_url():
+    item_id = request.args.get('item_id', default="")
+    catalogue_item_obj = ITEM_SPACE[item_id]
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+        # action_history = [{'id': ITEM_SPACE[i].id, 'text': ITEM_SPACE[i].display_text()} for i in material_obj.action_history]
+        action_history = list_action_history_breakdown(catalogue_item_obj)
+    except AttributeError:
+        user_obj = None
+        action_history = 'N/A'
+
+    aliases = [MATERIAL_APP.lookup(i) for i in catalogue_item_obj.deprecated_items]
+    aliases = sorted(aliases, key=lambda x: x.item_id)
+    aliases = [{'id': i.id, 'text': i.item_id} for i in aliases]
+
+    deprecated_status = catalogue_item_obj.correct_item is not None
+    deprecated_status = True
+
+    return render_template(
+        "CataloguePage.html",
+        qr_code_url=f"{request.url_root}downloadQRCode?obj_id={catalogue_item_obj.id}",
+        catalogue_item_obj=catalogue_item_obj,
+        aliases=aliases,
+        user_obj=user_obj,
+        action_history=action_history,
+        deprecated_status=deprecated_status,
+        current_tab="Catalogue Item"
     )
 
 
@@ -317,7 +386,7 @@ def register():
     flask_login.login_user(user)
     USERS[ret.id] = user
 
-    MATERIAL_APP._save_core_dict_json(MATERIAL_APP.users, "users")
+    MATERIAL_APP.save_json()
 
     return redirect("site?site_id=OLT1")
 
@@ -377,6 +446,72 @@ def forgot_password():
     return render_template(
         "Login.html"
     )
+
+
+@app.route('/api/site', methods=['GET', 'POST', 'PATCH'])
+def api_site():
+    # get
+    # return site json
+
+    # post
+    # create site, return json
+
+    # patch
+    # adjust specific site obj attributes
+    # allow to note whether appending to a list or popping when relevant.
+    # assume that if append/pop is not provided, that we are adding.
+    pass
+
+
+@app.route('/api/user', methods=['GET', 'POST', 'PATCH'])
+def api_user():
+    # get
+    # return user json
+
+    # post
+    # create user, return json
+
+    # patch
+    # adjust specific user obj attributes
+    # allow to note whether appending to a list or popping when relevant.
+    # assume that if append/pop is not provided, that we are adding.
+    pass
+
+
+@app.route('/api/catalogueItem', methods=['GET', 'POST', 'PATCH'])
+def api_catalogue_item():
+    # get
+    # return item json
+
+    # post
+    # create item, return json
+
+    # patch
+    # adjust specific item obj attributes
+    # allow to note whether appending to a list or popping when relevant.
+    # assume that if append/pop is not provided, that we are adding.
+    pass
+
+
+@app.route('/api/receiveMaterial', methods=['POST'])
+def api_receive_material():
+    pass
+
+
+@app.route('/api/transferMaterial', methods=['POST'])
+def api_transfer_material():
+    pass
+
+
+@app.route('/api/setInventory', methods=['POST'])
+def api_set_inventory():
+    pass
+
+
+@app.route('/api/inventoryReport', methods=['GET'])
+def api_inventory_report():
+    # allow tags so we can filter material
+    pass
 
 
 if __name__ == '__main__':
