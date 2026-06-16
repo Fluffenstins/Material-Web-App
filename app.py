@@ -854,19 +854,25 @@ def api_pick_up_material():
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
-    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
+    ret = MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
+
+    if type(ret) is Site:
+        return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 202
+    return jsonify({"error": f"Unable to edit site {site_id}."}), 404
 
 
 @app.route('/api/completeIntermediateTransfer', methods=['POST'])
 def api_complete_intermediate_material():
     data = request.get_json()
     source_id = data.get('source_id')
-    target_id = data.get('target_id')
+
+    source_obj = MATERIAL_APP.find_site(source_id)
+    target_id = MATERIAL_APP.find_site(source_obj.destination_site).id
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
-    MATERIAL_APP.transfer_all_material(user_id=user_obj.id, source_id=source_id, target_id=target_id)
-    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=source_id, data={'status': 'inactive'})
+    MATERIAL_APP.transfer_all_material(user_id=user_obj.id, source_id=source_obj.id, target_id=target_id)
+    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=source_obj.id, data={'status': 'delivered'})
 
 
 if __name__ == '__main__':

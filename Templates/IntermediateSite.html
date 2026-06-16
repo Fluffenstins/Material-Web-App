@@ -161,14 +161,14 @@ border-bottom: none;
   <div class="card">
     <div class="field">
       <div class="label">Pick Up Material</div>
-        <div class="update-btn in_transit" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">In Transit</div>
+        <div class="update-btn in_transit" id="site_id" onclick="handleTransitButton();">In Transit</div>
 	  </div
 	</div>
   </div>
   <div class="card">
     <div class="field">
       <div class="label">Complete Transfer</div>
-        <div class="update-btn complete_transfer" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">Arrived at Site</div>
+        <div class="update-btn complete_transfer" id="site_id" onclick="handleCompleteButton();">Arrived at Site</div>
 	  </div
 	</div>
   </div>
@@ -186,6 +186,74 @@ function handleButtonUrl(action, open_new_window) {
 				window.location.href = action
 			}
         }
+		
+async function handleTransitButton() {
+	const data = {
+	"site_id": "{{site_obj.id}}"
+	};
+	let ret = await post_request('/api/pickUpMaterial', data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		window.location.reload();
+	}
+}
+		
+async function handleCompleteButton() {
+	const data = {
+	"source__id": "{{site_obj.id}}"
+	};
+	let ret = await post_request('/api/completeIntermediateTransfer', data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		window.location.reload();
+	}
+}
+		
+async function submitReceive() {
+	const source_elem = document.getElementById("source_input");
+	const target_elem = document.getElementById("target_input");
+	const item_elem = document.getElementById("catalogue_item_input");
+	const qty_elem = document.getElementById("qty_input");
+	
+	const data = {
+	"source": source_elem.value,
+	"target": target_elem.value,
+	"item": item_elem.value,
+	"qty": qty_elem.value
+	};
+	let ret = await post_request(data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Receive successful!");
+		//history.back();
+		window.location.replace(document.referrer);
+	}
+	
+	console.log(response_data);
+}
+
+async function post_request(url, data) {
+	const ret = await fetch(url, {
+  method: "POST",
+  body: JSON.stringify(data),
+  headers: {
+    "Content-type": "application/json; charset=UTF-8"
+  }
+});
+return ret;
+}
 	
 </script>
 

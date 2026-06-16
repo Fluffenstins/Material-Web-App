@@ -267,13 +267,14 @@ class CoreMaterialManager:
 
     def patch_site(self, user_id, site_id, data):
         action = Action(
-            action_type='set_site_parent',
+            action_type='patch_site',
             user=user_id,
             site_id=site_id,
             data=data
         )
         action.description = "Site settings changed."
-        self.enact_action(action)
+        ret = self.enact_action(action)
+        return ret
 
     def enact_action(self, action):
         action_dict = {
@@ -665,6 +666,7 @@ class CoreMaterialManager:
         for key, value in data.items():
             if key in site_obj.indexed_values:
                 action.add_output(f'prev_{key}', deepcopy(site_obj.__getattribute__(key)))
+                site_obj.__setattr__(key, value)
             else:
                 action.add_output(f'error_{key}', value)
 
