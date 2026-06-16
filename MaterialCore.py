@@ -69,12 +69,14 @@ class CoreMaterialObj:
     def add_action(self, action):
         self.action_history.append(action.id)
 
-    def get_date(self, date_str=None):
+    def get_date(self, date_str=None, date_format=None):
+        if date_format is None:
+            date_format = self.date_format
         if date_str is None:
             date_obj = datetime.now()
         else:
             date_obj = parser.parse(date_str)
-        new_date_str = date_obj.strftime(self.date_format)
+        new_date_str = date_obj.strftime(date_format)
         return new_date_str
 
 
@@ -264,15 +266,27 @@ class Material(CoreMaterialObj):
     def item(self):
         return self.lookup(self.item_id).get_item()
 
+    @property
+    def last_cycle_count(self):
+        for action_id in self.action_history[::-1]:
+            action = self.lookup(action_id)
+            if action.action_type != 'set_inventory':
+                continue
+            ret = {'qty': action.data['qty'], 'previous_qty': action.output['previous_qty'], 'date': action.get_date(date_format="%Y-%m-%d")}
+            print(ret)
+            return ret
+
 
 class Site(CoreMaterialObj):
-    def __init__(self, site_id=None, site_type=None, address=None, save_data=None, **kwargs):
+    def __init__(self, site_id=None, site_type=None, address=None, status='active', save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'site'
         self.site_type = site_type
         self.site_id = site_id
         self.address = address
         self.parent_site_ids = []
+        self.status = status  # used for tracking intermediate sites
+        self.destination_site = None  # allows bulk transfers to a destination site
         if self.site_type == 'project':
             self.material_counted_in_inventory = False
         else:
@@ -286,7 +300,9 @@ class Site(CoreMaterialObj):
             'parent_site_ids',
             'material_counted_in_inventory',
             'material_children',
-            'site_children'
+            'site_children',
+            'status',
+            'destination_site'
         ]
 
         if save_data is not None:
@@ -360,17 +376,11 @@ class Site(CoreMaterialObj):
         ret = " / ".join(path[::-1])
         return ret
 
-
-class Stage(CoreMaterialObj):
-    def __init__(self, save_data=None, **kwargs):
-        super().__init__(save_data=save_data, **kwargs)
-        self.type = 'stage'
-
-        self.indexed_values += [
-        ]
-
-        if save_data is not None:
-            self.load_from_json(save_data)
+    @property
+    def is_intermediate(self):
+        if self.destination_site is not None:
+            return True
+        return False
 
 
 class Action(CoreMaterialObj):
@@ -430,6 +440,8 @@ class Action(CoreMaterialObj):
                 return f"Item \"{output['catalogued_item_id']}\" catalogued"
             case "transfer_material":
                 return f"{data['qty']} of {data['item_id']} transferred to {data['target_id']} from {data['source_id']}"
+            case "set_inventory":
+                return f"Inventory set to {data['qty']} from {output['previous_qty']}"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)
@@ -437,6 +449,16 @@ class Action(CoreMaterialObj):
 
     def add_output(self, key, value):
         self.output[key] = value
+
+    def str_to_int(self, text):
+        if type(text) is int:
+            return text
+        try:
+            return int(text)
+        except TypeError:
+            # allows scientific notation which is allowed by html
+            # note that floating point approximations apply here. We don't like this
+            return int(float(text))
 
 
 class Comment(CoreMaterialObj):

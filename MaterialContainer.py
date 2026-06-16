@@ -162,8 +162,15 @@ class CoreMaterialManager:
                 return user
         return None
 
-    def create_site(self, site_id, site_type, parent_site_ids=()):
-        action = Action('create_site', site_type=site_type, parent_site_ids=parent_site_ids, site_id=site_id)
+    def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None):
+        action = Action(
+            'create_site',
+            site_type=site_type,
+            parent_site_ids=parent_site_ids,
+            site_id=site_id,
+            user=user_id,
+            status=status
+        )
         site = self.enact_action(action)
         return site
 
@@ -225,6 +232,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def transfer_all_material(self, user_id, source_id, target_id):
+        action = Action(
+            action_type='transfer_all_material',
+            user=user_id,
+            source_id=source_id,
+            target_id=target_id
+        )
+        action.description = f"Transfer all material from {source_id} to {target_id}."
+        ret = self.enact_action(action)
+        return ret
+
     def set_inventory(self, user_id, site_id, item_id, qty: int):
         action = Action(
             action_type='set_inventory',
@@ -256,7 +274,8 @@ class CoreMaterialManager:
             'create_user': self._create_user,
             'set_site_parent': self._set_site_parent,
             'transfer_material': self._transfer_material,
-            'set_inventory': self._set_inventory
+            'set_inventory': self._set_inventory,
+            'transfer_all_material': self._transfer_all_material
         }
         try:
             ret = action_dict[action.action_type](action)
@@ -319,10 +338,11 @@ class CoreMaterialManager:
         except KeyError:
             parent_site_ids = []
         site_type = action.data['site_type']
+        status = action.data['status']
         site_id = action.data['site_id'].strip()
 
         # Create the site
-        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id)
+        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status)
         self.sites[site_obj.id] = site_obj
 
         for parent_site_id in parent_site_ids:
@@ -478,6 +498,18 @@ class CoreMaterialManager:
 
         return target_material_obj
 
+    def _transfer_all_material(self, action):
+        user_name = action.data['user']
+        source_id = action.data['source_id']
+        target_id = action.data['target_id']
+
+        source_obj = self.ensure_site('location', source_id)
+        target_obj = self.ensure_site('project', target_id)
+
+        raise NotImplementedError()
+
+        return target_material_obj
+
     def _create_user(self, action):
         email = action.data['email']
         first_name = action.data['first_name']
@@ -532,6 +564,9 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         qty = action.data['qty']
 
+        # ensures that the qty is actually a qty
+        qty = action.str_to_int(qty)
+
         user_obj = self.find_user(user_id)
 
         site_obj = self.find_site(site_id)
@@ -539,16 +574,43 @@ class CoreMaterialManager:
         catalogue_item_obj = self.ensure_item(item_id)
         material_obj = self.ensure_material(site_obj, catalogue_item_obj.item_id)
 
+        # make note of what the inventory was previously
+        action.add_output('previous_qty', material_obj.qty)
+        # change the qty
         material_obj.qty = qty
 
         action.add_output('site_id', site_obj.id)
         action.add_output('material_id', material_obj.id)
+
+        action.user = user_obj.id
 
         material_obj.add_action(action=action)
         site_obj.add_action(action=action)
         user_obj.add_action(action=action)
 
         return material_obj
+
+    def _patch_site(self, action):
+        user_id = action.data['user']
+        site_id = action.data['site_id']
+        data = action.data['data']
+
+        user_obj = self.find_user(user_id)
+        site_obj = self.find_site(site_id)
+
+        if site_obj is None:
+            raise KeyError(f'Site {site_id} not found.')
+
+        for key, value in data.items():
+            if key in site_obj.indexed_values:
+                pass
+            else:
+                action.add_output('site_id', site_obj.id)
+
+        site_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('site_id', site_obj.id)
 
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')

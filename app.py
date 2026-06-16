@@ -77,6 +77,8 @@ def home_page():
         obj = MATERIAL_APP.lookup(obj_id)
         print(obj.json())
         if type(obj) is Site:
+            if obj.is_intermediate:
+                return redirect(f"/intermediateSite?site_id={obj_id}")
             return redirect(f"/site?site_id={obj_id}")
         if type(obj) is Material:
             return redirect(f"/material?item_id={obj_id}")
@@ -264,6 +266,52 @@ def site_url():
         user_obj=user_obj,
         current_tab="Site"
     )
+
+
+@app.route("/intermediateSite")
+@flask_login.login_required
+def intermediate_site_url():
+    site_id = request.args.get('site_id', default="")
+    try:
+        site_obj = MATERIAL_APP.lookup(site_id)
+    except KeyError:
+        site_obj = MATERIAL_APP.find_site(site_id)
+
+    if site_obj is not None:
+        site_id = site_obj.site_id
+        site_type = site_obj.site_type
+        address = site_obj.address
+        material_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
+        parent_sites = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
+        site_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.site_children], key=lambda x: x['text'])
+        action_history = list_action_history_breakdown(site_obj)
+    else:
+        site_id = "Not Found"
+        address = "N/A"
+        material_children = "N/A"
+        site_children = "N/A"
+        parent_sites = "N/A"
+        action_history = "N/A"
+        site_type = "N/A"
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "IntermediateSite.html",
+        qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
+        set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
+        site_obj=site_obj,
+        material_children=material_children,
+        parent_sites=parent_sites,
+        site_children=site_children,
+        action_history=action_history,
+        user_obj=user_obj,
+        current_tab="Site"
+    )
+
 
 
 @app.route("/setSiteParent", methods=['GET'])
@@ -501,7 +549,44 @@ def api_site():
     # adjust specific site obj attributes
     # allow to note whether appending to a list or popping when relevant.
     # assume that if append/pop is not provided, that we are adding.
-    pass
+    if request.method == 'GET':
+        # return a site
+        raise NotImplementedError
+    if request.method == 'POST':
+        # create a site
+        data = request.get_json()
+        site_id = data.get('site_id')
+        site_type = data.get('site_type')
+
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+        existing_site_obj = MATERIAL_APP.find_site(site_id)
+        if existing_site_obj is not None:
+            return jsonify({"error": f"Site {site_id} already exists."}), 409
+
+        ret = MATERIAL_APP.create_site(site_id=site_id, site_type=site_type, user_id=user_obj.id)
+
+        if type(ret) is not Site:
+            return jsonify({"error": f"Error when creating site."}), 409
+
+        return jsonify({"message": f"Site created successfully.", "data": {"id": ret.id}}), 201
+    if request.method == 'PATCH':
+        # update a site
+        data = request.get_json()
+        site_id = data.get('site_id')
+        site_obj = MATERIAL_APP.find_site(site_id)
+
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+        if site_obj is None:
+            return jsonify({"error": f"Site {site_id} was not found."}), 404
+
+        ret = {"message": f"Site updated successfully.", "data": {"id": site_obj.id}}
+
+        site_type = data.get('site_type')
+        status = data.get('status')
+        address = data.get('address')
+        raise NotImplementedError
 
 
 @app.route('/api/user', methods=['GET', 'POST', 'PATCH'])
@@ -568,7 +653,7 @@ def api_receive_material():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 202
+    return jsonify({"message": f"Item received created successfully.", "data": {"id": ret.id}}), 202
 
 
 @app.route('/api/transferMaterial', methods=['POST'])
@@ -640,6 +725,16 @@ def api_set_inventory():
 @app.route('/api/inventoryReport', methods=['GET'])
 def api_inventory_report():
     # allow tags so we can filter material
+    pass
+
+
+@app.route('/api/pickUpMaterial', methods=['POST'])
+def api_pick_up_material():
+    pass
+
+
+@app.route('/api/completeIntermediateTransfer', methods=['POST'])
+def api_pick_up_material():
     pass
 
 
