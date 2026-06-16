@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Horizontal Scroll Header</title>
+  <style>
+    /* The scrollable wrapper */
+    .scroll-header {
+	width: 50%;
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      background-color: #222;
+      padding: 10px 20px;
+      /* Smooth touch scrolling on mobile devices */
+      -webkit-overflow-scrolling: touch; 
+    }
+
+    /* Hide the scrollbar for a cleaner look (optional) */
+    .scroll-header::-webkit-scrollbar {
+      display: none;
+    }
+    .scroll-header {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Header links */
+    .scroll-header a {
+      display: inline-block;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      font-family: sans-serif;
+      font-weight: bold;
+    }
+
+    .scroll-header a:hover {
+      background-color: #444;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="scroll-header">
+    <a href="#home">Home</a>
+    <a href="#trending">Trending</a>
+    <a href="#technology">Technology</a>
+    <a href="#business">Business</a>
+    <a href="#lifestyle">Lifestyle</a>
+    <a href="#entertainment">Entertainment</a>
+    <a href="#sports">Sports</a>
+    <a href="#science">Science</a>
+    <a href="#health">Health</a>
+  </header>
+
+</body>
+</html>

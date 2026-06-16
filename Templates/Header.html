@@ -43,8 +43,11 @@ body {
 
 /* Tabs */
 .tabs {
+	width: 40vw;
     display: flex;
     gap: 20px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch; 
 }
 
 .tab {
@@ -106,12 +109,10 @@ body {
         <button class="back-btn" onclick="history.back()">←</button>
 
         <div class="tabs">
-			{% if current_tab == "Sites" %}
-				<div class="tab active">Sites</div>
-			{% else %}
-				<div class="tab" onclick="window.location.href='/sites'">Sites</div>
-				<div class="tab active">{{current_tab}}</div>
-			{% endif %}
+				<div class="tab {{'active' if current_tab == 'Locations'}}" onclick="window.location.href='/locations'">Locations</div>
+				<div class="tab {{'active' if current_tab == 'Projects'}}" onclick="window.location.href='/projects'">Projects</div>
+				<div class="tab {{'active' if current_tab == 'Stages'}}" onclick="window.location.href='/stages'">Stages</div>
+				<div class="tab">{{current_tab}}</div>
         </div>
     </div>
 

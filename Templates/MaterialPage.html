@@ -190,8 +190,8 @@ input {
 
 <div class="bottom-bar">
   <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Receive</button>
-  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer Material</button>
-  <button class="action-btn stage">Stage</button>
+  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer</button>
+  <button class="action-btn stage"onclick='window.location.href = "/stage?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Stage</button>
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}')">Get QR Code</button>
 </div>
 

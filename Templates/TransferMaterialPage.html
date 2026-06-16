@@ -182,7 +182,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Target Site</div>
 	
-	{% with search_list_id="target", item_type="Site", material_children=site_objs, hide_by_default=true %}
+	{% with search_list_id="target", item_type="Site", material_children=site_objs, hide_by_default=true, default_text=target_obj.display_name %}
     {% include "SimpleDropdown.html" %}
 	{% endwith %}
 	

@@ -4,6 +4,7 @@ from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem
 import os
+from dateutil import parser
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
@@ -73,11 +74,12 @@ def list_action_history_breakdown(obj):
 @app.route("/")
 def home_page():
     obj_id = request.args.get('obj_id', default="")
+    from_qr = request.args.get('from_qr', default="")
     try:
         obj = MATERIAL_APP.lookup(obj_id)
         print(obj.json())
         if type(obj) is Site:
-            if obj.is_intermediate:
+            if obj.is_intermediate and from_qr != '':
                 return redirect(f"/intermediateSite?site_id={obj_id}")
             return redirect(f"/site?site_id={obj_id}")
         if type(obj) is Material:
@@ -313,7 +315,6 @@ def intermediate_site_url():
     )
 
 
-
 @app.route("/setSiteParent", methods=['GET'])
 @flask_login.login_required
 def set_site_parent_page():
@@ -402,6 +403,8 @@ def transfer_material_page():
     target_obj = MATERIAL_APP.find_site(target_site_id)
     catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
 
+    print(source_obj, target_obj, catalogue_obj)
+
     site_objs = list_all_sites()
     catalogue_objs = list_all_catalogue_items()
 
@@ -437,11 +440,124 @@ def sites_directory_url():
     )
 
 
+@app.route("/locations")
+@flask_login.login_required
+def locations_directory_url():
+
+    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location']
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="Locations",
+        site_objs=site_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/projects")
+@flask_login.login_required
+def projects_directory_url():
+
+    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'project']
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="Projects",
+        site_objs=site_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/stages")
+@flask_login.login_required
+def stages_directory_url():
+
+    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'intermediate']
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="Projects",
+        site_objs=site_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/stage")
+@flask_login.login_required
+def stage_url():
+    source_site_id = request.args.get('source_id', default="")
+    target_site_id = request.args.get('target_id', default="")
+    catalogue_id = request.args.get('item_id', default="")
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if not target_site_id:
+        # find most recent intermediate site for user
+        active_staging_sites = []
+        for site_id, site_obj in MATERIAL_APP.sites.items():
+            owner = site_obj.owner
+            if owner is None:
+                continue
+            if site_obj.status != 'stage':
+                continue
+            if owner.id != user_obj.id:
+                continue
+            active_staging_sites.append(site_obj)
+
+        if len(active_staging_sites) == 0:
+            created_new_stage = True
+            counter = 0
+            stage_name = f"Stage {counter}"
+            while MATERIAL_APP.find_site(stage_name) is not None:
+                counter += 1
+                stage_name = f"Stage {counter}"
+            stage_obj = MATERIAL_APP.create_site(
+                site_id=stage_name,
+                site_type='intermediate',
+                status='stage',
+                user_id=user_obj.id
+            )
+            print(f"Creating Stage: {stage_obj.id} : {stage_obj.display_name}")
+        else:
+            stage_obj = sorted(active_staging_sites, key=lambda x: parser.parse(x.creation_date))[-1]
+            print(f"Found Stage: {stage_obj.id} : {stage_obj.display_name}")
+    else:
+        stage_obj = MATERIAL_APP.find_site(target_site_id)
+        print(f"Defaulting to Stage: {stage_obj.id} : {stage_obj.display_name}")
+
+    source_obj = MATERIAL_APP.find_site(source_site_id)
+
+    catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
+
+    args = "&".join([f"{key}={val.id}" for key, val in {'source_id': source_obj, 'target_id': stage_obj, 'item_id': catalogue_obj}.items() if val is not None])
+
+    return redirect(
+        f'/transfer?{args}')
+
+
 @app.route("/downloadQRCode")
 def download_qr_code():
     obj_id = request.args.get('obj_id', default=None)
     obj = MATERIAL_APP.lookup(obj_id)
-    label = CustomLabel(obj.id, f"{request.root_url}?obj_id={obj_id}")
+    label = CustomLabel(obj.id, f"{request.root_url}?obj_id={obj_id}&from_qr=true")
     label.save()
     return send_from_directory(
         directory="",
@@ -464,12 +580,15 @@ def register():
     if None in (email, password, first_name, last_name):
         return
 
-    ret = MATERIAL_APP.create_user(
-        email=email,
-        password=password,
-        first_name=first_name,
-        last_name=last_name
-    )
+    try:
+        ret = MATERIAL_APP.create_user(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+    except KeyError:
+        return redirect('/login')
 
     user = user_loader(email)
     flask_login.login_user(user)
@@ -730,12 +849,24 @@ def api_inventory_report():
 
 @app.route('/api/pickUpMaterial', methods=['POST'])
 def api_pick_up_material():
-    pass
+    data = request.get_json()
+    site_id = data.get('site_id')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
 
 
 @app.route('/api/completeIntermediateTransfer', methods=['POST'])
-def api_pick_up_material():
-    pass
+def api_complete_intermediate_material():
+    data = request.get_json()
+    source_id = data.get('source_id')
+    target_id = data.get('target_id')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    MATERIAL_APP.transfer_all_material(user_id=user_obj.id, source_id=source_id, target_id=target_id)
+    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=source_id, data={'status': 'inactive'})
 
 
 if __name__ == '__main__':

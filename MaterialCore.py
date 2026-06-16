@@ -25,7 +25,7 @@ class CoreMaterialObj:
         self.comments = []
         self.description = None
         self.associated_people = []
-        self.creation_date = None
+        self.creation_date = self.get_date()
         self.action_history = []
 
         self.indexed_values = [
@@ -213,7 +213,7 @@ class CataloguedItem(CoreMaterialObj):
 
     def get_item(self):
         if self.correct_item is not None:
-            return self.lookup(self.correct_item).get_item
+            return self.lookup(self.correct_item).get_item()
         return self
 
     def item_match(self, text):
@@ -378,9 +378,19 @@ class Site(CoreMaterialObj):
 
     @property
     def is_intermediate(self):
-        if self.destination_site is not None:
-            return True
-        return False
+        return self.site_type == 'intermediate'
+
+    @property
+    def owner(self):
+        for action_id in self.action_history:
+            action = self.lookup(action_id)
+            if action.action_type != 'create_site':
+                continue
+            try:
+                return self.lookup(action.user)
+            except KeyError:
+                return None
+        return None
 
 
 class Action(CoreMaterialObj):

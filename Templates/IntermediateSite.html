@@ -132,6 +132,8 @@ border-bottom: none;
 .transfer { background: #D96125; }
 .set_parent { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
+.in_transit { background: #C2A1F0; }
+.complete_transfer { background: #51F59F; }
 
 @media (max-width: 480px) {
   .value {
@@ -159,14 +161,14 @@ border-bottom: none;
   <div class="card">
     <div class="field">
       <div class="label">Pick Up Material</div>
-        <div class="update-btn" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">In Transit</div>
+        <div class="update-btn in_transit" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">In Transit</div>
 	  </div
 	</div>
   </div>
   <div class="card">
     <div class="field">
       <div class="label">Complete Transfer</div>
-        <div class="update-btn" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">Arrived at Site</div>
+        <div class="update-btn complete_transfer" id="site_id" onclick="window.location.assign('/site?site_id={{site_obj.id}}')">Arrived at Site</div>
 	  </div
 	</div>
   </div>

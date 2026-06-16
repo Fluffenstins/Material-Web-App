@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 import queue
 import sys
+from copy import deepcopy
 
 
 class MaterialLogging:
@@ -174,14 +175,14 @@ class CoreMaterialManager:
         site = self.enact_action(action)
         return site
 
-    def create_material(self, site, item_id):
+    def create_material(self, site, item_id, user_id=None):
 
-        action = Action('create_material', site=site.id, item_id=item_id)
+        action = Action('create_material', site=site.id, item_id=item_id, user=user_id)
         material_obj = self.enact_action(action)
         return material_obj
 
-    def create_item(self, item_id, mpn=None, description=None):
-        action = Action('create_item', item_id=item_id, mpn=mpn, description=description)
+    def create_item(self, item_id, mpn=None, description=None, user=None):
+        action = Action('create_item', item_id=item_id, mpn=mpn, description=description, user=user)
         item = self.enact_action(action)
         return item
 
@@ -264,6 +265,16 @@ class CoreMaterialManager:
         action.description = "Parent site set."
         self.enact_action(action)
 
+    def patch_site(self, user_id, site_id, data):
+        action = Action(
+            action_type='set_site_parent',
+            user=user_id,
+            site_id=site_id,
+            data=data
+        )
+        action.description = "Site settings changed."
+        self.enact_action(action)
+
     def enact_action(self, action):
         action_dict = {
             'receive': self._receive,
@@ -275,11 +286,16 @@ class CoreMaterialManager:
             'set_site_parent': self._set_site_parent,
             'transfer_material': self._transfer_material,
             'set_inventory': self._set_inventory,
-            'transfer_all_material': self._transfer_all_material
+            'transfer_all_material': self._transfer_all_material,
+            'patch_site': self._patch_site
         }
         try:
             ret = action_dict[action.action_type](action)
             action.processed = True
+            try:
+                action.user = action.output['user_id']
+            except KeyError:
+                pass
         except Exception as e:
             raise e
             return e
@@ -316,6 +332,9 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         mpn = action.data['mpn']
         description = action.data['description']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
 
         item_obj = CataloguedItem(
             item_id=item_id,
@@ -326,6 +345,9 @@ class CoreMaterialManager:
         self.items[item_obj.id] = item_obj
 
         item_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
 
         action.add_output('catalogued_item_id', item_obj.id)
 
@@ -340,6 +362,9 @@ class CoreMaterialManager:
         site_type = action.data['site_type']
         status = action.data['status']
         site_id = action.data['site_id'].strip()
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
 
         # Create the site
         site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status)
@@ -354,8 +379,11 @@ class CoreMaterialManager:
             parent_site.attach_site_child(site_obj)
             site_obj.attach_site_parent(parent_site)
 
-        site_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
 
+        site_obj.add_action(action)
         action.add_output('site_id', site_obj.id)
 
         return site_obj
@@ -391,6 +419,7 @@ class CoreMaterialManager:
         # add user actions
         if user_obj is not None:
             user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
         # add site actions
         location_site.add_action(action)
         # add material actions
@@ -473,6 +502,9 @@ class CoreMaterialManager:
         source_obj = self.ensure_site('location', source_id)
         target_obj = self.ensure_site('project', target_id)
 
+        item_obj = self.ensure_item(item_id)
+        item_id = item_obj.item_id
+
         source_material_obj = self.ensure_material(source_obj, item_id)
         target_material_obj = self.ensure_material(target_obj, item_id)
 
@@ -482,6 +514,7 @@ class CoreMaterialManager:
         # add user actions
         if user_obj is not None:
             user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
         # add site actions
         source_obj.add_action(action)
         target_obj.add_action(action)
@@ -499,16 +532,42 @@ class CoreMaterialManager:
         return target_material_obj
 
     def _transfer_all_material(self, action):
-        user_name = action.data['user']
+        user_id = action.data['user']
         source_id = action.data['source_id']
         target_id = action.data['target_id']
+
+        user_obj = self.find_user(user_id)
 
         source_obj = self.ensure_site('location', source_id)
         target_obj = self.ensure_site('project', target_id)
 
-        raise NotImplementedError()
+        for material_id in source_obj.material_children:
+            source_material_obj = self.lookup(material_id)
+            target_material_obj = self.ensure_material(site=target_obj, item_id=source_material_obj.item.id)
 
-        return target_material_obj
+            target_material_obj.qty += source_material_obj.qty
+            source_material_obj.qty = 0
+
+            # add material actions
+            source_material_obj.add_action(action)
+            target_material_obj.add_action(action)
+            # add catalogue actions
+            source_material_obj.item.add_action(action)
+
+        # add user actions
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+        # add site actions
+        source_obj.add_action(action)
+        target_obj.add_action(action)
+
+        # add outputs
+        action.add_output('user', user_obj.id)
+        action.add_output('source_id', source_obj.id)
+        action.add_output('target_id', target_obj.id)
+
+        return target_obj
 
     def _create_user(self, action):
         email = action.data['email']
@@ -552,6 +611,8 @@ class CoreMaterialManager:
         site_obj.add_action(action)
         user_obj.add_action(action)
 
+        action.add_output('user_id', user_obj.id)
+
         action.add_output('site_id', site_obj.id)
         action.add_output('parent_side_id', parent_site_obj.id)
 
@@ -582,7 +643,7 @@ class CoreMaterialManager:
         action.add_output('site_id', site_obj.id)
         action.add_output('material_id', material_obj.id)
 
-        action.user = user_obj.id
+        action.add_output('user_id', user_obj.id)
 
         material_obj.add_action(action=action)
         site_obj.add_action(action=action)
@@ -603,14 +664,19 @@ class CoreMaterialManager:
 
         for key, value in data.items():
             if key in site_obj.indexed_values:
-                pass
+                action.add_output(f'prev_{key}', deepcopy(site_obj.__getattribute__(key)))
             else:
-                action.add_output('site_id', site_obj.id)
+                action.add_output(f'error_{key}', value)
 
         site_obj.add_action(action)
-        user_obj.add_action(action)
+
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
 
         action.add_output('site_id', site_obj.id)
+
+        return site_obj
 
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')
