@@ -6,6 +6,7 @@ import queue
 import sys
 from copy import deepcopy
 import threading
+import shutil
 
 
 class MaterialLogging:
@@ -58,7 +59,13 @@ class CoreMaterialManager:
     def async_save(self):
         save_thread = threading.Thread(target=self.save_json)
         save_thread.start()
-        # self.save_json()
+
+    def make_backup(self):
+        save_path = "data_backup"
+        extension = "zip"
+        save_name = f"{save_path}.{extension}"
+        shutil.make_archive(base_name="data_backup", format="zip", root_dir="SaveData")
+        return save_name
 
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]

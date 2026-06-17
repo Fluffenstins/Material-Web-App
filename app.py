@@ -1,10 +1,11 @@
-from flask import Flask, send_from_directory, request, render_template, redirect, jsonify, url_for
+from flask import Flask, send_from_directory, request, render_template, redirect, jsonify, send_file
 import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem
 import os
 from dateutil import parser
+import shutil
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
@@ -611,10 +612,10 @@ def download_qr_code():
     path = f"label {obj.id}.pdf"
     label = CustomLabel(obj.display_name, f"{request.root_url}?obj_id={obj_id}&from_qr=true")
     label.save(path=path)
-    return send_from_directory(
-        directory="",
-        path='label.pdf',
-        as_attachment=True
+    return send_file(
+        'label.pdf',
+        as_attachment=True,
+        download_name=f"Label {obj.id}.pdf"
     )
 
 
@@ -955,6 +956,29 @@ def api_login():
     return jsonify({"data": {'id': user_obj.id}}), 200
 
 
+@app.route('/api/dbBackup', methods=['GET'])
+def api_db_backup():
+    save_name = MATERIAL_APP.make_backup()
+    return send_file(
+        save_name,
+        as_attachment=True,
+        download_name=f"Backup.zip"
+    )
+
+
 if __name__ == '__main__':
     print(app.template_folder)
     app.run(host='0.0.0.0', port=5000)
+
+'''
+Daniel
+Grady
+Jess
+Jon
+Michael
+Nunzio
+Umberto
+Eliana
+
+'''
+
