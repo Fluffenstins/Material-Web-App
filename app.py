@@ -574,33 +574,20 @@ def download_qr_code():
 def update_password():
     if request.method == 'GET':
         return render_template(
-            "ChangePassword.html"
+            "UpdatePassword.html"
         )
 
     email = request.form.get('email')
     password = request.form.get('password')
-    first_name = request.form.get('firstName')
-    last_name = request.form.get('lastName')
-    if None in (email, password, first_name, last_name):
-        return
-
-    try:
-        ret = MATERIAL_APP.create_user(
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
+    if None in (email, password):
+        return render_template(
+            "UpdatePassword.html"
         )
-    except KeyError:
-        return redirect('/login')
 
-    user = user_loader(email)
-    flask_login.login_user(user)
-    USERS[ret.id] = user
+    user_obj = MATERIAL_APP.find_user(email=email)
+    user_obj.password = user_obj.hash_password(password)
 
-    MATERIAL_APP.save_json()
-
-    return redirect("site?site_id=OLT1")
+    return redirect("login")
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -615,6 +602,7 @@ def register():
     first_name = request.form.get('firstName')
     last_name = request.form.get('lastName')
     if None in (email, password, first_name, last_name):
+        print(f"error registering {(email, password, first_name, last_name)}")
         return
 
     try:
@@ -675,7 +663,7 @@ def login():
     ret = flask_login.login_user(user)
     USERS[user_obj.id] = user
     if not next_url:
-        return redirect("site?site_id=OLT1")
+        return redirect("sites")
     return redirect(next_url)
 
 
@@ -683,14 +671,6 @@ def login():
 def logout():
     flask_login.logout_user()
     return redirect('/login')
-
-
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-
-    return render_template(
-        "Login.html"
-    )
 
 
 @app.route('/api/site', methods=['GET', 'POST', 'PATCH'])

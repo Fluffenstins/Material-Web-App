@@ -115,7 +115,6 @@ class User(CoreMaterialObj):
 
         self.indexed_values += [
             'password',
-            'person_id',
             'first_name',
             'last_name',
             'email',
@@ -134,10 +133,6 @@ class User(CoreMaterialObj):
     @property
     def display_name(self):
         return self.full_name
-
-    @property
-    def person(self):
-        return self.lookup(self.person_id)
 
     @property
     def full_name(self):

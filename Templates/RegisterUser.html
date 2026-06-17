@@ -4,7 +4,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,12 +73,12 @@
     <h2>Create Account</h2>
 
     <form method="post">
-        <input type="text" id="email" placeholder="Email" required>
-        <input type="text" id="firstName" placeholder="First Name" required>
-        <input type="text" id="lastName" placeholder="Last Name" required>
+        <input type="text" name="email" placeholder="Email" required>
+        <input type="text" name="firstName" placeholder="First Name" required>
+        <input type="text" name="lastName" placeholder="Last Name" required>
 
-        <input type="password" id="password" placeholder="Password" required>
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" required oninput="check()">
+        <input type="password" name="password", id="password" placeholder="Password" required>
+        <input type="password" name="confirmPassword", id="confirmPassword" placeholder="Confirm Password" required oninput="check()">
 
         <button type="submit">Create Account</button>
     </form>
@@ -90,7 +90,7 @@
 function check() {
     var input = document.getElementById('confirmPassword');
     if (input.value != document.getElementById('password').value) {
-        input.setCustomValidity('Password Must Match.');
+        input.setCustomValidity('Password Must .');
     } else {
         // input is valid -- reset the error message
         input.setCustomValidity('');
