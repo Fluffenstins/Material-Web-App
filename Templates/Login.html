@@ -83,14 +83,49 @@
 
 <div class="login-container">
     <h2>Login</h2>
-    <form action="/login" method="post">
-        <input type="text" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Sign In</button>
-    </form>
+        <input type="text" name="email" id="email" placeholder="Email" required>
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <button type="submit" onclick="login();">Sign In</button>
     <a href="/updatePassword" class="forgot">Forgot Password?</a>
     <a href="/register" class="register">Register</a>
 </div>
 
 </body>
+
+<script>
+async function login() {
+	const email_elem = document.getElementById("email");
+	const password_elem = document.getElementById("password");
+	
+	const data = {
+	"email": email_elem.value,
+	"password": password_elem.value
+	};
+	let ret = await post_request('/api/login', data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		window.location.replace("/register");
+	} else {
+		let params = new URLSearchParams(document.location.search);
+		let next_page = params.get("next"); // is the string "Jonathan"
+		console.log(next_page);
+		window.location.replace(document.referrer);
+	}
+	
+	console.log(response_data);
+}
+
+async function post_request(url, data) {
+	const ret = await fetch(url, {
+  method: "POST",
+  body: JSON.stringify(data),
+  headers: {
+    "Content-type": "application/json; charset=UTF-8"
+  }
+});
+return ret;
+}
+</script>
+
 </html>

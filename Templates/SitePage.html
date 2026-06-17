@@ -214,7 +214,11 @@ border-bottom: none;
 <div class="bottom-bar">
   <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{site_obj.id}}";'>Receive</button>
   <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{site_obj.id}}";'>Transfer</button>
+  {% if site_obj.is_intermediate %}
+  <button class="action-btn set_parent" onclick='window.location.href = "/setSiteDestination?site_id={{site_obj.id}}";'>Set Destination</button>
+  {% else %}
   <button class="action-btn set_parent"  onclick="handleButtonUrl('{{set_parent_url}}', false)">Set Parent</button>
+  {% endif %}
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}', true)">Get QR Code</button>
 </div>
 

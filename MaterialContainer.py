@@ -56,9 +56,9 @@ class CoreMaterialManager:
         self.action_history = self._load_core_list_json('action_history', Action)
 
     def async_save(self):
-        # save_thread = threading.Thread(target=self.save_json)
-        # save_thread.start()
-        self.save_json()
+        save_thread = threading.Thread(target=self.save_json)
+        save_thread.start()
+        # self.save_json()
 
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]
@@ -302,6 +302,7 @@ class CoreMaterialManager:
                 action.user = action.output['user_id']
             except KeyError:
                 pass
+            # note that the action is not added to history unless it fully goes through
             self.action_history.append(action)
             if self.save_after_action:
                 self.async_save()
@@ -670,7 +671,7 @@ class CoreMaterialManager:
             raise KeyError(f'Site {site_id} not found.')
 
         for key, value in data.items():
-            if key in site_obj.accessible_values(user_obj.id):
+            if key in site_obj.accessible_attributes(user_obj.id):
                 if value == deepcopy(site_obj.__getattribute__(key)):
                     raise AttributeError(f"Value {key} does not differ from existing value")
                 action.add_output(f'prev_{key}', deepcopy(site_obj.__getattribute__(key)))

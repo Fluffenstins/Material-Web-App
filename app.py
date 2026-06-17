@@ -260,18 +260,32 @@ def site_url():
     except AttributeError:
         user_obj = None
 
-    return render_template(
-        "SitePage.html",
-        qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
-        set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
-        site_obj=site_obj,
-        material_children=material_children,
-        parent_sites=parent_sites,
-        site_children=site_children,
-        action_history=action_history,
-        user_obj=user_obj,
-        current_tab="Site"
-    )
+    if site_obj.is_intermediate:
+        return render_template(
+            "StagePage.html",
+            qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
+            set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
+            site_obj=site_obj,
+            material_children=material_children,
+            parent_sites=parent_sites,
+            site_children=site_children,
+            action_history=action_history,
+            user_obj=user_obj,
+            current_tab="Site"
+        )
+    else:
+        return render_template(
+            "SitePage.html",
+            qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
+            set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
+            site_obj=site_obj,
+            material_children=material_children,
+            parent_sites=parent_sites,
+            site_children=site_children,
+            action_history=action_history,
+            user_obj=user_obj,
+            current_tab="Site"
+        )
 
 
 @app.route("/intermediateSite")
@@ -347,6 +361,39 @@ def set_site_parent_page():
         "SetSiteParentPage.html",
         site_url=f"{request.url_root}/?obj_id={site_obj.id}",
         site_obj=site_obj,
+        user_obj=user_obj,
+        site_objs=site_objs,
+        current_tab="Site"
+    )
+
+
+@app.route("/setSiteDestination", methods=['GET'])
+@flask_login.login_required
+def set_site_destination_page():
+    site_id = request.args.get('site_id', default="")
+    destination_site_id = request.args.get('destination_id', default="")
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    site_obj = MATERIAL_APP.find_site(site_id)
+    destination_obj = MATERIAL_APP.find_site(destination_site_id)
+
+    print(f"destination {(user_obj, site_obj, destination_obj, destination_site_id)}")
+
+    if None not in (user_obj, site_obj, destination_obj):
+        MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_obj.id, data={'destination_site': destination_obj.id})
+        return redirect(f"/site?site_id={site_obj.id}")
+
+    site_objs = list_all_sites()
+
+    return render_template(
+        "SetSiteDestinationPage.html",
+        site_url=f"{request.url_root}/?obj_id={site_obj.id}",
+        site_obj=site_obj,
+        destination_obj=destination_obj,
         user_obj=user_obj,
         site_objs=site_objs,
         current_tab="Site"
@@ -624,47 +671,19 @@ def register():
     return redirect("site?site_id=OLT1")
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET'])
 def login():
     next_url = request.args.get('next', default="")
-    if request.method == 'GET':
-        if flask_login.current_user.is_authenticated:
-            if next_url:
-                return redirect(next_url)
-            else:
-                return redirect("site?site_id=OLT1")
-        print("Trying sincerely to log in.")
-        print(f"Path: {template_dir}")
-        return render_template(
-            "Login.html"
-        )
-
-    email = request.form.get('email')
-    password = request.form.get('password')
-
-    if email is None or password is None:
-        return render_template(
-            "Login.html"
-        )
-
-    user = user_loader(email)
-    if user is None:
-        return redirect('register')
-
-    user_obj = MATERIAL_APP.find_user(email)
-
-    # need to check password
-    if not user_obj.check_password(password):
-        print(f"Password didn't match: {user_obj.password}")
-        return render_template(
-            "Login.html"
-        )
-
-    ret = flask_login.login_user(user)
-    USERS[user_obj.id] = user
-    if not next_url:
-        return redirect("sites")
-    return redirect(next_url)
+    if flask_login.current_user.is_authenticated:
+        if next_url:
+            return redirect(next_url)
+        else:
+            return redirect("site?site_id=OLT1")
+    print("Trying sincerely to log in.")
+    print(f"Path: {template_dir}")
+    return render_template(
+        "Login.html"
+    )
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -789,7 +808,7 @@ def api_receive_material():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Item received created successfully.", "data": {"id": ret.id}}), 202
+    return jsonify({"message": f"Item received created successfully.", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/transferMaterial', methods=['POST'])
@@ -826,7 +845,7 @@ def api_transfer_material():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 202
+    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/setInventory', methods=['POST'])
@@ -855,7 +874,7 @@ def api_set_inventory():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 202
+    return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/inventoryReport', methods=['GET'])
@@ -879,7 +898,7 @@ def api_pick_up_material():
         return jsonify({"error": f"Invalid attribute requested for {site_id}."}), 403
 
     if type(ret) is Site:
-        return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 202
+        return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 200
     return jsonify({"error": f"Unable to edit site {site_id}."}), 404
 
 
@@ -889,15 +908,50 @@ def api_complete_intermediate_material():
     source_id = data.get('source_id')
 
     source_obj = MATERIAL_APP.find_site(source_id)
-    print(source_id, source_obj)
 
+    if source_obj.status == 'delivered':
+        return jsonify({"error": f"No destination site found for {source_id}."}), 404
 
-    target_id = MATERIAL_APP.find_site(source_obj.destination_site).id
+    try:
+        target_id = MATERIAL_APP.find_site(source_obj.destination_site).id
+    except AttributeError:
+        return jsonify({"error": f"No destination site found for {source_id}."}), 404
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     MATERIAL_APP.transfer_all_material(user_id=user_obj.id, source_id=source_obj.id, target_id=target_id)
     MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=source_obj.id, data={'status': 'delivered'})
+
+    return jsonify({"data": {'id': target_id}}), 200
+
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if email is None:
+        return jsonify({"error": f"No email provided."}), 400
+    if password is None:
+        return jsonify({"error": f"No password provided."}), 400
+
+    user = user_loader(email)
+    if user is None:
+        return jsonify({"error": f"Client user creation failed. Please make sure user exists"}), 424
+
+    user_obj = MATERIAL_APP.find_user(email)
+
+    # need to check password
+    if not user_obj.check_password(password):
+        return jsonify({"error": f"Incorrect password."}), 403
+
+    ret = flask_login.login_user(user)
+    USERS[user_obj.id] = user
+    # if not next_url:
+    #     return redirect("sites")
+    # return redirect(next_url)
+    return jsonify({"data": {'id': user_obj.id}}), 200
 
 
 if __name__ == '__main__':

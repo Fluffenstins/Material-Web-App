@@ -426,7 +426,7 @@ class Action(CoreMaterialObj):
             case "create_material":
                 return f"Material created in {self.lookup(self.data['site']).site_id}: {data['item_id']}"
             case "create_site":
-                return f"Site \"{data['site_id']}\" of type \"{data['site_type']}\" created."
+                return f"Site \"{data['site_id']}\" of type \"{data['site_type']}\" created"
             case "receive":
                 return f"{data['qty']} received for {data['item_id']} at {data['location']}"
             case "move_out":
@@ -443,7 +443,7 @@ class Action(CoreMaterialObj):
                 return f"Inventory set to {data['qty']} from {output['previous_qty']}"
             case "patch_site":
                 max_word_count = 2
-                patched_attributes = [f"\"{i[5:]}\"" for i in output if i[:5] == 'prev_']
+                patched_attributes = [f"{i[5:]}" for i in output if i[:5] == 'prev_']
                 if len(patched_attributes) == 0:
                     return f"Site values update attempt"
                 if len(patched_attributes) > max_word_count:
@@ -451,7 +451,14 @@ class Action(CoreMaterialObj):
                     attr_str = ', '.join(patched_attributes)
                     return f"Site values {attr_str}, updated"
                 attr_str = patched_attributes[0]
-                return f"Site value {attr_str} updated"
+                val = data['data'][attr_str]
+                try:
+                    val = self.lookup(val).display_name
+                except:
+                    pass
+                return f"Site value {attr_str} updated to {val}"
+            case "transfer_all_material":
+                return f"All material transferred from {output['source_id']} to {output['target_id']}"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)
