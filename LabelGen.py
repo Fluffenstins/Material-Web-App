@@ -8,7 +8,7 @@ class CustomLabel:
         self.dimensions = (600, 360)
         self.default_path = "label"
         self.font = ImageFont.truetype("Resources/Arial Bold.ttf", 30)
-        self.qr_code_border = 15
+        self.qr_code_border = 30
         self.chars_per_line = 14
 
         # content of the QR code
@@ -67,6 +67,7 @@ class CustomLabel:
         img.save(f"{path}.png")
         img.save(f"{path}.pdf", "PDF")
         return path
+
 
 if __name__ == '__main__':
     label = CustomLabel("App", 'https://material-web-app.onrender.com/')
