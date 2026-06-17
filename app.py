@@ -612,7 +612,7 @@ def download_qr_code():
     label.save()
     return send_from_directory(
         directory="",
-        path="label.pdf",
+        path=f"label {obj.id}.pdf",
         as_attachment=True
     )
 
