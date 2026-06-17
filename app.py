@@ -608,11 +608,12 @@ def stage_url():
 def download_qr_code():
     obj_id = request.args.get('obj_id', default=None)
     obj = MATERIAL_APP.lookup(obj_id)
+    path = f"label {obj.id}.pdf"
     label = CustomLabel(obj.display_name, f"{request.root_url}?obj_id={obj_id}&from_qr=true")
-    label.save()
+    label.save(path=path)
     return send_from_directory(
         directory="",
-        path=f"label {obj.id}.pdf",
+        path='label.pdf',
         as_attachment=True
     )
 
