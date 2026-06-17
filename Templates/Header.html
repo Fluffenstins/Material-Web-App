@@ -112,7 +112,9 @@ body {
 				<div class="tab {{'active' if current_tab == 'Locations'}}" onclick="window.location.href='/locations'">Locations</div>
 				<div class="tab {{'active' if current_tab == 'Projects'}}" onclick="window.location.href='/projects'">Projects</div>
 				<div class="tab {{'active' if current_tab == 'Stages'}}" onclick="window.location.href='/stages'">Stages</div>
-				<div class="tab">{{current_tab}}</div>
+				{% if current_tab not in ['Locations', 'Projects', 'Stages']%}
+				<div class="tab active">{{current_tab}}</div>
+				{% endif %}
         </div>
     </div>
 

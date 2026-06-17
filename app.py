@@ -198,13 +198,17 @@ def action_url():
     except AttributeError:
         user_obj = None
 
+    # interpreted_data = {}
+    #
+    # for key, value in action_obj.data.items():
+    #     try:
+    #         interpreted_data[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
+    #     except:
+    #         interpreted_data[key] = [value]
     interpreted_data = {}
 
     for key, value in action_obj.data.items():
-        try:
-            interpreted_data[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
-        except:
-            interpreted_data[key] = [value]
+        interpreted_data[key] = [value]
 
     interpreted_output = {}
 
@@ -494,7 +498,7 @@ def stages_directory_url():
 
     return render_template(
         "SitesDirectory.html",
-        current_tab="Projects",
+        current_tab="Stages",
         site_objs=site_objs,
         user_obj=user_obj,
     )
@@ -564,6 +568,39 @@ def download_qr_code():
         path="label.pdf",
         as_attachment=True
     )
+
+
+@app.route('/updatePassword', methods=['GET', 'POST'])
+def update_password():
+    if request.method == 'GET':
+        return render_template(
+            "ChangePassword.html"
+        )
+
+    email = request.form.get('email')
+    password = request.form.get('password')
+    first_name = request.form.get('firstName')
+    last_name = request.form.get('lastName')
+    if None in (email, password, first_name, last_name):
+        return
+
+    try:
+        ret = MATERIAL_APP.create_user(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+    except KeyError:
+        return redirect('/login')
+
+    user = user_loader(email)
+    flask_login.login_user(user)
+    USERS[ret.id] = user
+
+    MATERIAL_APP.save_json()
+
+    return redirect("site?site_id=OLT1")
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -854,7 +891,12 @@ def api_pick_up_material():
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
-    ret = MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
+    try:
+        ret = MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
+    except AttributeError:
+        return jsonify({"error": f"Value is unchanged in {site_id}."}), 422
+    except PermissionError:
+        return jsonify({"error": f"Invalid attribute requested for {site_id}."}), 403
 
     if type(ret) is Site:
         return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 202
@@ -867,6 +909,9 @@ def api_complete_intermediate_material():
     source_id = data.get('source_id')
 
     source_obj = MATERIAL_APP.find_site(source_id)
+    print(source_id, source_obj)
+
+
     target_id = MATERIAL_APP.find_site(source_obj.destination_site).id
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)

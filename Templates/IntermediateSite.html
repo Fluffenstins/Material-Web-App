@@ -204,7 +204,7 @@ async function handleTransitButton() {
 		
 async function handleCompleteButton() {
 	const data = {
-	"source__id": "{{site_obj.id}}"
+	"source_id": "{{site_obj.id}}"
 	};
 	let ret = await post_request('/api/completeIntermediateTransfer', data);
 	let response_data = await ret.json();

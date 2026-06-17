@@ -1,10 +1,11 @@
 import json
-from MaterialCore import Action, Material, Site, User, Person, CataloguedItem, ITEM_SPACE
+from MaterialCore import Action, Material, Site, User, CataloguedItem, ITEM_SPACE
 import logging
 import logging.handlers
 import queue
 import sys
 from copy import deepcopy
+import threading
 
 
 class MaterialLogging:
@@ -30,18 +31,17 @@ class CoreMaterialManager:
         self.save_loc = "SaveData"
         self.sites = {}
         self.material = {}
-        self.people = {}
         self.users = {}
         self.items = {}
         self.action_history = []
 
+        self.save_after_action = True
+
         self.logger = MaterialLogging()
 
     def save_json(self):
-        print("This should be saved asynchronously!")
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
-        self._save_core_dict_json(self.people, "people")
         self._save_core_dict_json(self.users, "users")
         self._save_core_dict_json(self.items, "items")
 
@@ -50,11 +50,15 @@ class CoreMaterialManager:
     def load_json(self):
         self.sites = self._load_core_dict_json('sites', Site)
         self.material = self._load_core_dict_json('material', Material)
-        self.people = self._load_core_dict_json('people', Person)
         self.users = self._load_core_dict_json('users', User)
         self.items = self._load_core_dict_json('items', CataloguedItem)
 
         self.action_history = self._load_core_list_json('action_history', Action)
+
+    def async_save(self):
+        # save_thread = threading.Thread(target=self.save_json)
+        # save_thread.start()
+        self.save_json()
 
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]
@@ -290,6 +294,7 @@ class CoreMaterialManager:
             'transfer_all_material': self._transfer_all_material,
             'patch_site': self._patch_site
         }
+        ret = None
         try:
             ret = action_dict[action.action_type](action)
             action.processed = True
@@ -297,10 +302,11 @@ class CoreMaterialManager:
                 action.user = action.output['user_id']
             except KeyError:
                 pass
+            self.action_history.append(action)
+            if self.save_after_action:
+                self.async_save()
         except Exception as e:
             raise e
-            return e
-        self.action_history.append(action)
         return ret
 
     def _create_material(self, action):
@@ -664,11 +670,14 @@ class CoreMaterialManager:
             raise KeyError(f'Site {site_id} not found.')
 
         for key, value in data.items():
-            if key in site_obj.indexed_values:
+            if key in site_obj.accessible_values(user_obj.id):
+                if value == deepcopy(site_obj.__getattribute__(key)):
+                    raise AttributeError(f"Value {key} does not differ from existing value")
                 action.add_output(f'prev_{key}', deepcopy(site_obj.__getattribute__(key)))
                 site_obj.__setattr__(key, value)
             else:
-                action.add_output(f'error_{key}', value)
+                raise PermissionError(f"Invalid attribute {key}")
+                # action.add_output(f'error_{key}', value)
 
         site_obj.add_action(action)
 
@@ -721,9 +730,26 @@ class ContinuousMaterialManager(CoreMaterialManager):
         pass
 
 
-if __name__ == '__main__':
+def init_routine():
     manager = ContinuousMaterialManager()
+    manager.save_after_action = False
+
+    # set up location data
+
+    # set up project data
+    #   import project
+    #   attach parent projects
+
+    # set up item catalogue data
+
+    # set up users
+
+    # run all previous instructions
     instructions = manager.load_instructions()
     for instruction in instructions:
         manager.interpret_legacy_instruction(instruction)
-    manager.save_json()
+    manager.async_save()
+
+
+if __name__ == '__main__':
+    init_routine()

@@ -154,13 +154,22 @@ border-bottom: none;
 	
     <div class="field">
       <div class="label">Site Type</div>
-      <div class="value" id="siteType">{{site_obj.site_type}}</div>
+      <div class="value" id="siteType">{{site_obj.format_attr(site_obj.site_type)}}</div>
     </div>
 
+	{% if site_obj.address is not none %}
     <div class="field">
       <div class="label">Address</div>
-      <div class="value" id="address">{{site_obj.address}}</div>
+      <div class="value" id="address">{{site_obj.format_attr(site_obj.address)}}</div>
     </div>
+	{% endif %}
+
+	{% if site_obj.status is not none %}
+    <div class="field">
+      <div class="label">Status</div>
+      <div class="value" id="address">{{site_obj.format_attr(site_obj.status)}}</div>
+    </div>
+	{% endif %}
 
     <div class="field">
       <div class="label">Material</div>

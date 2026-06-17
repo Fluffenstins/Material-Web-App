@@ -24,7 +24,7 @@ class CoreMaterialObj:
         self.tags = None
         self.comments = []
         self.description = None
-        self.associated_people = []
+        self.associated_users = []
         self.creation_date = self.get_date()
         self.action_history = []
 
@@ -35,9 +35,10 @@ class CoreMaterialObj:
             'action_history',
             'comments',
             'description',
-            'associated_people',
+            'associated_users',
             'creation_date'
         ]
+        self.protected_values = []
 
     @property
     def display_name(self):
@@ -79,6 +80,11 @@ class CoreMaterialObj:
         new_date_str = date_obj.strftime(date_format)
         return new_date_str
 
+    def accessible_attributes(self, user_id=None):
+        # provides a list of attributes that should be editable/readable by users
+        # if user_id is provided, it checks against the privileges of that user
+        return [i for i in self.indexed_values if i not in self.protected_values]
+
 
 class Tag(CoreMaterialObj):
     def __init__(self, save_data=None, **kwargs):
@@ -106,8 +112,6 @@ class User(CoreMaterialObj):
         self.last_name = last_name
         self.roles = None
         self.favourites = []
-        # I think the person/user separation is going to be removed
-        self.person_id = None
 
         self.indexed_values += [
             'password',
@@ -117,6 +121,9 @@ class User(CoreMaterialObj):
             'email',
             'favourites',
             'roles'
+        ]
+        self.protected_values += [
+            'password'
         ]
 
         if save_data is not None:
@@ -161,30 +168,6 @@ class Role(CoreMaterialObj):
 
         if save_data is not None:
             self.load_from_json(save_data)
-
-
-class Person(CoreMaterialObj):
-    def __init__(self, save_data=None, **kwargs):
-        super().__init__(save_data=save_data, **kwargs)
-        self.type = 'person'
-        self.name = None
-        self.role = None
-        self.email = None
-        self.user_id = None
-
-        self.indexed_values += [
-            'name',
-            'role',
-            'email',
-            'user_id'
-        ]
-
-        if save_data is not None:
-            self.load_from_json(save_data)
-
-    @property
-    def user(self):
-        return self.lookup(self.user_id)
 
 
 class CataloguedItem(CoreMaterialObj):
@@ -312,6 +295,13 @@ class Site(CoreMaterialObj):
     def display_name(self):
         return f"{self.site_id}"
 
+    def format_attr(self, val):
+        if val is None:
+            return None
+        status = val.split('_')
+        status = ' '.join([i.capitalize() for i in status])
+        return status
+
     @property
     def site(self):
         return self.lookup(self.site_id)
@@ -402,6 +392,7 @@ class Action(CoreMaterialObj):
         self.processed = False
         self.user = None
         self.output = {}
+        self.activation_key = self._generate_id
 
         try:
             self.creation_date = self.get_date(data['date_str'])
@@ -414,6 +405,9 @@ class Action(CoreMaterialObj):
             'processed',
             'user',
             'output'
+        ]
+        self.protected_values += [
+            'activation_key'
         ]
 
         if save_data is not None:
@@ -452,6 +446,17 @@ class Action(CoreMaterialObj):
                 return f"{data['qty']} of {data['item_id']} transferred to {data['target_id']} from {data['source_id']}"
             case "set_inventory":
                 return f"Inventory set to {data['qty']} from {output['previous_qty']}"
+            case "patch_site":
+                max_word_count = 2
+                patched_attributes = [f"\"{i[5:]}\"" for i in output if i[:5] == 'prev_']
+                if len(patched_attributes) == 0:
+                    return f"Site values update attempt"
+                if len(patched_attributes) > max_word_count:
+                    patched_attributes = patched_attributes[:2]
+                    attr_str = ', '.join(patched_attributes)
+                    return f"Site values {attr_str}, updated"
+                attr_str = patched_attributes[0]
+                return f"Site value {attr_str} updated"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)
