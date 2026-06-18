@@ -683,9 +683,12 @@ def login():
             return redirect("site?site_id=OLT1")
     print("Trying sincerely to log in.")
     print(f"Path: {template_dir}")
-    return render_template(
-        "Login.html"
-    )
+    try:
+        return render_template(
+            "Login.html"
+        )
+    except Exception as e:
+        return {'path': template_dir, 'exception': str(e)}
 
 
 @app.route('/logout', methods=['GET', 'POST'])
