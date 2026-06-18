@@ -9,25 +9,6 @@ from copy import deepcopy
 import threading
 import shutil
 
-
-class MaterialLogging:
-    def __init__(self):
-        self.log_queue = queue.Queue(-1)
-
-        stream_handler = logging.StreamHandler(stream=sys.stdout)
-        file_handler = logging.FileHandler("app.log")
-
-        self.listener = logging.handlers.QueueListener(self.log_queue, stream_handler)
-        self.listener.start()
-        queue_handler = logging.handlers.QueueHandler(self.log_queue)
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(queue_handler)
-
-    def stop(self):
-        self.listener.stop()
-
-
 class CoreMaterialManager:
     def __init__(self):
         self.save_loc = "SaveData"
@@ -38,8 +19,6 @@ class CoreMaterialManager:
         self.action_history = []
 
         self.save_after_action = True
-
-        self.logger = MaterialLogging()
 
         self.backup_manager = BackupManager()
 
@@ -393,7 +372,6 @@ class CoreMaterialManager:
             try:
                 parent_site = self.sites[parent_site_id]
             except KeyError:
-                self.logger.logger.error("Parent site not found.")
                 continue
             parent_site.attach_site_child(site_obj)
             site_obj.attach_site_parent(parent_site)
