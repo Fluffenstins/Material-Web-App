@@ -1,5 +1,6 @@
 import json
 from MaterialCore import Action, Material, Site, User, CataloguedItem, ITEM_SPACE
+from BackupManager import BackupManager
 import logging
 import logging.handlers
 import queue
@@ -40,6 +41,8 @@ class CoreMaterialManager:
 
         self.logger = MaterialLogging()
 
+        self.backup_manager = BackupManager()
+
     def save_json(self):
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
@@ -61,11 +64,12 @@ class CoreMaterialManager:
         save_thread.start()
 
     def make_backup(self):
-        save_path = "data_backup"
-        extension = "zip"
-        save_name = f"{save_path}.{extension}"
-        shutil.make_archive(base_name="data_backup", format="zip", root_dir="SaveData")
+        save_name = self.backup_manager.make_backup()
         return save_name
+
+    def load_backup(self):
+        self.backup_manager.download_backup()
+        self.backup_manager.load_backup()
 
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]
