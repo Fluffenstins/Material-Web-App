@@ -720,6 +720,11 @@ class ContinuousMaterialManager(CoreMaterialManager):
 
 
 def init_routine():
+    from GraphAPI import MSDrive
+
+    drive = MSDrive(batch=False, meta_remote=True)
+    drive.getMeta()
+
     manager = ContinuousMaterialManager()
     manager.save_after_action = False
 
@@ -728,8 +733,8 @@ def init_routine():
     # set up project data
     #   import project
     #   attach parent projects
-
-    # set up item catalogue data
+    for nb_id, job in drive.meta.items():
+        pass
 
     # set up users
 
@@ -738,6 +743,10 @@ def init_routine():
     for instruction in instructions:
         manager.interpret_legacy_instruction(instruction)
     manager.async_save()
+
+    # set up item catalogue data
+    #   for the moment lets only update existing catalogue items
+    #   this reduces the clutter in our system of overlapping items
 
 
 if __name__ == '__main__':
