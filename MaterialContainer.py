@@ -21,6 +21,7 @@ class CoreMaterialManager:
         self.backup_manager = BackupManager()
 
     def save_json(self):
+        print("Saving?")
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.users, "users")
@@ -88,7 +89,7 @@ class CoreMaterialManager:
         material_obj = self.create_material(site, item_id)
         return material_obj
 
-    def ensure_site(self, site_type, site_id):
+    def ensure_site(self, site_type, site_id, address=None):
         try:
             site_obj = self.lookup(site_id)
             return site_obj
@@ -99,7 +100,7 @@ class CoreMaterialManager:
             if site_obj is not None:
                 return site_obj
 
-        site = self.create_site(site_type=site_type, site_id=site_id)
+        site = self.create_site(site_type=site_type, site_id=site_id, address=address)
         return site
 
     def ensure_item(self, item_id):
@@ -155,14 +156,15 @@ class CoreMaterialManager:
                 return user
         return None
 
-    def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None):
+    def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None, address=None):
         action = Action(
             'create_site',
             site_type=site_type,
             parent_site_ids=parent_site_ids,
             site_id=site_id,
             user=user_id,
-            status=status
+            status=status,
+            address=address
         )
         site = self.enact_action(action)
         return site
@@ -360,11 +362,12 @@ class CoreMaterialManager:
         status = action.data['status']
         site_id = action.data['site_id'].strip()
         user_id = action.data['user']
+        address = action.data['address']
 
         user_obj = self.find_user(user_id)
 
         # Create the site
-        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status)
+        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status, address=address)
         self.sites[site_obj.id] = site_obj
 
         for parent_site_id in parent_site_ids:
@@ -593,15 +596,13 @@ class CoreMaterialManager:
     def _set_site_parent(self, action):
         user_id = action.data['user']
         site_id = action.data['site_id']
-        parent_side_id = action.data['parent_site_id']
+        parent_site_id = action.data['parent_site_id']
 
         user_obj = self.find_user(user_id)
-        parent_site_obj = self.find_site(parent_side_id)
+        parent_site_obj = self.find_site(parent_site_id)
         site_obj = self.find_site(site_id)
 
         went_through = site_obj.attach_site_parent(parent_site_obj)
-
-        print(f"Did it go through? {went_through}")
 
         parent_site_obj.add_action(action)
         site_obj.add_action(action)
@@ -610,7 +611,7 @@ class CoreMaterialManager:
         action.add_output('user_id', user_obj.id)
 
         action.add_output('site_id', site_obj.id)
-        action.add_output('parent_side_id', parent_site_obj.id)
+        action.add_output('parent_site_id', parent_site_obj.id)
 
         if not went_through:
             raise AttributeError("Unable to assign site parent.")
@@ -728,25 +729,68 @@ def init_routine():
     manager = ContinuousMaterialManager()
     manager.save_after_action = False
 
+    # set up users
+    print("Setting up users")
+    system_user = manager.create_user(
+        email='administration@nubuildinc.ca',
+        password='not applicable',
+        first_name='system',
+        last_name='administration'
+    )
+
     # set up location data
+    print("Setting up locations")
 
     # set up project data
     #   import project
     #   attach parent projects
+    print("Setting up projects")
+    count = 0
     for nb_id, job in drive.meta.items():
-        pass
+        sub_project_ids = []
+        for key in ['ADM', 'RPAT', 'customer id']:
+            try:
+                sub_project_ids += job[key]
+            except KeyError:
+                pass
+        address = job['address']
 
-    # set up users
+        master_site = manager.ensure_site(
+            site_type='project',
+            site_id=nb_id,
+            address=address
+        )
+        count += 1
+
+        for sub_project_id in sub_project_ids:
+            if manager.find_site(sub_project_id) is not None:
+                continue
+            child_site = manager.ensure_site(
+                site_type='project',
+                site_id=sub_project_id,
+                address=address
+            )
+            manager.set_site_parent(
+                user_id=system_user.id,
+                site_id=child_site.id,
+                parent_site_id=master_site.id
+            )
+            count += 2
+    print(f"Instruction count: {count}")
 
     # run all previous instructions
+    print("Running instructions")
     instructions = manager.load_instructions()
     for instruction in instructions:
         manager.interpret_legacy_instruction(instruction)
-    manager.async_save()
 
     # set up item catalogue data
     #   for the moment lets only update existing catalogue items
     #   this reduces the clutter in our system of overlapping items
+    print("Setting up catalogue items")
+
+    # Save init
+    manager.async_save()
 
 
 if __name__ == '__main__':
