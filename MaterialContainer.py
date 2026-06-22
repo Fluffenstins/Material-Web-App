@@ -1,13 +1,10 @@
 import json
 from MaterialCore import Action, Material, Site, User, CataloguedItem, ITEM_SPACE
 from BackupManager import BackupManager
-import logging
-import logging.handlers
-import queue
-import sys
 from copy import deepcopy
 import threading
-import shutil
+from datetime import datetime
+
 
 class CoreMaterialManager:
     def __init__(self):
@@ -17,6 +14,7 @@ class CoreMaterialManager:
         self.users = {}
         self.items = {}
         self.action_history = []
+        self.last_action_date = datetime.now()
 
         self.save_after_action = True
 
@@ -294,6 +292,7 @@ class CoreMaterialManager:
                 pass
             # note that the action is not added to history unless it fully goes through
             self.action_history.append(action)
+            self.last_action_date = datetime.now()
             if self.save_after_action:
                 self.async_save()
         except Exception as e:

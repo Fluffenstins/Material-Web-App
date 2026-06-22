@@ -609,9 +609,8 @@ def stage_url():
 def download_qr_code():
     obj_id = request.args.get('obj_id', default=None)
     obj = MATERIAL_APP.lookup(obj_id)
-    path = f"label {obj.id}.pdf"
-    label = CustomLabel(obj.display_name, f"{request.root_url}?obj_id={obj_id}&from_qr=true")
-    label.save(path=path)
+    label = CustomLabel(obj.display_name, f"{request.root_url}?obj_id={obj.id}&from_qr=true")
+    label.save(path='label')
     return send_file(
         'label.pdf',
         as_attachment=True,
@@ -668,7 +667,7 @@ def register():
     flask_login.login_user(user)
     USERS[ret.id] = user
 
-    MATERIAL_APP.save_json()
+    MATERIAL_APP.async_save()
 
     return redirect("site?site_id=OLT1")
 

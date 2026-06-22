@@ -47,7 +47,11 @@ class CoreMaterialObj:
     def _generate_id(self):
         characters = string.ascii_letters + string.digits
         obj_id = ''.join(random.choices(characters, k=12))
-        while obj_id in ITEM_SPACE:
+        while True:
+            try:
+                self.lookup(obj_id)
+            except KeyError:
+                break
             obj_id = ''.join(random.choices(characters, k=12))
         return obj_id
 
