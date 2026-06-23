@@ -199,12 +199,15 @@ class CataloguedItem(CoreMaterialObj):
         return self
 
     def item_match(self, text):
+        if text == self.id:
+            return True
+
         if text == self.item_id or text == self.mpn:
             return True
 
         for alias in self.deprecated_items:
             deprecated_item = self.lookup(alias)
-            if deprecated_item.item_match():
+            if deprecated_item.item_match(text):
                 return True
 
         return False
@@ -264,6 +267,8 @@ class Site(CoreMaterialObj):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'site'
         self.site_type = site_type
+        self.shorthand = None
+        self.description = None
         self.site_id = site_id
         self.address = address
         self.parent_site_ids = []
@@ -278,7 +283,10 @@ class Site(CoreMaterialObj):
 
         self.indexed_values += [
             'site_type',
+            'shorthand',
+            'description',
             'site_id',
+            'address',
             'parent_site_ids',
             'material_counted_in_inventory',
             'material_children',
@@ -293,6 +301,11 @@ class Site(CoreMaterialObj):
     @property
     def display_name(self):
         return f"{self.site_id}"
+
+    def subpath(self):
+        if self.shorthand is not None:
+            return self.shorthand
+        return self.site_id
 
     def format_attr(self, val):
         if val is None:
@@ -340,16 +353,30 @@ class Site(CoreMaterialObj):
         if material_obj is not None:
             count += material_obj.qty
         if recursive:
-            for site in self.site_children:
-                count += site.count_material(item_id, recursive=recursive)
+            for site_id in self.site_children:
+                site_obj = self.lookup(site_id)
+                count += site_obj.count_material(item_id, recursive=recursive)
+        return count
+
+    def count_received(self, item_id, recursive=True):
+        count = 0
+        material_obj = self.find_material(item_id)
+        if material_obj is not None:
+            count += material_obj.qty_received
+        if recursive:
+            for site_id in self.site_children:
+                site_obj = self.lookup(site_id)
+                count += site_obj.count_material(item_id, recursive=recursive)
+        return count
 
     def list_item_ids(self, recursive=True):
         item_ids = set()
-        for material_obj in self.material_children:
-            item_ids.add(material_obj.item_id)
+        for material_id in self.material_children:
+            item_ids.add(self.lookup(material_id).item.id)
         if recursive:
-            for site in self.site_children:
-                item_ids = item_ids | site.list_item_ids(recursive=True)
+            for site_id in self.site_children:
+                site_obj = self.lookup(site_id)
+                item_ids.update(site_obj.list_item_ids(recursive=True))
         ret = sorted(list(item_ids))
         return ret
 
@@ -358,11 +385,11 @@ class Site(CoreMaterialObj):
         path = []
         node = self
         while True:
-            path.append(node.site_id)
+            path.append(node.subpath())
             if len(node.parent_site_ids) == 0:
                 break
             node = node.lookup(node.parent_site_ids[0])
-        ret = " / ".join(path[::-1])
+        ret = " - ".join(path[::-1])
         return ret
 
     @property

@@ -211,7 +211,8 @@ class CoreMaterialManager:
             date_str=date_str
         )
         action.description = f"Move out material from {location} to {project_id}."
-        self.enact_action(action)
+        ret = self.enact_action(action)
+        return ret
 
     def transfer_material(self, user_id, source_id, target_id, item_id, qty, date_str=None):
         action = Action(
@@ -270,6 +271,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def deprecate_item(self, user_id, item_id, correct_item_id):
+        action = Action(
+            action_type='deprecate_item',
+            user=user_id,
+            item_id=item_id,
+            correct_item_id=correct_item_id
+        )
+        action.description = f"Correcting item {item_id} to {correct_item_id}"
+        self.enact_action(action)
+        return action
+
     def enact_action(self, action):
         action_dict = {
             'receive': self._receive,
@@ -282,7 +294,8 @@ class CoreMaterialManager:
             'transfer_material': self._transfer_material,
             'set_inventory': self._set_inventory,
             'transfer_all_material': self._transfer_all_material,
-            'patch_site': self._patch_site
+            'patch_site': self._patch_site,
+            'deprecate_item': self._deprecate_item
         }
         ret = None
         try:
@@ -375,7 +388,6 @@ class CoreMaterialManager:
                 parent_site = self.sites[parent_site_id]
             except KeyError:
                 continue
-            parent_site.attach_site_child(site_obj)
             site_obj.attach_site_parent(parent_site)
 
         if user_obj is not None:
@@ -440,7 +452,7 @@ class CoreMaterialManager:
             action.add_output('project_id', project_site.id)
             action.add_output('project_material_id', project_material_obj.id)
 
-        return location_material_obj
+        return action
 
     def _move_out(self, action):
         user_name = action.data['user']
@@ -481,6 +493,8 @@ class CoreMaterialManager:
         action.add_output('project_item_id', location_material_obj.id)
         action.add_output('project_id', project.id)
         action.add_output('project_item_id', project_material_obj.id)
+
+        return action
 
     def _transfer_material(self, action):
         user_name = action.data['user']
@@ -679,6 +693,40 @@ class CoreMaterialManager:
 
         return site_obj
 
+    def _deprecate_item(self, action):
+        user_id = action.data['user']
+        item_id = action.data['item_id']
+        correct_item_id = action.data['correct_item_id']
+
+        user_obj = self.find_user(user_id)
+        if user_obj is None:
+            raise KeyError(f"Could not user item {user_id}")
+
+        item_obj = self.find_item(item_id)
+        if item_obj is None:
+            raise KeyError(f"Could not find item {item_id}")
+
+        correct_item_obj = self.find_item(correct_item_id)
+        if item_obj is None:
+            raise KeyError(f"Could not find item {correct_item_obj}")
+
+        if item_obj.id in correct_item_obj.deprecated_items:
+            raise AttributeError(f"Item {item_obj.id} has already been deprecated in favour of {correct_item_obj.id}")
+
+        item_obj.correct_item = correct_item_obj.id
+        correct_item_obj.deprecated_items.append(item_obj.id)
+
+        # add action history
+        user_obj.add_action(action)
+        item_obj.add_action(action)
+        correct_item_obj.add_action(action)
+
+        # add outputs
+        action.add_output('deprecated_item_id', item_obj.id)
+        action.add_output('correct_item_id', correct_item_obj.id)
+
+        return action
+
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')
 
@@ -686,6 +734,7 @@ class CoreMaterialManager:
 class ContinuousMaterialManager(CoreMaterialManager):
     def __init__(self):
         super().__init__()
+        self.site_cache = {}
 
     def load_instructions(self):
         with open("Resources/ReferenceQueue.json") as file:
@@ -700,98 +749,116 @@ class ContinuousMaterialManager(CoreMaterialManager):
         if len(instruct) < 10:
             instruct = instruct + [None]*(10 - len(instruct))
 
+        def check_cache(text):
+            try:
+                return self.site_cache[text]
+            except KeyError:
+                return text
+
+        def cache(raw, obj_id):
+            self.site_cache[raw] = obj_id
+
+        ret = None
+
         if instruct_type.find('clear') != -1:
             return []
         elif instruct_type.find('rogers receive') != -1:
             date_str, project_id, item_id, qty, po, oracle, user, _, yard = instruct[1:10]
             user_id = None
-            self.receive(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            project_id = check_cache(project_id)
+            ret = self.receive(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            cache(project_id, ret.output['project_id'])
         elif instruct_type.find('receive') != -1:
             date_str, project_id, item_id, qty, po, oracle, user, _, yard = instruct[1:10]
             user_id = None
-            self.receive(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            project_id = check_cache(project_id)
+            ret = self.receive(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            cache(project_id, ret.output['project_id'])
         elif instruct_type.find('move') != -1:
             date_str, project_id, item_id, qty, user, recipient, contractor, yard = instruct[1:9]
             user_id = None
-            self.move_out(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            project_id = check_cache(project_id)
+            ret = self.move_out(user_id=user_id, project_id=project_id, item_id=item_id, qty=qty, location=yard, date_str=date_str)
+            cache(project_id, ret.output['project_id'])
+
+        return ret
 
     def create_action_from_legacy(self):
         # action = Action()
         pass
 
 
-def init_routine():
-    from GraphAPI import MSDrive
-
-    drive = MSDrive(batch=False, meta_remote=True)
-    drive.getMeta()
-
-    manager = ContinuousMaterialManager()
-    manager.save_after_action = False
-
-    # set up users
-    print("Setting up users")
-    system_user = manager.create_user(
-        email='administration@nubuildinc.ca',
-        password='not applicable',
-        first_name='system',
-        last_name='administration'
-    )
-
-    # set up location data
-    print("Setting up locations")
-
-    # set up project data
-    #   import project
-    #   attach parent projects
-    print("Setting up projects")
-    count = 0
-    for nb_id, job in drive.meta.items():
-        sub_project_ids = []
-        for key in ['ADM', 'RPAT', 'customer id']:
-            try:
-                sub_project_ids += job[key]
-            except KeyError:
-                pass
-        address = job['address']
-
-        master_site = manager.ensure_site(
-            site_type='project',
-            site_id=nb_id,
-            address=address
-        )
-        count += 1
-
-        for sub_project_id in sub_project_ids:
-            if manager.find_site(sub_project_id) is not None:
-                continue
-            child_site = manager.ensure_site(
-                site_type='project',
-                site_id=sub_project_id,
-                address=address
-            )
-            manager.set_site_parent(
-                user_id=system_user.id,
-                site_id=child_site.id,
-                parent_site_id=master_site.id
-            )
-            count += 2
-    print(f"Instruction count: {count}")
-
-    # run all previous instructions
-    print("Running instructions")
-    instructions = manager.load_instructions()
-    for instruction in instructions:
-        manager.interpret_legacy_instruction(instruction)
-
-    # set up item catalogue data
-    #   for the moment lets only update existing catalogue items
-    #   this reduces the clutter in our system of overlapping items
-    print("Setting up catalogue items")
-
-    # Save init
-    manager.async_save()
+# def init_routine():
+#     from GraphAPI import MSDrive
+#
+#     drive = MSDrive(batch=False, meta_remote=True)
+#     drive.getMeta()
+#
+#     manager = ContinuousMaterialManager()
+#     manager.save_after_action = False
+#
+#     # set up users
+#     print("Setting up users")
+#     system_user = manager.create_user(
+#         email='administration@nubuildinc.ca',
+#         password='not applicable',
+#         first_name='system',
+#         last_name='administration'
+#     )
+#
+#     # set up location data
+#     print("Setting up locations")
+#
+#     # set up project data
+#     #   import project
+#     #   attach parent projects
+#     print("Setting up projects")
+#     count = 0
+#     for nb_id, job in drive.meta.items():
+#         sub_project_ids = []
+#         for key in ['ADM', 'RPAT', 'customer id']:
+#             try:
+#                 sub_project_ids += job[key]
+#             except KeyError:
+#                 pass
+#         address = job['address']
+#
+#         master_site = manager.ensure_site(
+#             site_type='project',
+#             site_id=nb_id,
+#             address=address
+#         )
+#         count += 1
+#
+#         for sub_project_id in sub_project_ids:
+#             if manager.find_site(sub_project_id) is not None:
+#                 continue
+#             manager.create_site(
+#                 site_type='project',
+#                 site_id=sub_project_id,
+#                 address=address,
+#                 parent_site_ids=[master_site.id]
+#             )
+#             count += 1
+#     print(f"Instruction count: {count}")
+#
+#     # run all previous instructions
+#     print("Running instructions")
+#     instructions = manager.load_instructions()
+#     for instruction in instructions:
+#         manager.interpret_legacy_instruction(instruction)
+#
+#     # set up item catalogue data
+#     #   for the moment lets only update existing catalogue items
+#     #   this reduces the clutter in our system of overlapping items
+#     print("Setting up catalogue items")
+#     bad_item = manager.find_item('369305000')
+#     good_item = manager.find_item('02TW0002')
+#     manager.deprecate_item(system_user.id, bad_item.id, good_item.id)
+#
+#     # Save init
+#     manager.async_save()
 
 
 if __name__ == '__main__':
-    init_routine()
+    pass
