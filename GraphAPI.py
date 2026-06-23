@@ -10,7 +10,7 @@ import time
 import os
 
 PARAMETERS_PATH = 'Parameters.json'
-BACKUP_PARAMETERS_PATH = 'Parameters.json'
+BACKUP_PARAMETERS_PATH = 'ReducedParameters.json'
 
 try:
     DRIVE_PARAMS = json.load(open(PARAMETERS_PATH))
