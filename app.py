@@ -169,7 +169,6 @@ def catalogue_url():
     aliases = [{'id': i.id, 'text': i.item_id} for i in aliases]
 
     deprecated_status = catalogue_item_obj.correct_item is not None
-    deprecated_status = True
 
     return render_template(
         "CataloguePage.html",
