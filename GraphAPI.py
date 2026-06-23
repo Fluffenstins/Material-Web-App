@@ -8,7 +8,14 @@ import requests
 import msal
 import time
 
-DRIVE_PARAMS = json.load(open('Parameters.json'))
+PARAMETERS_PATH = 'Parameters.json'
+
+try:
+    DRIVE_PARAMS = json.load(open('Parameters.json'))
+except FileNotFoundError:
+    PARAMETERS_PATH = "etc/secrets/Parameters.json"
+    DRIVE_PARAMS = json.load(open('Parameters.json'))
+
 DRIVE_APP = msal.ConfidentialClientApplication(
             DRIVE_PARAMS["client_id"], authority=DRIVE_PARAMS["authority"],
             client_credential=DRIVE_PARAMS["secret"],
