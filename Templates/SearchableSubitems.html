@@ -25,6 +25,16 @@ border-bottom: 1px solid #ddd;
 border-bottom: none;
 }
 
+.show-more-btn {
+  background: #45D686;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 
 .{{search_list_id}}-update-btn{ border: 1px solid #ddd; margin-top: -1px; background-color: #f6f6f6; padding: 12px; text-decoration: none; font-size: 18px; color: black; display: block }
 #myInput { width: 100%; padding: 12px; margin-bottom: 6px; border: 1px solid #ddd; }
@@ -49,10 +59,19 @@ border-bottom: none;
 	{% endfor %}
     </ul>
 	
+	<button class="show-more-btn" id="{{search_list_id}}_show_more_btn" onclick="{{search_list_id}}_add_limit()">Show More</button>
+	
 </div>
 
 
   <script>
+  
+  let {{search_list_id}}_max_items = 10;
+  
+  function {{search_list_id}}_add_limit() {
+	{{search_list_id}}_max_items += 20;
+	{{search_list_id}}_filterList();
+  }
   
   function {{search_list_id}}_hide_all() {
   
@@ -61,15 +80,31 @@ border-bottom: none;
     for (i = 0; i < li.length; i++) {
        li[i].style.display = "none"; // Hides item
     }
+	{{search_list_id}}_set_show_more_visibility(0);
+  }
+  
+  function {{search_list_id}}_set_show_more_visibility(i) {
+		ul = document.getElementById("{{search_list_id}}_show_more_btn");
+		if (i < {{search_list_id}}_max_items) {
+			ul.style.display = "none";
+		} else if (ul.style.display == "none") {
+			ul.style.display = "";
+		}
   }
   
   function {{search_list_id}}_show_all() {
   
     ul = document.getElementById("{{search_list_id}}_list");
     li = ul.getElementsByTagName('li');
-    for (i = 0; i < li.length; i++) {
-       li[i].style.display = ""; // Hides item
+	let i = 0;
+    for (i; i < li.length; i++) {
+		if (i <= {{search_list_id}}_max_items) {
+			li[i].style.display = "";
+	   } else {
+			li[i].style.display = "none";
+	   }
     }
+	{{search_list_id}}_set_show_more_visibility(i);
   }
   
   function {{search_list_id}}_filterList() {
@@ -92,17 +127,23 @@ border-bottom: none;
 	}
 
     // Loop through all list items, and hide those who don't match the search query
-    for (i = 0; i < li.length; i++) {
+	let qty_to_show = 0;
+    for (let i = 0; i < li.length; i++) {
       a = li[i].getElementsByTagName("span")[0];
       txtValue = a.textContent || a.innerText;
-	  console.log(txtValue);
       
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        li[i].style.display = ""; // Shows item
+		if (qty_to_show < {{search_list_id}}_max_items) {
+			li[i].style.display = ""; // Shows item
+		} else {
+			li[i].style.display = "none"; // Hides item
+		}
+		qty_to_show += 1;
       } else {
         li[i].style.display = "none"; // Hides item
       }
     }
+	{{search_list_id}}_set_show_more_visibility(qty_to_show);
   }
 	function {{search_list_id}}HandleButtonUrl(action, open_new_window) {
 	console.log(action);

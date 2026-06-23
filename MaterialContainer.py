@@ -81,15 +81,15 @@ class CoreMaterialManager:
         ret = [core_class(save_data=data) for data in raw_data]
         return ret
 
-    def ensure_material(self, site, item_id):
+    def ensure_material(self, site, item_id, user_id=None):
         item_id = item_id.strip()
         material_obj = site.find_material(item_id)
         if material_obj is not None:
             return material_obj
-        material_obj = self.create_material(site, item_id)
+        material_obj = self.create_material(site, item_id, user_id=user_id)
         return material_obj
 
-    def ensure_site(self, site_type, site_id, address=None):
+    def ensure_site(self, site_type, site_id, address=None, user_id=None):
         try:
             site_obj = self.lookup(site_id)
             return site_obj
@@ -100,16 +100,16 @@ class CoreMaterialManager:
             if site_obj is not None:
                 return site_obj
 
-        site = self.create_site(site_type=site_type, site_id=site_id, address=address)
+        site = self.create_site(site_type=site_type, site_id=site_id, address=address, user_id=user_id)
         return site
 
-    def ensure_item(self, item_id):
+    def ensure_item(self, item_id, user_id=None):
         item_id = item_id.strip()
         item = self.find_item(item_id)
         if item is not None:
             return item
 
-        item = self.create_item(item_id=item_id)
+        item = self.create_item(item_id=item_id, user_id=user_id)
         return item
 
     def find_site(self, site_id):

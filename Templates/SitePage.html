@@ -174,7 +174,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Material</div>
 	
-	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=true %}
+	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=false %}
     {% include "SearchableSubitems.html" %}
 	{% endwith %}
 	
