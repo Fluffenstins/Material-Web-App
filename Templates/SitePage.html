@@ -150,6 +150,11 @@ border-bottom: none;
     <div class="field">
       <div class="label">Site ID</div>
       <div class="value" id="siteId">{{site_obj.site_id}}</div>
+    </div
+	
+    <div class="field">
+      <div class="label">Path</div>
+      <div class="value" id="siteId">{{site_obj.path}}</div>
     </div>
 	
     <div class="field">
@@ -172,15 +177,6 @@ border-bottom: none;
 	{% endif %}
 
     <div class="field">
-      <div class="label">Material</div>
-	
-	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
-	
-    </div>
-
-    <div class="field">
       <div class="label">Parent Site</div>
 	
 	{% with search_list_id="parent_sites", item_type="Site", material_children=parent_sites, hide_by_default=false %}
@@ -193,6 +189,15 @@ border-bottom: none;
       <div class="label">Child Sites</div>
 	
 	{% with search_list_id="child_sites", item_type="Site", material_children=site_children, hide_by_default=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+    </div>
+
+    <div class="field">
+      <div class="label">Material</div>
+	
+	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=false %}
     {% include "SearchableSubitems.html" %}
 	{% endwith %}
 	

@@ -495,7 +495,7 @@ def sites_directory_url():
 @flask_login.login_required
 def locations_directory_url():
 
-    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location']
+    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location' and len(val.parent_site_ids) == 0]
     site_objs = sorted(site_objs, key=lambda x: x['text'])
 
     try:
@@ -968,7 +968,6 @@ def api_db_backup():
 
 
 if __name__ == '__main__':
-    print(app.template_folder)
     app.run(host='0.0.0.0', port=5000)
 
 '''

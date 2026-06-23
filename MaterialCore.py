@@ -307,6 +307,18 @@ class Site(CoreMaterialObj):
             return self.shorthand
         return self.site_id
 
+    @property
+    def path(self):
+        path = []
+        node = self
+        while True:
+            path.append(node.subpath())
+            if len(node.parent_site_ids) == 0:
+                break
+            node = node.lookup(node.parent_site_ids[0])
+        ret = " / ".join(path[::-1])
+        return ret
+
     def format_attr(self, val):
         if val is None:
             return None
@@ -378,18 +390,6 @@ class Site(CoreMaterialObj):
                 site_obj = self.lookup(site_id)
                 item_ids.update(site_obj.list_item_ids(recursive=True))
         ret = sorted(list(item_ids))
-        return ret
-
-    @property
-    def path(self):
-        path = []
-        node = self
-        while True:
-            path.append(node.subpath())
-            if len(node.parent_site_ids) == 0:
-                break
-            node = node.lookup(node.parent_site_ids[0])
-        ret = " - ".join(path[::-1])
         return ret
 
     @property

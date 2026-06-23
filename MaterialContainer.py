@@ -109,7 +109,7 @@ class CoreMaterialManager:
         if item is not None:
             return item
 
-        item = self.create_item(item_id=item_id, user_id=user_id)
+        item = self.create_item(item_id=item_id, user=user_id)
         return item
 
     def find_site(self, site_id):

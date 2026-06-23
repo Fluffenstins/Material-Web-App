@@ -1,5 +1,6 @@
 from MaterialContainer import ContinuousMaterialManager
 from GraphAPI import MSDrive
+import openpyxl
 
 
 class MaterialInitializer(ContinuousMaterialManager):
@@ -23,7 +24,57 @@ class MaterialInitializer(ContinuousMaterialManager):
         pass
 
     def init_locations(self):
-        pass
+        source_path = 'Resources/YardLayout.xlsx'
+        book = openpyxl.load_workbook(source_path)
+        sheet = book.active
+
+        locations = {}
+
+        for y in range(2, sheet.max_row+1):
+            name = sheet.cell(y, 1).value
+            desc = sheet.cell(y, 2).value
+
+            path = []
+            for x in range(4, sheet.max_column+1):
+                val = sheet.cell(y, x).value
+                if val is None:
+                    break
+                path.append(str(val))
+
+            if len(path) == 0:
+                continue
+
+            parent_path = '-'.join(path[:-1])
+            new_path = '-'.join(path)
+            shorthand = path[-1]
+
+            if parent_path:
+                parent_site_ids = [locations[parent_path].id]
+            else:
+                parent_site_ids = []
+
+            new_site = self.create_site(
+                site_id=name,
+                site_type='location',
+                user_id=self.system_user.id,
+                parent_site_ids=parent_site_ids
+            )
+
+            data = {}
+            if shorthand:
+                data['shorthand'] = shorthand
+            if desc:
+                data['description'] = desc
+
+            self.patch_site(
+                user_id=self.system_user.id,
+                site_id=new_site.id,
+                data=data
+            )
+
+            locations[new_path] = new_site
+
+        book.close()
 
     def init_projects(self):
         for nb_id, job in self.drive.meta.items():
