@@ -1,0 +1,7 @@
+{
+"scope": ["https://graph.microsoft.com/.default"], 
+"config_location": "/root:/Customers/Rogers/Material/Material Matrix/Server_Files/Resource Files/config.json:", 
+"meta_location": "/root:/Customers/Rogers/Material/Material Matrix/Server_Files/Resource Files/meta.json:", 
+"docket_index": 0, 
+"resource_location": "/root:/Customers/Rogers/Material/Material Matrix/Server_Files/Resource Files"
+}

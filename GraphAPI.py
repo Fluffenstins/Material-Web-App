@@ -7,14 +7,21 @@ import logging
 import requests
 import msal
 import time
+import os
 
 PARAMETERS_PATH = 'Parameters.json'
+BACKUP_PARAMETERS_PATH = 'Parameters.json'
 
 try:
     DRIVE_PARAMS = json.load(open(PARAMETERS_PATH))
 except FileNotFoundError:
-    PARAMETERS_PATH = "etc/secrets/Parameters.json"
-    DRIVE_PARAMS = json.load(open(PARAMETERS_PATH))
+    DRIVE_PARAMS = json.load(open(BACKUP_PARAMETERS_PATH))
+
+for env_key in ["authority", "client_id", "secret", "endpoint"]:
+    val = os.getenv(env_key)
+    if val is None:
+        continue
+    DRIVE_PARAMS[env_key] = val
 
 DRIVE_APP = msal.ConfidentialClientApplication(
             DRIVE_PARAMS["client_id"], authority=DRIVE_PARAMS["authority"],
@@ -80,7 +87,7 @@ class MSDrive:
         self.batch_instructions = batch
         self.use_next = True
         self._mode = mode
-        self.params = json.load(open('Parameters.json'))
+        self.params = DRIVE_PARAMS
         self.settings = self.Settings(self)
         self.batch_times = []
         self.batch_sleep_override = None
