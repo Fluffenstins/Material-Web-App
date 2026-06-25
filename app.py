@@ -54,7 +54,7 @@ def check_credentials(necessary_credential=None):
 
 
 def list_all_sites():
-    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items()]
+    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items()]
     site_objs = sorted(site_objs, key=lambda x: x['text'])
     return site_objs
 
@@ -823,9 +823,13 @@ def api_transfer_material():
     item = data.get('item')
     qty = data.get('qty')
 
+    print(source, target, item, qty)
+
     source_obj = MATERIAL_APP.find_site(source)
     target_obj = MATERIAL_APP.find_site(target)
     item_obj = MATERIAL_APP.find_item(item)
+
+    print([i.display_name for i in [source_obj, target_obj, item_obj]])
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 

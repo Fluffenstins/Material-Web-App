@@ -338,10 +338,13 @@ class Site(CoreMaterialObj):
         if self.site_id.lower().strip() == site_id.lower().strip():
             return self
 
+        if self.path == site_id:
+            return self
+
         for site in self.site_children:
             ret = self.lookup(site).find_site(site_id)
             if ret is not None:
-                return self.lookup(site)
+                return ret
 
     def find_material(self, item_id):
         for material_id in self.material_children:
@@ -490,6 +493,8 @@ class Action(CoreMaterialObj):
                 return f"Site value {attr_str} updated to {val}"
             case "transfer_all_material":
                 return f"All material transferred from {output['source_id']} to {output['target_id']}"
+            case "deprecate_item":
+                return f"Deprecated {output['deprecated_item_id']}. Correct item is now {output['correct_item_id']}"
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

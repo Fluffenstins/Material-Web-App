@@ -173,7 +173,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Location</div>
 	
-	{% with search_list_id="location", item_type="Location", material_children=site_objs, hide_by_default=true, default_text=location_obj.display_name %}
+	{% with search_list_id="location", item_type="Location", material_children=site_objs, hide_by_default=true, default_text=location_obj.path %}
     {% include "SimpleDropdown.html" %}
 	{% endwith %}
 	
@@ -182,7 +182,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Project</div>
 	
-	{% with search_list_id="project", item_type="Project", material_children=site_objs, hide_by_default=true, default_text=project_obj.display_name %}
+	{% with search_list_id="project", item_type="Project", material_children=site_objs, hide_by_default=true, default_text=project_obj.path %}
     {% include "SimpleDropdown.html" %}
 	{% endwith %}
 	

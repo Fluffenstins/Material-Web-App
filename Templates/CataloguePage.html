@@ -149,7 +149,7 @@ input {
 	{% if deprecated_status %}
 		<div class="field">
 		  <div class="label">Item Deprecated. Correct Item:</div>
-		  <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{catalogue_item_obj.id}}')">{{catalogue_item_obj.lookup(catalogue_item_obj.id).display_name}}</div>
+		  <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{catalogue_item_obj.id}}')">{{catalogue_item_obj.get_item().display_name}}</div>
 		</div>
 	{% endif %}
   </div>

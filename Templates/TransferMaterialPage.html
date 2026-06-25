@@ -173,7 +173,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Source Site</div>
 	
-	{% with search_list_id="source", item_type="Site", material_children=site_objs, hide_by_default=true, default_text=source_obj.display_name %}
+	{% with search_list_id="source", item_type="Site", material_children=site_objs, hide_by_default=true, default_text=source_obj.path %}
     {% include "SimpleDropdown.html" %}
 	{% endwith %}
 	
@@ -182,7 +182,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Target Site</div>
 	
-	{% with search_list_id="target", item_type="Site", material_children=site_objs, hide_by_default=true, default_text=target_obj.display_name %}
+	{% with search_list_id="target", item_type="Site", material_children=site_objs, hide_by_default=true, default_text=target_obj.path %}
     {% include "SimpleDropdown.html" %}
 	{% endwith %}
 	
@@ -206,7 +206,7 @@ border-bottom: none;
 	
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Receive successful.</div>
-	<div class="submit-btn" id="submit_button" onclick="submitReceive()">Submit</div>
+	<div class="submit-btn" id="submit_button" onclick="submitTransfer()">Submit</div>
 
 </div>
 
@@ -253,6 +253,49 @@ function handleButtonUrl(action, open_new_window) {
 			}
         }
 		
+async function submitTransfer() {
+console.log("Attempting to transfer.");
+	const source_elem = document.getElementById("source_input");
+	const target_elem = document.getElementById("target_input");
+	const item_elem = document.getElementById("catalogue_item_input");
+	const qty_elem = document.getElementById("qty_input");
+	console.log(source_elem.value);
+	console.log(target_elem.value);
+	console.log(item_elem.value);
+	console.log(qty_elem.value);
+	
+	const data = {
+	"source": source_elem.value,
+	"target": target_elem.value,
+	"item": item_elem.value,
+	"qty": qty_elem.value
+	};
+	let ret = await post_request(data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Transfer successful!");
+		//history.back();
+		window.location.replace(document.referrer);
+	}
+	
+	console.log(response_data);
+}
+
+async function post_request(data) {
+	const ret = await fetch("/api/transferMaterial", {
+  method: "POST",
+  body: JSON.stringify(data),
+  headers: {
+    "Content-type": "application/json; charset=UTF-8"
+  }
+});
+return ret;
+}
+		
 function showChildSite(display_name, site_id) {
 	const element = document.getElementById("ExampleChild");
 	const new_elem = element.cloneNode(true);
@@ -273,49 +316,6 @@ function display_generic_success(success_text) {
   success_elem.style.display = "";
   
   hide_all_errors();
-}
-		
-async function submitReceive() {
-console.log("Attempting to receive.");
-	const source_elem = document.getElementById("source_input");
-	const target_elem = document.getElementById("target_input");
-	const item_elem = document.getElementById("catalogue_item_input");
-	const qty_elem = document.getElementById("qty_input");
-	console.log(source_input.value);
-	console.log(target_input.value);
-	console.log(item_elem.value);
-	console.log(qty_elem.value);
-	
-	const data = {
-	"source": source_elem.value,
-	"target": target_elem.value,
-	"item": item_elem.value,
-	"qty": qty_elem.value
-	};
-	let ret = await post_request(data);
-	let response_data = await ret.json();
-	
-	if (!ret.ok) {
-		console.log("Displaying error " + response_data['error']);
-		display_generic_error(response_data['error']);
-	} else {
-		display_generic_success("Receive successful!");
-		//history.back();
-		window.location.replace(document.referrer);
-	}
-	
-	console.log(response_data);
-}
-
-async function post_request(data) {
-	const ret = await fetch("/api/transferMaterial", {
-  method: "POST",
-  body: JSON.stringify(data),
-  headers: {
-    "Content-type": "application/json; charset=UTF-8"
-  }
-});
-return ret;
 }
   
 function hide_all_errors() {

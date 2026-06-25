@@ -399,6 +399,31 @@ class CoreMaterialManager:
 
         return site_obj
 
+    def _create_user(self, action):
+        email = action.data['email']
+        first_name = action.data['first_name']
+        last_name = action.data['last_name']
+        password = action.data['password']
+
+        existing_user = self.find_user(email)
+        if existing_user is not None:
+            raise KeyError("Email already exists. Please provide a new email, reset password, or login using previous credentials.")
+
+        new_user = User(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        self.users[new_user.id] = new_user
+
+        new_user.add_action(action)
+
+        action.add_output('user_id', new_user.id)
+
+        return new_user
+
     def _receive(self, action):
         user_name = action.data['user']
         project_id = action.data['project_id']
@@ -581,31 +606,6 @@ class CoreMaterialManager:
         action.add_output('target_id', target_obj.id)
 
         return target_obj
-
-    def _create_user(self, action):
-        email = action.data['email']
-        first_name = action.data['first_name']
-        last_name = action.data['last_name']
-        password = action.data['password']
-
-        existing_user = self.find_user(email)
-        if existing_user is not None:
-            raise KeyError("Email already exists. Please provide a new email, reset password, or login using previous credentials.")
-
-        new_user = User(
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
-
-        self.users[new_user.id] = new_user
-
-        new_user.add_action(action)
-
-        action.add_output('user_id', new_user.id)
-
-        return new_user
 
     def _set_site_parent(self, action):
         user_id = action.data['user']
