@@ -971,18 +971,29 @@ def api_db_backup():
     )
 
 
+@app.route('/downloads/rustdesk', methods=['GET'])
+def download_rustdesk():
+    url = 'https://github.com/rustdesk/rustdesk/releases/download/1.4.4/rustdesk-1.4.4-x86_64.msi'
+    return redirect(url)
+
+
+@app.route('/downloads/bitdefender', methods=['GET'])
+def download_bitdefender():
+    url = 'https://cloud.gravityzone.bitdefender.com/Packages/BSTWIN/0/setupdownloader_[aHR0cHM6Ly9jbG91ZC1lY3MuZ3Jhdml0eXpvbmUuYml0ZGVmZW5kZXIuY29tL1BhY2thZ2VzL0JTVFdJTi8wL2k4ckVuVy9pbnN0YWxsZXIueG1sP2xhbmc9ZW4tVVM=].exe'
+    return redirect(url)
+
+
+@app.route('/downloads/rmm', methods=['GET'])
+def download_rmm():
+    url = 'https://shared.outlook.inky.com/link?domain=ca.ninjarmm.com&t=h.eJxtj7tywyAQRX_Fozq8BBhw5SRVitjfsIZFJkbII9CkyOTfYzIp0949e-ber2Fb83DYDdfW7vXAmAdaUvmAdZ6pX2YGE5bGUqkNcsaVjWHUXFtJxmgEUU4E4gxwYoWwKpoYESITnHKqjLDs1F3nguS5e8hpe9lSDq9LaSv4lsr0Vjx5h1TOMSb_wLa20Lmm4Wk33Hqvsl36B5sqwies4fgXpOKpBybNRXOBTkqn9jLspYuPSKB2KDQGYMJoJ-w4WtULcSW6GX8XY74HrLejnxr6a1nyMiWsfXVnQmf-OX3_AKBlYQc.MEQCIFpgCRxHezk9Uz4zOBqqtGPSiD9IxP0bwuuDmvF9pt6XAiB7uCDoXTmqYrHXzfodbv0ugwFBSwO1hFOQ9Y7LIHCfBg'
+    return redirect(url)
+
+
+@app.route('/downloads/params', methods=['GET'])
+def download_params():
+    return send_file('Parameters.json')
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
-'''
-Daniel
-Grady
-Jess
-Jon
-Michael
-Nunzio
-Umberto
-Eliana
-
-'''
 
