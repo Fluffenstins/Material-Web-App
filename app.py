@@ -120,6 +120,24 @@ def material_url():
     )
 
 
+@app.route("/createSite")
+@flask_login.login_required
+def create_site_url():
+    site_type_options = [{'id': 'location', 'text': 'Location'}, {'id': 'project', 'text': 'Project'}]
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "CreateSitePage.html",
+        user_obj=user_obj,
+        current_tab="Create Site",
+        site_type_options=site_type_options
+    )
+
+
 @app.route("/user")
 @flask_login.login_required
 def user_url():
@@ -794,7 +812,7 @@ def api_receive_material():
 
     if location is None or location_obj is None:
         return jsonify({"error": f"Location \"{location}\" not found."}), 404
-    if project is not None and project_obj is None:
+    if project and project_obj is None:
         return jsonify({"error": f"Project \"{project}\" not found."}), 404
     if item is None or (not item):
         return jsonify({"error": f"No item provided."}), 404
@@ -803,9 +821,14 @@ def api_receive_material():
     if qty is None:
         return jsonify({"error": f"Qty not provided."}), 400
 
+    if project_obj is None:
+        project_id = None
+    else:
+        project_id = project_obj.id
+
     ret = MATERIAL_APP.receive(
         user_id=user_obj.id,
-        project_id=project_obj.id,
+        project_id=project_id,
         location=location_obj.id,
         qty=qty,
         item_id=item_obj.id
@@ -882,6 +905,26 @@ def api_set_inventory():
     )
 
     return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 200
+
+
+@app.route('/api/createSite', methods=['POST'])
+def api_create_site():
+    data = request.get_json()
+    site_name = data.get('site_name')
+    site_type = data.get('site_type')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+
+    ret = MATERIAL_APP.create_site(
+        site_id=site_name,
+        site_type=site_type,
+        user_id=user_obj.id
+    )
+
+    return jsonify({"message": f"Site created successfully!", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/inventoryReport', methods=['GET'])
