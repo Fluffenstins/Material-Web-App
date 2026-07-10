@@ -1007,10 +1007,11 @@ def api_login():
 @app.route('/api/dbBackup', methods=['GET'])
 def api_db_backup():
     save_name = MATERIAL_APP.make_backup()
+    path = f"{MATERIAL_APP.backup_manager.backup_path()}.zip"
     return send_file(
         save_name,
         as_attachment=True,
-        download_name=f"{MATERIAL_APP.backup_manager.backup_path()}.zip"
+        download_name=path,
     )
 
 

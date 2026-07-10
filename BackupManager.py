@@ -20,6 +20,7 @@ class BackupManager:
         try:
             os.remove(f"{self.backup_path()}.zip")
         except FileNotFoundError:
+            print("Couldn't Delete")
             pass
 
     def make_backup(self):
@@ -28,6 +29,7 @@ class BackupManager:
         extension = self.extension
         save_name = f"{save_path}.{extension}"
         shutil.make_archive(base_name=f"{self.backup_path()}", format=self.extension, root_dir=self.data_dir)
+        shutil.copy(src=f"{self.backup_path()}.zip", dst=f"{self.backup_name}.zip")
         return save_name
 
     def upload_backup(self):
