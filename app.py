@@ -1010,7 +1010,7 @@ def api_db_backup():
     return send_file(
         save_name,
         as_attachment=True,
-        download_name=f"Backup.zip"
+        download_name=f"{MATERIAL_APP.backup_manager.backup_path()}.zip"
     )
 
 

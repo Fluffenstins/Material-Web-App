@@ -13,11 +13,21 @@ class BackupManager:
         self.extension = "zip"
         self.save_name = f"{self.backup_name}.{self.extension}"
 
+    def backup_path(self):
+        return f"{self.backup_dir}/{self.backup_name}"
+
+    def delete_backup(self):
+        try:
+            os.remove(f"{self.backup_path()}.zip")
+        except FileNotFoundError:
+            pass
+
     def make_backup(self):
+        self.delete_backup()
         save_path = self.backup_name
         extension = self.extension
         save_name = f"{save_path}.{extension}"
-        shutil.make_archive(base_name=f"{self.backup_dir}/{self.backup_name}", format=self.extension, root_dir=self.data_dir)
+        shutil.make_archive(base_name=f"{self.backup_path()}", format=self.extension, root_dir=self.data_dir)
         return save_name
 
     def upload_backup(self):
