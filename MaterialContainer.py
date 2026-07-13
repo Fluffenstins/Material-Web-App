@@ -271,6 +271,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def patch_item(self, user_id, site_id, data):
+        action = Action(
+            action_type='patch_item',
+            user=user_id,
+            item_id=site_id,
+            data=data
+        )
+        action.description = "Item settings changed."
+        ret = self.enact_action(action)
+        return ret
+
     def deprecate_item(self, user_id, item_id, correct_item_id):
         action = Action(
             action_type='deprecate_item',
@@ -295,7 +306,8 @@ class CoreMaterialManager:
             'set_inventory': self._set_inventory,
             'transfer_all_material': self._transfer_all_material,
             'patch_site': self._patch_site,
-            'deprecate_item': self._deprecate_item
+            'deprecate_item': self._deprecate_item,
+            'patch_item': self._patch_item
         }
         ret = None
         try:
@@ -692,6 +704,37 @@ class CoreMaterialManager:
         action.add_output('site_id', site_obj.id)
 
         return site_obj
+
+    def _patch_item(self, action):
+        user_id = action.data['user']
+        item_id = action.data['item_id']
+        data = action.data['data']
+
+        user_obj = self.find_user(user_id)
+        item_obj = self.find_site(item_id)
+
+        if item_obj is None:
+            raise KeyError(f'Catalogue item {item_id} not found.')
+
+        for key, value in data.items():
+            if key in item_obj.accessible_attributes(user_obj.id):
+                if value == deepcopy(item_obj.__getattribute__(key)):
+                    raise AttributeError(f"Value {key} does not differ from existing value")
+                action.add_output(f'prev_{key}', deepcopy(item_obj.__getattribute__(key)))
+                item_obj.__setattr__(key, value)
+            else:
+                raise PermissionError(f"Invalid attribute {key}")
+                # action.add_output(f'error_{key}', value)
+
+        item_obj.add_action(action)
+
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('item_id', item_obj.id)
+
+        return item_obj
 
     def _deprecate_item(self, action):
         user_id = action.data['user']

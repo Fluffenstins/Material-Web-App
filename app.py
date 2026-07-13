@@ -765,8 +765,8 @@ def api_site():
         raise NotImplementedError
 
 
-@app.route('/api/user', methods=['GET', 'POST', 'PATCH'])
-def api_user():
+@app.route('/api/catalogueItems', methods=['GET'])
+def api_items():
     # get
     # return user json
 
@@ -777,7 +777,13 @@ def api_user():
     # adjust specific user obj attributes
     # allow to note whether appending to a list or popping when relevant.
     # assume that if append/pop is not provided, that we are adding.
-    pass
+    ret = {'data': {}}
+    for item_id, item in MATERIAL_APP.items.items():
+        ret['data'][item_id] = item.json()
+
+    print(len(ret['data']))
+
+    return jsonify({"message": f"Catalogue item list retrieved successfully.", "data": ret}), 200
 
 
 @app.route('/api/catalogueItem', methods=['GET', 'POST', 'PATCH'])
