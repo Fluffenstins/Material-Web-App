@@ -1,5 +1,5 @@
 import json
-from MaterialCore import Action, Material, Site, User, CataloguedItem, ITEM_SPACE
+from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, ITEM_SPACE
 from BackupManager import BackupManager
 from copy import deepcopy
 import threading
@@ -13,6 +13,7 @@ class CoreMaterialManager:
         self.material = {}
         self.users = {}
         self.items = {}
+        self.roles = {}
         self.action_history = []
         self.last_action_date = datetime.now()
 
@@ -26,6 +27,7 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.users, "users")
         self._save_core_dict_json(self.items, "items")
+        self._save_core_dict_json(self.items, "roles")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -34,6 +36,7 @@ class CoreMaterialManager:
         self.material = self._load_core_dict_json('material', Material)
         self.users = self._load_core_dict_json('users', User)
         self.items = self._load_core_dict_json('items', CataloguedItem)
+        self.items = self._load_core_dict_json('roles', Role)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
@@ -641,6 +644,8 @@ class CoreMaterialManager:
 
         if not went_through:
             raise AttributeError("Unable to assign site parent.")
+
+        return site_obj
 
     def _set_inventory(self, action):
         user_id = action.data['user']

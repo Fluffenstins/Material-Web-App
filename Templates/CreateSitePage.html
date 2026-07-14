@@ -236,7 +236,7 @@ console.log("Attempting to receive.");
 	"site_name": site_name_elem.value,
 	"site_type": site_type_elem.value
 	};
-	let ret = await post_request(data);
+	let ret = await post_request("/api/createSite", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
@@ -251,16 +251,7 @@ console.log("Attempting to receive.");
 	console.log(response_data);
 }
 
-async function post_request(data) {
-	const ret = await fetch("/api/createSite", {
-  method: "POST",
-  body: JSON.stringify(data),
-  headers: {
-    "Content-type": "application/json; charset=UTF-8"
-  }
-});
-return ret;
-}
+{% include "Request.js" %}
   
 function hide_all_errors() {
 error_elems = document.getElementsByClassName("error-message");

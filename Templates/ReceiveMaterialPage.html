@@ -214,6 +214,9 @@ border-bottom: none;
 </div>
 
 <script>
+
+{% include "Request.js" %}
+
 function updateCount() {
   const currentEl = document.getElementById("currentCount");
   const previousEl = document.getElementById("previousCount");
@@ -292,7 +295,7 @@ console.log("Attempting to receive.");
 	"item": item_elem.value,
 	"qty": qty_elem.value
 	};
-	let ret = await post_request(data);
+	let ret = await post_request("/api/receiveMaterial", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
@@ -305,17 +308,6 @@ console.log("Attempting to receive.");
 	}
 	
 	console.log(response_data);
-}
-
-async function post_request(data) {
-	const ret = await fetch("/api/receiveMaterial", {
-  method: "POST",
-  body: JSON.stringify(data),
-  headers: {
-    "Content-type": "application/json; charset=UTF-8"
-  }
-});
-return ret;
 }
   
 function hide_all_errors() {

@@ -38,7 +38,9 @@ class CoreMaterialObj:
             'associated_users',
             'creation_date'
         ]
-        self.protected_values = []
+        self.protected_values = [
+            'id'
+        ]
 
     @property
     def display_name(self):
@@ -159,10 +161,14 @@ class Role(CoreMaterialObj):
     def __init__(self, name=None, save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'role'
+        self.allowed_actions = []
+        self.user_list = []
         self.name = name
 
         self.indexed_values += [
-            'name'
+            'name',
+            'allowed_actions'
+            'user_list'
         ]
 
         if save_data is not None:

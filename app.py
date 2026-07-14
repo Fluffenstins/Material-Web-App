@@ -370,7 +370,7 @@ def set_site_parent_page():
 
     if None not in (user_obj, site_obj, parent_site_obj):
         MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
-        MATERIAL_APP.save_json()
+        MATERIAL_APP.async_save()
         return redirect(f"/site?site_id={parent_site_id}")
 
     site_objs = list_all_sites()
@@ -798,7 +798,18 @@ def api_catalogue_item():
     # adjust specific item obj attributes
     # allow to note whether appending to a list or popping when relevant.
     # assume that if append/pop is not provided, that we are adding.
-    pass
+
+    data = request.get_json()
+    if request.method == 'GET':
+        item_id = data.get('item_id')
+        item_obj = MATERIAL_APP.lookup(item_id)
+        if item_obj is None:
+            return jsonify({"error": f"Item \"{item_id}\" not found."}), 404
+        return jsonify({"message": f"Item {item_obj.item_id} found.", "data": item_obj.json()}), 200
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PATCH':
+        pass
 
 
 @app.route('/api/receiveMaterial', methods=['POST'])
@@ -841,6 +852,30 @@ def api_receive_material():
     )
 
     return jsonify({"message": f"Item received created successfully.", "data": {"id": ret.id}}), 200
+
+
+@app.route('/api/setSiteParent', methods=['POST'])
+def api_set_site_parent():
+    data = request.get_json()
+
+    site_id = data.get('site_id')
+    parent_site_id = data.get('parent_site_id')
+
+    site_obj = MATERIAL_APP.find_site(site_id)
+    parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({"error": f"User not found."}), 404
+    if site_obj is None:
+        return jsonify({"error": f"Site {site_id} not found."}), 404
+    if parent_site_obj is None:
+        return jsonify({"error": f"Site {parent_site_id} not found."}), 404
+
+    ret = MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
+
+    return jsonify({"message": f"Site {site_obj.site_id}'s parent set to {parent_site_obj.site_id}.", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/transferMaterial', methods=['POST'])

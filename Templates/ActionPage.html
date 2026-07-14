@@ -154,7 +154,7 @@ input {
   </div>
   
 	<div class="card">
-	{% for key, value in interpreted_data.items() %}
+	{% for key, value in interpreted_output.items() %}
         <div class="field">
 		  <div class="label">{{key}}</div>
 		{% if value | length > 1 %}
@@ -167,7 +167,7 @@ input {
 	</div>
   
 	<div class="card">
-	{% for key, value in interpreted_output.items() %}
+	{% for key, value in interpreted_data.items() %}
         <div class="field">
 		  <div class="label">{{key}}</div>
 		{% if value | length > 1 %}
@@ -179,7 +179,6 @@ input {
 	{% endfor %}
 	</div>
 	
-	  
 </div>
 
   
