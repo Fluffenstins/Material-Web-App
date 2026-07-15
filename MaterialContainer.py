@@ -36,7 +36,7 @@ class CoreMaterialManager:
         self.material = self._load_core_dict_json('material', Material)
         self.users = self._load_core_dict_json('users', User)
         self.items = self._load_core_dict_json('items', CataloguedItem)
-        self.items = self._load_core_dict_json('roles', Role)
+        self.roles = self._load_core_dict_json('roles', Role)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
