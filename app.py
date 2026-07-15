@@ -72,6 +72,17 @@ def list_action_history_breakdown(obj):
     return action_history
 
 
+@app.before_request
+def check_maintenance_mode():
+    if os.environ.get('MAINTENANCE_MODE') == '1':
+        # You can bypass specific routes (like an admin dashboard) here
+        if request.path in ['/api/setMaintenanceMode', '/setMaintenance']:
+            return
+        return render_template(
+            "MaintenancePage.html"
+        )
+
+
 @app.route("/")
 def home_page():
     obj_id = request.args.get('obj_id', default="")
@@ -123,8 +134,15 @@ def material_url():
 @app.route("/createSite")
 @flask_login.login_required
 def create_site_url():
+    parent_id = request.args.get('parent_id', default="")
+    try:
+        parent_site_name = MATERIAL_APP.find_site(parent_id).path
+    except AttributeError:
+        parent_site_name = ""
+
     site_type_options = [{'id': 'location', 'text': 'Location'}, {'id': 'project', 'text': 'Project'}]
 
+    site_objs = list_all_sites()
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
@@ -134,7 +152,9 @@ def create_site_url():
         "CreateSitePage.html",
         user_obj=user_obj,
         current_tab="Create Site",
-        site_type_options=site_type_options
+        parent_sites=site_objs,
+        site_type_options=site_type_options,
+        parent_site_name=parent_site_name
     )
 
 
@@ -296,6 +316,7 @@ def site_url():
             "SitePage.html",
             qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
             set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
+            create_sub_site_url=f"{request.url_root}createSite?parent_id={site_obj.id}",
             site_obj=site_obj,
             material_children=material_children,
             parent_sites=parent_sites,
@@ -370,7 +391,6 @@ def set_site_parent_page():
 
     if None not in (user_obj, site_obj, parent_site_obj):
         MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
-        MATERIAL_APP.async_save()
         return redirect(f"/site?site_id={parent_site_id}")
 
     site_objs = list_all_sites()
@@ -545,6 +565,21 @@ def projects_directory_url():
         "SitesDirectory.html",
         current_tab="Projects",
         site_objs=site_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/setMaintenance")
+@flask_login.login_required
+def set_maintenance_url():
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SetMaintenanceModePage.html",
         user_obj=user_obj,
     )
 
@@ -952,7 +987,16 @@ def api_set_inventory():
 def api_create_site():
     data = request.get_json()
     site_name = data.get('site_name')
+    shorthand = data.get('shorthand')
     site_type = data.get('site_type')
+    parent_site_name = data.get('parent_site_name')
+
+    parent_site_obj = MATERIAL_APP.find_site(parent_site_name)
+
+    try:
+        parent_site_id = parent_site_obj.id
+    except AttributeError:
+        parent_site_id = None
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
@@ -962,7 +1006,9 @@ def api_create_site():
     ret = MATERIAL_APP.create_site(
         site_id=site_name,
         site_type=site_type,
-        user_id=user_obj.id
+        user_id=user_obj.id,
+        parent_site_ids=[parent_site_id],
+        shorthand=shorthand
     )
 
     return jsonify({"message": f"Site created successfully!", "data": {"id": ret.id}}), 200
@@ -1054,6 +1100,20 @@ def api_db_backup():
         as_attachment=True,
         download_name=path,
     )
+
+
+@app.route('/api/setMaintenanceMode', methods=['POST'])
+def api_set_maintenance_mode():
+    data = request.get_json()
+    state = data.get('state')
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if state:
+        os.environ['MAINTENANCE_MODE'] = '1'
+    else:
+        os.environ['MAINTENANCE_MODE'] = '0'
+
+    return jsonify({"message": f"Maintenance mode set to {state}", "data": {'state': state}}), 200
 
 
 @app.route('/downloads/rustdesk', methods=['GET'])

@@ -269,11 +269,11 @@ class Material(CoreMaterialObj):
 
 
 class Site(CoreMaterialObj):
-    def __init__(self, site_id=None, site_type=None, address=None, status='active', save_data=None, **kwargs):
+    def __init__(self, site_id=None, site_type=None, address=None, status='active', save_data=None, shorthand=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'site'
         self.site_type = site_type
-        self.shorthand = None
+        self.shorthand = shorthand
         self.description = None
         self.site_id = site_id
         self.address = address

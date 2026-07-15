@@ -128,10 +128,11 @@ border-bottom: 1px solid #ddd;
 border-bottom: none;
 }
 
-.receive { background: #28a745; color: black; }
+.receive { background: #28a745; }
 .transfer { background: #D96125; }
-.set_parent { background: #E36D7D; color: black; }
+.set_parent { background: #E36D7D; }
 .qr { background: #17a2b8; }
+.create_sub_site { background: #21DBA3; }
 
 @media (max-width: 480px) {
   .value {
@@ -150,7 +151,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Site ID</div>
       <div class="value" id="siteId">{{site_obj.site_id}}</div>
-    </div
+    </div>
 	
     <div class="field">
       <div class="label">Path</div>
@@ -222,6 +223,7 @@ border-bottom: none;
   {% if site_obj.is_intermediate %}
   <button class="action-btn set_parent" onclick='window.location.href = "/setSiteDestination?site_id={{site_obj.id}}";'>Set Destination</button>
   {% else %}
+  <button class="action-btn create_sub_site"  onclick="handleButtonUrl('{{create_sub_site_url}}', false)">Add Sub Site</button>
   <button class="action-btn set_parent"  onclick="handleButtonUrl('{{set_parent_url}}', false)">Set Parent</button>
   {% endif %}
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}', true)">Get QR Code</button>

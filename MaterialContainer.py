@@ -159,7 +159,7 @@ class CoreMaterialManager:
                 return user
         return None
 
-    def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None, address=None):
+    def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None, address=None, shorthand=None):
         action = Action(
             'create_site',
             site_type=site_type,
@@ -167,7 +167,8 @@ class CoreMaterialManager:
             site_id=site_id,
             user=user_id,
             status=status,
-            address=address
+            address=address,
+            shorthand=shorthand
         )
         site = self.enact_action(action)
         return site
@@ -391,11 +392,12 @@ class CoreMaterialManager:
         site_id = action.data['site_id'].strip()
         user_id = action.data['user']
         address = action.data['address']
+        shorthand = action.data['shorthand']
 
         user_obj = self.find_user(user_id)
 
         # Create the site
-        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status, address=address)
+        site_obj = Site(site_type=site_type, site_id=site_id, name=site_id, status=status, address=address, shorthand=shorthand)
         self.sites[site_obj.id] = site_obj
 
         for parent_site_id in parent_site_ids:
