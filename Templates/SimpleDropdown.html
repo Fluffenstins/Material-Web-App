@@ -83,6 +83,7 @@ border-bottom: none;
   function {{search_list_id}}_filterList() {
     // Declare variables
 	console.log("{{search_list_id}}");
+	console.log("{{material_children}}");
     var input, filter, ul, li, a, i, txtValue;
     input = document.getElementById('{{search_list_id}}_input');
     filter = input.value.toUpperCase(); // Case-insensitive matching

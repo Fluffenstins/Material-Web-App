@@ -27,7 +27,7 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.users, "users")
         self._save_core_dict_json(self.items, "items")
-        self._save_core_dict_json(self.items, "roles")
+        self._save_core_dict_json(self.roles, "roles")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -179,8 +179,8 @@ class CoreMaterialManager:
         material_obj = self.enact_action(action)
         return material_obj
 
-    def create_item(self, item_id, mpn=None, description=None, user=None):
-        action = Action('create_item', item_id=item_id, mpn=mpn, description=description, user=user)
+    def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None):
+        action = Action('create_item', item_id=item_id, mpn=mpn, description=description, shorthand=shorthand, user=user)
         item = self.enact_action(action)
         return item
 
@@ -264,6 +264,16 @@ class CoreMaterialManager:
         action.description = "Parent site set."
         self.enact_action(action)
 
+    def remove_site_parent(self, user_id, site_id, parent_site_id):
+        action = Action(
+            action_type='remove_site_parent',
+            user=user_id,
+            site_id=site_id,
+            parent_site_id=parent_site_id
+        )
+        action.description = "Parent site removed."
+        self.enact_action(action)
+
     def patch_site(self, user_id, site_id, data):
         action = Action(
             action_type='patch_site',
@@ -311,7 +321,8 @@ class CoreMaterialManager:
             'transfer_all_material': self._transfer_all_material,
             'patch_site': self._patch_site,
             'deprecate_item': self._deprecate_item,
-            'patch_item': self._patch_item
+            'patch_item': self._patch_item,
+            'remove_site_parent': self._remove_site_parent
         }
         ret = None
         try:
@@ -360,6 +371,7 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         mpn = action.data['mpn']
         description = action.data['description']
+        shorthand = action.data['shorthand']
         user_id = action.data['user']
 
         user_obj = self.find_user(user_id)
@@ -367,7 +379,8 @@ class CoreMaterialManager:
         item_obj = CataloguedItem(
             item_id=item_id,
             mpn=mpn,
-            description=description
+            description=description,
+            shorthand=shorthand
         )
 
         self.items[item_obj.id] = item_obj
@@ -646,6 +659,31 @@ class CoreMaterialManager:
 
         if not went_through:
             raise AttributeError("Unable to assign site parent.")
+
+        return site_obj
+
+    def _remove_site_parent(self, action):
+        user_id = action.data['user']
+        site_id = action.data['site_id']
+        parent_site_id = action.data['parent_site_id']
+
+        user_obj = self.find_user(user_id)
+        parent_site_obj = self.find_site(parent_site_id)
+        site_obj = self.find_site(site_id)
+
+        went_through = site_obj.remove_site_parent(parent_site_obj)
+
+        if not went_through:
+            raise AttributeError("Unable to remove site parent. Likely could not find the sites in the child/parent lists.")
+
+        parent_site_obj.add_action(action)
+        site_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('user_id', user_obj.id)
+
+        action.add_output('site_id', site_obj.id)
+        action.add_output('parent_site_id', parent_site_obj.id)
 
         return site_obj
 

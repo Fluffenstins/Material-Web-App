@@ -67,7 +67,12 @@ def list_all_catalogue_items():
 
 
 def list_action_history_breakdown(obj):
-    action_objs = [MATERIAL_APP.lookup(i) for i in obj.action_history[::-1]]
+    action_objs = []
+    for i in obj.action_history[::-1]:
+        try:
+            action_objs.append(MATERIAL_APP.lookup(i))
+        except KeyError:
+            continue
     action_history = [{'id': i.id, 'text': i.display_text()} for i in action_objs]
     return action_history
 
@@ -154,6 +159,60 @@ def create_site_url():
         current_tab="Create Site",
         parent_sites=site_objs,
         site_type_options=site_type_options,
+        parent_site_name=parent_site_name
+    )
+
+
+@app.route("/createItem")
+@flask_login.login_required
+def create_item_url():
+    parent_id = request.args.get('parent_id', default="")
+    try:
+        parent_site_name = MATERIAL_APP.find_site(parent_id).path
+    except AttributeError:
+        parent_site_name = ""
+
+    item_type_options = [
+        {'id': '1', 'text': 'Misc'},
+        {'id': '2', 'text': 'Consumables'},
+        {'id': '3', 'text': 'Duct'},
+        {'id': '4', 'text': 'Vaults'},
+        {'id': '5', 'text': 'Endcaps'},
+        {'id': '6', 'text': 'Connectors'},
+        {'id': '7', 'text': 'Buried Microcable'},
+        {'id': '8', 'text': 'Aerial Microcable'},
+        {'id': '9', 'text': 'Drop Cable'},
+        {'id': '10', 'text': 'Splicing Tray'},
+        {'id': '11', 'text': 'Splitters'},
+        {'id': '12', 'text': 'Tie wraps'},
+        {'id': '13', 'text': 'Tape'},
+        {'id': '14', 'text': 'OLT'}
+        ]
+
+    supplier_options = [
+        {'id': 'HA', 'text': 'Hall'},
+        {'id': 'HX', 'text': 'Hexatronic'},
+        {'id': 'NR', 'text': 'Noramco'},
+        {'id': 'TW', 'text': 'TVC/Wesco'},
+        {'id': 'NK', 'text': 'Nokia'},
+        {'id': 'CN', 'text': 'Connect'},
+        {'id': 'TC', 'text': 'Technity'},
+        {'id': 'MC', 'text': 'CT&M'}
+        ]
+
+    site_objs = list_all_sites()
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "CreateCatalogueItem.html",
+        user_obj=user_obj,
+        current_tab="Create Item",
+        parent_sites=site_objs,
+        item_type_options=item_type_options,
+        supplier_options=supplier_options,
         parent_site_name=parent_site_name
     )
 
@@ -1012,6 +1071,36 @@ def api_create_site():
     )
 
     return jsonify({"message": f"Site created successfully!", "data": {"id": ret.id}}), 200
+
+
+@app.route('/api/createCatalogueItem', methods=['POST'])
+def api_create_catalogue_item():
+    data = request.get_json()
+    item_type = data.get('item_type')
+    supplier = data.get('supplier')
+    provided_item_id = data.get('item_id')
+    mpn = data.get('mpn')
+    description = data.get('description')
+    shorthand = data.get('shorthand')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+
+    existing_item = MATERIAL_APP.find_item(provided_item_id)
+    if existing_item is not None:
+        return jsonify({"error": f"Item {existing_item.display_name} already exists."}), 409
+
+    ret = MATERIAL_APP.create_item(
+        item_id=provided_item_id,
+        mpn=mpn,
+        description=description,
+        shorthand=shorthand,
+        user=user_obj.id
+    )
+
+    return jsonify({"message": f"Item created successfully!", "data": {"id": ret.id}}), 200
 
 
 @app.route('/api/inventoryReport', methods=['GET'])

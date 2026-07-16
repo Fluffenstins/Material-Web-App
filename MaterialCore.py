@@ -176,11 +176,12 @@ class Role(CoreMaterialObj):
 
 
 class CataloguedItem(CoreMaterialObj):
-    def __init__(self, item_id=None, mpn=None, description=None, save_data=None, **kwargs):
+    def __init__(self, item_id=None, mpn=None, description=None, shorthand=None, save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.description = description
         self.mpn = mpn
         self.item_id = item_id
+        self.shorthand = shorthand
         self.correct_item = None
         self.deprecated_items = []
 
@@ -188,6 +189,7 @@ class CataloguedItem(CoreMaterialObj):
             'item_id',
             'mpn',
             'description',
+            'shorthand',
             'correct_item',
             'deprecated_items'
         ]
@@ -366,6 +368,20 @@ class Site(CoreMaterialObj):
         else:
             self.parent_site_ids.append(parent_site.id)
         parent_site.site_children.append(self.id)
+        return True
+
+    def remove_site_parent(self, parent_site):
+        if parent_site.id not in self.parent_site_ids:
+            return False
+
+        try:
+            child_idx = parent_site.site_children.index(self.id)
+            parent_idx = self.parent_site_ids.index(parent_site.id)
+        except IndexError:
+            return False
+
+        self.parent_site_ids.pop(parent_idx)
+        parent_site.site_children.pop(child_idx)
         return True
 
     def count_material(self, item_id, recursive=True):
