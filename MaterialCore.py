@@ -176,19 +176,25 @@ class Role(CoreMaterialObj):
 
 
 class CataloguedItem(CoreMaterialObj):
-    def __init__(self, item_id=None, mpn=None, description=None, shorthand=None, save_data=None, **kwargs):
+    def __init__(self, item_id=None, mpn=None, description=None, shorthand=None, nubuild_id=None, supplier=None, item_type=None, save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.description = description
+        self.item_type = item_type
         self.mpn = mpn
+        self.nubuild_id = nubuild_id
         self.item_id = item_id
+        self.supplier = supplier
         self.shorthand = shorthand
         self.correct_item = None
         self.deprecated_items = []
 
         self.indexed_values += [
             'item_id',
+            'item_type',
             'mpn',
+            'nubuild_id',
             'description',
+            'supplier',
             'shorthand',
             'correct_item',
             'deprecated_items'
@@ -199,7 +205,14 @@ class CataloguedItem(CoreMaterialObj):
 
     @property
     def display_name(self):
-        return f"{self.item_id}"
+        ret = self.item_id
+        if self.nubuild_id is not None:
+            ret = self.nubuild_id
+
+        if self.shorthand is not None:
+            ret = f"{ret} {self.shorthand}"
+
+        return ret
 
     def get_item(self):
         if self.correct_item is not None:
@@ -208,6 +221,9 @@ class CataloguedItem(CoreMaterialObj):
 
     def item_match(self, text):
         if text == self.id:
+            return True
+
+        if text == self.nubuild_id:
             return True
 
         if text == self.item_id or text == self.mpn:

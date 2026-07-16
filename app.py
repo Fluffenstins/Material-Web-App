@@ -1097,6 +1097,8 @@ def api_create_catalogue_item():
         mpn=mpn,
         description=description,
         shorthand=shorthand,
+        item_type=item_type,
+        supplier=supplier,
         user=user_obj.id
     )
 
@@ -1230,4 +1232,3 @@ def download_params():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-

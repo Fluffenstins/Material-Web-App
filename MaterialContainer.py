@@ -17,6 +17,34 @@ class CoreMaterialManager:
         self.action_history = []
         self.last_action_date = datetime.now()
 
+        self.item_type_options = [
+            {'id': '01', 'text': 'Misc'},
+            {'id': '02', 'text': 'Consumables'},
+            {'id': '03', 'text': 'Duct'},
+            {'id': '04', 'text': 'Vaults'},
+            {'id': '05', 'text': 'Endcaps'},
+            {'id': '06', 'text': 'Connectors'},
+            {'id': '07', 'text': 'Buried Microcable'},
+            {'id': '08', 'text': 'Aerial Microcable'},
+            {'id': '09', 'text': 'Drop Cable'},
+            {'id': '10', 'text': 'Splicing Tray'},
+            {'id': '11', 'text': 'Splitters'},
+            {'id': '12', 'text': 'Tie wraps'},
+            {'id': '13', 'text': 'Tape'},
+            {'id': '14', 'text': 'OLT'}
+        ]
+
+        self.supplier_options = [
+            {'id': 'HA', 'text': 'Hall'},
+            {'id': 'HX', 'text': 'Hexatronic'},
+            {'id': 'NR', 'text': 'Noramco'},
+            {'id': 'TW', 'text': 'TVC/Wesco'},
+            {'id': 'NK', 'text': 'Nokia'},
+            {'id': 'CN', 'text': 'Connect'},
+            {'id': 'TC', 'text': 'Technity'},
+            {'id': 'MC', 'text': 'CT&M'}
+        ]
+
         self.save_after_action = True
 
         self.backup_manager = BackupManager()
@@ -55,6 +83,29 @@ class CoreMaterialManager:
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]
         return item_obj
+
+    def generate_item_id(self, item_type, supplier):
+        item_type_code = '01'
+        for item_type_option in self.item_type_options:
+            if item_type_option['text'] == item_type:
+                item_type_code = item_type_option['id']
+                break
+        supplier_code = 'QQ'
+        for supplier_option in self.supplier_options:
+            if supplier_option['text'] == supplier:
+                supplier_code = supplier_option['id']
+                break
+
+        item_pointer = 1
+
+        def create_item_id():
+            return f"{item_type_code}{supplier_code}{item_pointer:04d}"
+
+        while self.find_item(create_item_id()) is not None:
+            item_pointer += 1
+
+        new_item_id = create_item_id()
+        return new_item_id
 
     def _save_core_dict_json(self, core_dict, save_name):
         save_data = {obj_id: obj.json() for obj_id, obj in core_dict.items()}
@@ -179,8 +230,17 @@ class CoreMaterialManager:
         material_obj = self.enact_action(action)
         return material_obj
 
-    def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None):
-        action = Action('create_item', item_id=item_id, mpn=mpn, description=description, shorthand=shorthand, user=user)
+    def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None, item_type=None, supplier=None):
+        action = Action(
+            'create_item',
+            item_id=item_id,
+            mpn=mpn,
+            description=description,
+            shorthand=shorthand,
+            user=user,
+            item_type=item_type,
+            supplier=supplier
+        )
         item = self.enact_action(action)
         return item
 
@@ -372,13 +432,21 @@ class CoreMaterialManager:
         mpn = action.data['mpn']
         description = action.data['description']
         shorthand = action.data['shorthand']
+        item_type = action.data['item_type']
+        supplier = action.data['supplier']
         user_id = action.data['user']
+
+        if item_type is not None and supplier is not None:
+            nubuild_id = self.generate_item_id(item_type=item_type, supplier=supplier)
+        else:
+            nubuild_id = None
 
         user_obj = self.find_user(user_id)
 
         item_obj = CataloguedItem(
             item_id=item_id,
             mpn=mpn,
+            nubuild_id=nubuild_id,
             description=description,
             shorthand=shorthand
         )
