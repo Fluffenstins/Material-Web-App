@@ -322,7 +322,8 @@ class CoreMaterialManager:
             parent_site_id=parent_site_id
         )
         action.description = "Parent site set."
-        self.enact_action(action)
+        ret = self.enact_action(action)
+        return ret
 
     def remove_site_parent(self, user_id, site_id, parent_site_id):
         action = Action(

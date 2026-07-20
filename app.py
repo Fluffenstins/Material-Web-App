@@ -1,11 +1,10 @@
-from flask import Flask, send_from_directory, request, render_template, redirect, jsonify, send_file
+import os
+from dateutil import parser
+from flask import Flask, request, render_template, redirect, jsonify, send_file
 import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem
-import os
-from dateutil import parser
-import shutil
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
@@ -21,36 +20,34 @@ USERS = {}
 
 
 class FlaskUser(flask_login.UserMixin):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.id = None
 
 
 @login_manager.user_loader
 def user_loader(email):
     internal_user = MATERIAL_APP.find_user(email)
     if internal_user is None:
-        return
+        return None
     user = FlaskUser()
     user.id = internal_user.id
     return user
 
 
 @login_manager.request_loader
-def request_loader(request):
-    email = request.form.get('email')
+def request_loader(request_obj):
+    email = request_obj.form.get('email')
     if email in USERS:
         return USERS[email]
 
     internal_user = MATERIAL_APP.find_user(email)
     if internal_user is None:
-        return
+        return None
 
     user = FlaskUser()
     user.id = internal_user.id
     return user
-
-
-def check_credentials(necessary_credential=None):
-    user_id = flask_login.current_user.id
 
 
 def list_all_sites():
@@ -82,33 +79,39 @@ def check_maintenance_mode():
     if os.environ.get('MAINTENANCE_MODE') == '1':
         # You can bypass specific routes (like an admin dashboard) here
         if request.path in ['/api/setMaintenanceMode', '/setMaintenance']:
-            return
+            return None
         return render_template(
             "MaintenancePage.html"
         )
+    return None
 
 
 @app.route("/")
 def home_page():
     obj_id = request.args.get('obj_id', default="")
     from_qr = request.args.get('from_qr', default="")
+
     try:
         obj = MATERIAL_APP.lookup(obj_id)
-        print(obj.json())
-        if type(obj) is Site:
-            if obj.is_intermediate and from_qr != '':
-                return redirect(f"/intermediateSite?site_id={obj_id}")
-            return redirect(f"/site?site_id={obj_id}")
-        if type(obj) is Material:
-            return redirect(f"/material?item_id={obj_id}")
-        if type(obj) is Action:
-            return redirect(f"/action?action_id={obj_id}")
-        if type(obj) is User:
-            return redirect(f"/user?user_id={obj_id}")
-        if type(obj) is CataloguedItem:
-            return redirect(f"/catalogue?item_id={obj_id}")
     except KeyError:
-        pass
+        return redirect("/sites")
+
+    if isinstance(obj, Site):
+        if obj.is_intermediate and from_qr != '':
+            return redirect(f"/intermediateSite?site_id={obj_id}")
+        return redirect(f"/site?site_id={obj_id}")
+
+    redirects = [
+        [Material, f"/material?item_id={obj_id}"],
+        [Action, f"/action?action_id={obj_id}"],
+        [User, f"/user?user_id={obj_id}"],
+        [CataloguedItem, f"/catalogue?item_id={obj_id}"]
+    ]
+
+    for data_type, redirect_link in redirects:
+        if isinstance(obj, data_type):
+            return redirect(redirect_link)
+
     return redirect("/sites")
 
 
@@ -145,7 +148,10 @@ def create_site_url():
     except AttributeError:
         parent_site_name = ""
 
-    site_type_options = [{'id': 'location', 'text': 'Location'}, {'id': 'project', 'text': 'Project'}]
+    site_type_options = [
+        {'id': 'location', 'text': 'Location'},
+        {'id': 'project', 'text': 'Project'}
+    ]
 
     site_objs = list_all_sites()
     try:
@@ -295,13 +301,6 @@ def action_url():
     except AttributeError:
         user_obj = None
 
-    # interpreted_data = {}
-    #
-    # for key, value in action_obj.data.items():
-    #     try:
-    #         interpreted_data[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
-    #     except:
-    #         interpreted_data[key] = [value]
     interpreted_data = {}
 
     for key, value in action_obj.data.items():
@@ -311,8 +310,11 @@ def action_url():
 
     for key, value in action_obj.output.items():
         try:
-            interpreted_output[key] = [MATERIAL_APP.lookup(value).display_name, f"{request.url_root}?obj_id={value}"]
-        except:
+            interpreted_output[key] = [
+                MATERIAL_APP.lookup(value).display_name,
+                f"{request.url_root}?obj_id={value}"
+            ]
+        except AttributeError:
             interpreted_output[key] = [value]
 
     return render_template(
@@ -336,21 +338,30 @@ def site_url():
     except KeyError:
         site_obj = MATERIAL_APP.find_site(site_id)
     if site_obj is not None:
-        site_id = site_obj.site_id
-        site_type = site_obj.site_type
-        address = site_obj.address
-        material_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
-        parent_sites = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
-        site_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.site_children], key=lambda x: x['text'])
+        # site_id = site_obj.site_id
+        # site_type = site_obj.site_type
+        # address = site_obj.address
+        material_children = sorted([
+            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id}
+            for i in site_obj.material_children
+        ], key=lambda x: x['text'])
+        parent_sites = sorted([
+            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name}
+            for i in site_obj.parent_site_ids
+        ], key=lambda x: x['text'])
+        site_children = sorted([
+            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name}
+            for i in site_obj.site_children
+        ], key=lambda x: x['text'])
         action_history = list_action_history_breakdown(site_obj)
     else:
-        site_id = "Not Found"
-        address = "N/A"
+        # site_id = "Not Found"
+        # address = "N/A"
         material_children = "N/A"
         site_children = "N/A"
         parent_sites = "N/A"
         action_history = "N/A"
-        site_type = "N/A"
+        # site_type = "N/A"
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -370,20 +381,19 @@ def site_url():
             user_obj=user_obj,
             current_tab="Site"
         )
-    else:
-        return render_template(
-            "SitePage.html",
-            qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
-            set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
-            create_sub_site_url=f"{request.url_root}createSite?parent_id={site_obj.id}",
-            site_obj=site_obj,
-            material_children=material_children,
-            parent_sites=parent_sites,
-            site_children=site_children,
-            action_history=action_history,
-            user_obj=user_obj,
-            current_tab="Site"
-        )
+    return render_template(
+        "SitePage.html",
+        qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
+        set_parent_url=f"{request.url_root}setSiteParent?site_id={site_obj.id}",
+        create_sub_site_url=f"{request.url_root}createSite?parent_id={site_obj.id}",
+        site_obj=site_obj,
+        material_children=material_children,
+        parent_sites=parent_sites,
+        site_children=site_children,
+        action_history=action_history,
+        user_obj=user_obj,
+        current_tab="Site"
+    )
 
 
 @app.route("/intermediateSite")
@@ -396,21 +406,15 @@ def intermediate_site_url():
         site_obj = MATERIAL_APP.find_site(site_id)
 
     if site_obj is not None:
-        site_id = site_obj.site_id
-        site_type = site_obj.site_type
-        address = site_obj.address
         material_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id} for i in site_obj.material_children], key=lambda x: x['text'])
         parent_sites = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.parent_site_ids], key=lambda x: x['text'])
         site_children = sorted([{'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name} for i in site_obj.site_children], key=lambda x: x['text'])
         action_history = list_action_history_breakdown(site_obj)
     else:
-        site_id = "Not Found"
-        address = "N/A"
         material_children = "N/A"
         site_children = "N/A"
         parent_sites = "N/A"
         action_history = "N/A"
-        site_type = "N/A"
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -675,7 +679,7 @@ def stage_url():
     if not target_site_id:
         # find most recent intermediate site for user
         active_staging_sites = []
-        for site_id, site_obj in MATERIAL_APP.sites.items():
+        for _, site_obj in MATERIAL_APP.sites.items():
             owner = site_obj.owner
             if owner is None:
                 continue
@@ -686,7 +690,6 @@ def stage_url():
             active_staging_sites.append(site_obj)
 
         if len(active_staging_sites) == 0:
-            created_new_stage = True
             counter = 0
             stage_name = f"Stage {counter}"
             while MATERIAL_APP.find_site(stage_name) is not None:
@@ -762,7 +765,7 @@ def register():
     last_name = request.form.get('lastName')
     if None in (email, password, first_name, last_name):
         print(f"error registering {(email, password, first_name, last_name)}")
-        return
+        return redirect("/register")
 
     try:
         ret = MATERIAL_APP.create_user(
@@ -789,16 +792,12 @@ def login():
     if flask_login.current_user.is_authenticated:
         if next_url:
             return redirect(next_url)
-        else:
-            return redirect("site?site_id=OLT1")
+        return redirect("site?site_id=OLT1")
     print("Trying sincerely to log in.")
     print(f"Path: {template_dir}")
-    try:
-        return render_template(
-            "Login.html"
-        )
-    except Exception as e:
-        return {'path': template_dir, 'exception': str(e)}
+    return render_template(
+        "Login.html"
+    )
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -821,7 +820,7 @@ def api_site():
     # assume that if append/pop is not provided, that we are adding.
     if request.method == 'GET':
         # return a site
-        raise NotImplementedError
+        raise NotImplementedError()
     if request.method == 'POST':
         # create a site
         data = request.get_json()
@@ -832,14 +831,21 @@ def api_site():
 
         existing_site_obj = MATERIAL_APP.find_site(site_id)
         if existing_site_obj is not None:
-            return jsonify({"error": f"Site {site_id} already exists."}), 409
+            return jsonify({
+                "error": f"Site {site_id} already exists."
+            }), 409
 
         ret = MATERIAL_APP.create_site(site_id=site_id, site_type=site_type, user_id=user_obj.id)
 
-        if type(ret) is not Site:
-            return jsonify({"error": f"Error when creating site."}), 409
+        if isinstance(ret, Site):
+            return jsonify({
+                "error": "Error when creating site."
+            }), 409
 
-        return jsonify({"message": f"Site created successfully.", "data": {"id": ret.id}}), 201
+        return jsonify({
+            "message": "Site created successfully.",
+            "data": {"id": ret.id}
+        }), 201
     if request.method == 'PATCH':
         # update a site
         data = request.get_json()
@@ -849,14 +855,17 @@ def api_site():
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
         if site_obj is None:
-            return jsonify({"error": f"Site {site_id} was not found."}), 404
+            return jsonify({
+                "error": f"Site {site_id} was not found."
+            }), 404
 
-        ret = {"message": f"Site updated successfully.", "data": {"id": site_obj.id}}
+        # site_type = data.get('site_type')
+        # status = data.get('status')
+        # address = data.get('address')
+        # ret = {"message": f"Site updated successfully.", "data": {"id": site_obj.id}}
+        raise NotImplementedError()
 
-        site_type = data.get('site_type')
-        status = data.get('status')
-        address = data.get('address')
-        raise NotImplementedError
+    return NotImplementedError()
 
 
 @app.route('/api/catalogueItems', methods=['GET'])
@@ -877,7 +886,10 @@ def api_items():
 
     print(len(ret['data']))
 
-    return jsonify({"message": f"Catalogue item list retrieved successfully.", "data": ret}), 200
+    return jsonify({
+        "message": "Catalogue item list retrieved successfully.",
+        "data": ret
+    }), 200
 
 
 @app.route('/api/catalogueItem', methods=['GET', 'POST', 'PATCH'])
@@ -898,12 +910,21 @@ def api_catalogue_item():
         item_id = data.get('item_id')
         item_obj = MATERIAL_APP.lookup(item_id)
         if item_obj is None:
-            return jsonify({"error": f"Item \"{item_id}\" not found."}), 404
-        return jsonify({"message": f"Item {item_obj.item_id} found.", "data": item_obj.json()}), 200
-    elif request.method == 'POST':
+            return jsonify({
+                "error": f"Item \"{item_id}\" not found."
+            }), 404
+        return jsonify({
+            "message": f"Item {item_obj.item_id} found.",
+            "data": item_obj.json()
+        }), 200
+    if request.method == 'POST':
         pass
-    elif request.method == 'PATCH':
+    if request.method == 'PATCH':
         pass
+
+    return jsonify({
+        "error": "Requested feature is not implemented."
+    }), 501
 
 
 @app.route('/api/receiveMaterial', methods=['POST'])
@@ -922,15 +943,25 @@ def api_receive_material():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if location is None or location_obj is None:
-        return jsonify({"error": f"Location \"{location}\" not found."}), 404
+        return jsonify({
+            "error": f"Location \"{location}\" not found."
+        }), 404
     if project and project_obj is None:
-        return jsonify({"error": f"Project \"{project}\" not found."}), 404
+        return jsonify({
+            "error": f"Project \"{project}\" not found."
+        }), 404
     if item is None or (not item):
-        return jsonify({"error": f"No item provided."}), 404
+        return jsonify({
+            "error": "No item provided."
+        }), 404
     if item_obj is None:
-        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+        return jsonify({
+            "error": f"Item \"{item}\" not found."
+        }), 404
     if qty is None:
-        return jsonify({"error": f"Qty not provided."}), 400
+        return jsonify({
+            "error": "Qty not provided."
+        }), 400
 
     if project_obj is None:
         project_id = None
@@ -945,7 +976,10 @@ def api_receive_material():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Item received created successfully.", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": "Item received created successfully.",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/setSiteParent', methods=['POST'])
@@ -961,15 +995,24 @@ def api_set_site_parent():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if user_obj is None:
-        return jsonify({"error": f"User not found."}), 404
+        return jsonify({
+            "error": "User not found."
+        }), 404
     if site_obj is None:
-        return jsonify({"error": f"Site {site_id} not found."}), 404
+        return jsonify({
+            "error": f"Site {site_id} not found."
+        }), 404
     if parent_site_obj is None:
-        return jsonify({"error": f"Site {parent_site_id} not found."}), 404
+        return jsonify({
+            "error": f"Site {parent_site_id} not found."
+        }), 404
 
     ret = MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
 
-    return jsonify({"message": f"Site {site_obj.site_id}'s parent set to {parent_site_obj.site_id}.", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": f"Site {site_obj.site_id}'s parent set to {parent_site_obj.site_id}.",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/transferMaterial', methods=['POST'])
@@ -992,15 +1035,25 @@ def api_transfer_material():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if source is None or source_obj is None:
-        return jsonify({"error": f"Source site \"{source}\" not found."}), 404
+        return jsonify({
+            "error": f"Source site \"{source}\" not found."
+        }), 404
     if target is not None and target_obj is None:
-        return jsonify({"error": f"Project \"{target}\" not found."}), 404
+        return jsonify({
+            "error": f"Project \"{target}\" not found."
+        }), 404
     if item is None or (not item):
-        return jsonify({"error": f"No item provided."}), 404
+        return jsonify({
+            "error": "No item provided."
+        }), 404
     if item_obj is None:
-        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+        return jsonify({
+            "error": f"Item \"{item}\" not found."
+        }), 404
     if qty is None:
-        return jsonify({"error": f"Qty not provided."}), 400
+        return jsonify({
+            "error": "Qty not provided."
+        }), 400
 
     ret = MATERIAL_APP.transfer_material(
         user_id=user_obj.id,
@@ -1010,7 +1063,10 @@ def api_transfer_material():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Item received created successfully!", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": "Item received created successfully!",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/setInventory', methods=['POST'])
@@ -1026,11 +1082,17 @@ def api_set_inventory():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if site_obj is None:
-        return jsonify({"error": f"Site \"{site_id}\" not found."}), 404
+        return jsonify({
+            "error": f"Site \"{site_id}\" not found."
+        }), 404
     if user_obj is None:
-        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
     if item_obj is None:
-        return jsonify({"error": f"Item \"{item}\" not found."}), 404
+        return jsonify({
+            "error": f"Item \"{item}\" not found."
+        }), 404
 
     ret = MATERIAL_APP.set_inventory(
         user_id=user_obj.id,
@@ -1039,7 +1101,10 @@ def api_set_inventory():
         item_id=item_obj.id
     )
 
-    return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": "Material QOH updated successfully!",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/createSite', methods=['POST'])
@@ -1060,7 +1125,9 @@ def api_create_site():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if user_obj is None:
-        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
 
     ret = MATERIAL_APP.create_site(
         site_id=site_name,
@@ -1070,7 +1137,10 @@ def api_create_site():
         shorthand=shorthand
     )
 
-    return jsonify({"message": f"Site created successfully!", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": "Site created successfully!",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/createCatalogueItem', methods=['POST'])
@@ -1086,11 +1156,15 @@ def api_create_catalogue_item():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if user_obj is None:
-        return jsonify({"error": f"User \"{user_obj}\" not found."}), 404
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
 
     existing_item = MATERIAL_APP.find_item(provided_item_id)
     if existing_item is not None:
-        return jsonify({"error": f"Item {existing_item.display_name} already exists."}), 409
+        return jsonify({
+            "error": f"Item {existing_item.display_name} already exists."
+        }), 409
 
     ret = MATERIAL_APP.create_item(
         item_id=provided_item_id,
@@ -1102,7 +1176,10 @@ def api_create_catalogue_item():
         user=user_obj.id
     )
 
-    return jsonify({"message": f"Item created successfully!", "data": {"id": ret.id}}), 200
+    return jsonify({
+        "message": "Item created successfully!",
+        "data": {"id": ret.id}
+    }), 200
 
 
 @app.route('/api/inventoryReport', methods=['GET'])
@@ -1119,15 +1196,28 @@ def api_pick_up_material():
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     try:
-        ret = MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=site_id, data={'status': 'in_transit'})
+        ret = MATERIAL_APP.patch_site(
+            user_id=user_obj.id,
+            site_id=site_id,
+            data={'status': 'in_transit'}
+        )
     except AttributeError:
-        return jsonify({"error": f"Value is unchanged in {site_id}."}), 422
+        return jsonify({
+            "error": f"Value is unchanged in {site_id}."
+        }), 422
     except PermissionError:
-        return jsonify({"error": f"Invalid attribute requested for {site_id}."}), 403
+        return jsonify({
+            "error": f"Invalid attribute requested for {site_id}."
+        }), 403
 
-    if type(ret) is Site:
-        return jsonify({"message": f"Material QOH updated successfully!", "data": {"id": ret.id}}), 200
-    return jsonify({"error": f"Unable to edit site {site_id}."}), 404
+    if isinstance(ret, Site):
+        return jsonify({
+            "message": "Material QOH updated successfully!",
+            "data": {"id": ret.id}
+        }), 200
+    return jsonify({
+        "error": f"Unable to edit site {site_id}."
+    }), 404
 
 
 @app.route('/api/completeIntermediateTransfer', methods=['POST'])
@@ -1138,48 +1228,76 @@ def api_complete_intermediate_material():
     source_obj = MATERIAL_APP.find_site(source_id)
 
     if source_obj.status == 'delivered':
-        return jsonify({"error": f"No destination site found for {source_id}."}), 404
+        return jsonify({
+            "error": f"No destination site found for {source_id}."
+        }), 404
 
     try:
         target_id = MATERIAL_APP.find_site(source_obj.destination_site).id
     except AttributeError:
-        return jsonify({"error": f"No destination site found for {source_id}."}), 404
+        return jsonify({
+            "error": f"No destination site found for {source_id}."
+        }), 404
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
-    MATERIAL_APP.transfer_all_material(user_id=user_obj.id, source_id=source_obj.id, target_id=target_id)
-    MATERIAL_APP.patch_site(user_id=user_obj.id, site_id=source_obj.id, data={'status': 'delivered'})
+    MATERIAL_APP.transfer_all_material(
+        user_id=user_obj.id,
+        source_id=source_obj.id,
+        target_id=target_id
+    )
+    MATERIAL_APP.patch_site(
+        user_id=user_obj.id,
+        site_id=source_obj.id,
+        data={'status': 'delivered'}
+    )
 
-    return jsonify({"data": {'id': target_id}}), 200
+    return jsonify({
+        "data": {'id': target_id}
+    }), 200
 
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
+    """
+
+    :return:
+    """
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
 
     if email is None:
-        return jsonify({"error": f"No email provided."}), 400
+        return jsonify({
+            "error": "No email provided."
+        }), 400
     if password is None:
-        return jsonify({"error": f"No password provided."}), 400
+        return jsonify({
+            "error": "No password provided."
+        }), 400
 
     user = user_loader(email)
     if user is None:
-        return jsonify({"error": f"Client user creation failed. Please make sure user exists"}), 424
+        return jsonify({
+            "error": "Client user creation failed. Please make sure user exists"
+        }), 424
 
     user_obj = MATERIAL_APP.find_user(email)
 
     # need to check password
     if not user_obj.check_password(password):
-        return jsonify({"error": f"Incorrect password."}), 403
+        return jsonify({
+            "error": "Incorrect password."
+        }), 403
 
-    ret = flask_login.login_user(user)
+    flask_login.login_user(user)
     USERS[user_obj.id] = user
     # if not next_url:
     #     return redirect("sites")
     # return redirect(next_url)
-    return jsonify({"data": {'id': user_obj.id}}), 200
+    return jsonify({
+        "data": {'id': user_obj.id}
+    }), 200
 
 
 @app.route('/api/dbBackup', methods=['GET'])
@@ -1195,16 +1313,40 @@ def api_db_backup():
 
 @app.route('/api/setMaintenanceMode', methods=['POST'])
 def api_set_maintenance_mode():
+    """Sets entire app into Maintenance Mode.
+
+    Restricts access to all endpoints except those pertaining to maintenance setting.
+    Specifically to allow backups to have the most up to date data, and to make sure changes aren't made
+    while the system is restarting.
+
+    Args:
+        table_handle: An open smalltable.Table instance.
+        keys: A sequence of strings representing the key of each table
+          row to fetch.  String keys will be UTF-8 encoded.
+        require_all_keys: If True only rows with values set for all keys will be
+          returned.
+
+    Returns:
+        {b'Serak': ('Rigel VII', 'Preparer'),
+         b'Zim': ('Irk', 'Invader'),
+         b'Lrrr': ('Omicron Persei 8', 'Emperor')}
+
+    Raises:
+        IOError: An error occurred accessing the smalltable.
+    """
     data = request.get_json()
     state = data.get('state')
-    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    # user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
     if state:
         os.environ['MAINTENANCE_MODE'] = '1'
     else:
         os.environ['MAINTENANCE_MODE'] = '0'
 
-    return jsonify({"message": f"Maintenance mode set to {state}", "data": {'state': state}}), 200
+    return jsonify({
+        "message": f"Maintenance mode set to {state}",
+        "data": {'state': state}
+    }), 200
 
 
 @app.route('/downloads/rustdesk', methods=['GET'])
