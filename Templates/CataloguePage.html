@@ -85,6 +85,19 @@ input {
   cursor: pointer;
 }
 
+.edit-btn {
+    background-color: #34dbed;
+    border: none;
+    padding: 6px 10px;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.edit-btn:hover {
+    background-color: #2db3c2;
+}
+
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -137,6 +150,11 @@ input {
     </div>
 
     <div class="field">
+      <div class="label">Shorthand</div>
+      <div class="value" id="description">{{catalogue_item_obj.shorthand}}</div>
+    </div>
+
+    <div class="field">
       <div class="label">Description</div>
       <div class="value" id="description">{{catalogue_item_obj.description}}</div>
     </div>
@@ -152,6 +170,7 @@ input {
 		  <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{catalogue_item_obj.id}}')">{{catalogue_item_obj.get_item().display_name}}</div>
 		</div>
 	{% endif %}
+	<button class="edit-btn" onclick="window.location.href='/editItem?item_id={{catalogue_item_obj.id}}'">Edit Item</button>
   </div>
 
 

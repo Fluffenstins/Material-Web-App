@@ -193,8 +193,7 @@ class CoreMaterialManager:
             pass
         item_id = item_id.strip().lower()
         for obj_id, item in self.items.items():
-            if item.item_id.lower() == item_id:
-                # call get_item to get the correct item, because there may be duplicates
+            if item_id in (item.item_id.lower(), item.nubuild_id.lower()):
                 return item.get_item()
 
     def find_user(self, email):
@@ -346,11 +345,11 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
-    def patch_item(self, user_id, site_id, data):
+    def patch_item(self, user_id, item_id, data):
         action = Action(
             action_type='patch_item',
             user=user_id,
-            item_id=site_id,
+            item_id=item_id,
             data=data
         )
         action.description = "Item settings changed."
@@ -825,7 +824,7 @@ class CoreMaterialManager:
         data = action.data['data']
 
         user_obj = self.find_user(user_id)
-        item_obj = self.find_site(item_id)
+        item_obj = self.find_item(item_id)
 
         if item_obj is None:
             raise KeyError(f'Catalogue item {item_id} not found.')

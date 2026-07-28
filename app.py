@@ -172,11 +172,6 @@ def create_site_url():
 @app.route("/createItem")
 @flask_login.login_required
 def create_item_url():
-    parent_id = request.args.get('parent_id', default="")
-    try:
-        parent_site_name = MATERIAL_APP.find_site(parent_id).path
-    except AttributeError:
-        parent_site_name = ""
 
     item_type_options = [
         {'id': '1', 'text': 'Misc'},
@@ -206,7 +201,7 @@ def create_item_url():
         {'id': 'MC', 'text': 'CT&M'}
         ]
 
-    site_objs = list_all_sites()
+    # site_objs = list_all_sites()
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
@@ -216,10 +211,30 @@ def create_item_url():
         "CreateCatalogueItem.html",
         user_obj=user_obj,
         current_tab="Create Item",
-        parent_sites=site_objs,
         item_type_options=item_type_options,
         supplier_options=supplier_options,
-        parent_site_name=parent_site_name
+    )
+
+
+@app.route("/editItem")
+@flask_login.login_required
+def edit_item_url():
+    item_id = request.args.get('item_id', default="")
+    try:
+        item_obj = MATERIAL_APP.find_item(item_id)
+    except AttributeError:
+        return redirect(f"/createItem")
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "EditCatalogueItem.html",
+        user_obj=user_obj,
+        item_obj=item_obj,
+        current_tab="Edit Item",
     )
 
 
@@ -229,10 +244,13 @@ def user_url():
     user_id = request.args.get('user_id', default="")
     displayed_user_obj = MATERIAL_APP.lookup(user_id)
 
+    is_viewing_self = False
+
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
         action_history = list_action_history_breakdown(displayed_user_obj)
-
+        if user_obj.id == displayed_user_obj.id:
+            is_viewing_self = True
     except AttributeError:
         user_obj = None
         action_history = 'N/A'
@@ -243,7 +261,8 @@ def user_url():
         displayed_user_obj=displayed_user_obj,
         user_obj=user_obj,
         action_history=action_history,
-        current_tab="User"
+        current_tab="User",
+        is_viewing_self=is_viewing_self
     )
 
 
@@ -632,6 +651,46 @@ def projects_directory_url():
     )
 
 
+@app.route("/users")
+@flask_login.login_required
+def users_directory_url():
+
+    site_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.users.items()]
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "UserDirectory.html",
+        current_tab="Users",
+        user_objs=site_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/items")
+@flask_login.login_required
+def items_directory_url():
+
+    catalogue_item_objs = [{'id': key, 'text': val.item_id} for key, val in MATERIAL_APP.items.items()]
+    catalogue_item_objs = sorted(catalogue_item_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "CatalogueItemDirectory.html",
+        current_tab="Items",
+        catalogue_item_objs=catalogue_item_objs,
+        user_obj=user_obj,
+    )
+
+
 @app.route("/setMaintenance")
 @flask_login.login_required
 def set_maintenance_url():
@@ -804,6 +863,13 @@ def login():
 def logout():
     flask_login.logout_user()
     return redirect('/login')
+
+
+@app.route('/barcode', methods=['GET'])
+def barcode_test():
+    return render_template(
+        "BarCodeScannerTest.html"
+    )
 
 
 @app.route('/api/site', methods=['GET', 'POST', 'PATCH'])
@@ -1174,6 +1240,58 @@ def api_create_catalogue_item():
         item_type=item_type,
         supplier=supplier,
         user=user_obj.id
+    )
+
+    return jsonify({
+        "message": "Item created successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/editCatalogueItem', methods=['PATCH'])
+def api_edit_catalogue_item():
+    data = request.get_json()
+    item_id = data.get('item_id')
+    item_type = data.get('item_type')
+    supplier = data.get('supplier')
+    provided_item_id = data.get('provided_item_id')
+    mpn = data.get('mpn')
+    description = data.get('description')
+    shorthand = data.get('shorthand')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    existing_item = MATERIAL_APP.find_item(item_id)
+    if existing_item is None:
+        return jsonify({
+            "error": f"Item {provided_item_id} could not be found."
+        }), 404
+
+    data = {}
+    for key, new_value, old_value in (
+            ('item_type', item_type, existing_item.item_type),
+            ('supplier', supplier, existing_item.supplier),
+            ('item_id', provided_item_id, existing_item.item_id),
+            ('mpn', mpn, existing_item.mpn),
+            ('description', description, existing_item.description),
+            ('shorthand', shorthand, existing_item.shorthand),
+    ):
+        if not new_value:
+            continue
+        if new_value == old_value:
+            print(f"{key}: {new_value} == {old_value}")
+            continue
+        data[key] = new_value
+
+    ret = MATERIAL_APP.patch_item(
+        item_id=item_id,
+        user_id=user_obj.id,
+        data=data
     )
 
     return jsonify({
