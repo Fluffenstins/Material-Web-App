@@ -363,7 +363,7 @@ def site_url():
         # site_type = site_obj.site_type
         # address = site_obj.address
         material_children = sorted([
-            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.item_id}
+            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.display_name}
             for i in site_obj.material_children
         ], key=lambda x: x['text'])
         parent_sites = sorted([

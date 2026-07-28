@@ -210,7 +210,7 @@ class CataloguedItem(CoreMaterialObj):
             ret = self.nubuild_id
 
         if self.shorthand is not None:
-            ret = f"{ret} {self.shorthand}"
+            ret = f"{ret} - {self.shorthand}"
 
         return ret
 
@@ -529,6 +529,22 @@ class Action(CoreMaterialObj):
                 except:
                     pass
                 return f"Site value {attr_str} updated to {val}"
+            case "patch_item":
+                max_word_count = 2
+                patched_attributes = [f"{i[5:]}" for i in output if i[:5] == 'prev_']
+                if len(patched_attributes) == 0:
+                    return f"Item values update attempt"
+                if len(patched_attributes) > max_word_count:
+                    patched_attributes = patched_attributes[:2]
+                    attr_str = ', '.join(patched_attributes)
+                    return f"Item values {attr_str}, updated"
+                attr_str = patched_attributes[0]
+                val = data['data'][attr_str]
+                try:
+                    val = self.lookup(val).display_name
+                except:
+                    pass
+                return f"Item value {attr_str} updated to {val}"
             case "transfer_all_material":
                 return f"All material transferred from {output['source_id']} to {output['target_id']}"
             case "deprecate_item":
