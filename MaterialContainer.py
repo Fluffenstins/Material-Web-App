@@ -193,7 +193,7 @@ class CoreMaterialManager:
             pass
         item_id = item_id.strip().lower()
         for obj_id, item in self.items.items():
-            if item_id in (item.item_id.lower(), item.nubuild_id.lower()):
+            if item_id == item.item_id.lower() or (item.nubuild_id is not None and item_id == item.nubuild_id.lower()):
                 return item.get_item()
 
     def find_user(self, email):

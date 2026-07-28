@@ -335,6 +335,8 @@ def action_url():
             ]
         except AttributeError:
             interpreted_output[key] = [value]
+        except KeyError:
+            interpreted_output[key] = [value]
 
     return render_template(
         "ActionPage.html",
