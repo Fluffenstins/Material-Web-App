@@ -78,7 +78,7 @@ def list_action_history_breakdown(obj):
 def check_maintenance_mode():
     if os.environ.get('MAINTENANCE_MODE') == '1':
         # You can bypass specific routes (like an admin dashboard) here
-        if request.path in ['/api/setMaintenanceMode', '/setMaintenance']:
+        if request.path in ['/api/setMaintenanceMode', '/setMaintenance', '/api/dbBackup']:
             return None
         return render_template(
             "MaintenancePage.html"
@@ -677,7 +677,7 @@ def users_directory_url():
 @flask_login.login_required
 def items_directory_url():
 
-    catalogue_item_objs = [{'id': key, 'text': val.item_id} for key, val in MATERIAL_APP.items.items()]
+    catalogue_item_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.items.items()]
     catalogue_item_objs = sorted(catalogue_item_objs, key=lambda x: x['text'])
 
     try:

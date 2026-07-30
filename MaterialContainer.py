@@ -209,6 +209,9 @@ class CoreMaterialManager:
                 return user
         return None
 
+    def check_permission(self, user_id, permission_id):
+        pass
+
     def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None, address=None, shorthand=None):
         action = Action(
             'create_site',

@@ -43,7 +43,7 @@ body {
 
 /* Tabs */
 .tabs {
-	width: 40vw;
+	width: 67vw;
     display: flex;
     gap: 20px;
 	overflow-x: auto;
@@ -112,9 +112,11 @@ body {
 				<div class="tab {{'active' if current_tab == 'Locations'}}" onclick="window.location.href='/locations'">Locations</div>
 				<div class="tab {{'active' if current_tab == 'Projects'}}" onclick="window.location.href='/projects'">Projects</div>
 				<div class="tab {{'active' if current_tab == 'Stages'}}" onclick="window.location.href='/stages'">Stages</div>
+				<div class="tab {{'active' if current_tab == 'Items'}}" onclick="window.location.href='/items'">Items</div>
+				<div class="tab {{'active' if current_tab == 'Users'}}" onclick="window.location.href='/users'">Users</div>
 				<div class="tab {{'active' if current_tab == 'Create Site'}}" onclick="window.location.href='/createSite'">Create Site</div>
 				<div class="tab {{'active' if current_tab == 'Create Item'}}" onclick="window.location.href='/createItem'">Create Item</div>
-				{% if current_tab not in ['Locations', 'Projects', 'Stages', 'Create Site', 'Create Item']%}
+				{% if current_tab not in ['Locations', 'Projects', 'Stages', 'Items', 'Users', 'Create Site', 'Create Item']%}
 				<div class="tab active">{{current_tab}}</div>
 				{% endif %}
         </div>
