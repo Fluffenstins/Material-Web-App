@@ -209,6 +209,20 @@ class CoreMaterialManager:
                 return user
         return None
 
+    def find_role(self, role_id):
+        if role_id is None:
+            return None
+        try:
+            return self.roles[role_id]
+        except KeyError:
+            pass
+
+        for obj_id, role in self.roles.items():
+            if role.display_name == role_id:
+                print(role.display_name, role_id, 'kerchew')
+                return role
+        return None
+
     def check_permission(self, user_id, permission_id):
         pass
 
@@ -231,6 +245,31 @@ class CoreMaterialManager:
         action = Action('create_material', site=site.id, item_id=item_id, user=user_id)
         material_obj = self.enact_action(action)
         return material_obj
+
+    def create_role(self, name, user_id=None):
+        action = Action('create_role', name=name, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
+
+    def add_user_role(self, target_user_id, role_id, user_id=None):
+        action = Action('add_user_role', target_user_id=target_user_id, role_id=role_id, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
+
+    def remove_user_role(self, target_user_id, role_id, user_id=None):
+        action = Action('remove_user_role', target_user_id=target_user_id, role_id=role_id, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
+
+    def add_role_permission(self, role_id, permission, user_id=None):
+        action = Action('add_role_permission', role_id=role_id, permission=permission, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
+
+    def remove_role_permission(self, role_id, permission, user_id=None):
+        action = Action('remove_role_permission', role_id=role_id, permission=permission, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
 
     def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None, item_type=None, supplier=None):
         action = Action(
@@ -385,7 +424,12 @@ class CoreMaterialManager:
             'patch_site': self._patch_site,
             'deprecate_item': self._deprecate_item,
             'patch_item': self._patch_item,
-            'remove_site_parent': self._remove_site_parent
+            'remove_site_parent': self._remove_site_parent,
+            'create_role': self._create_role,
+            'add_role_permission': self._add_role_permission,
+            'remove_role_permission': self._remove_role_permission,
+            'add_user_role': self._add_user_role,
+            'remove_user_role': self._remove_user_role
         }
         ret = None
         try:
@@ -428,6 +472,114 @@ class CoreMaterialManager:
         action.add_output('catalogue_item_id', item_obj.id)
 
         return material_obj
+
+    def _create_role(self, action):
+
+        name = action.data['name']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+
+        role_obj = Role(name=name)
+
+        self.roles[role_obj.id] = role_obj
+
+        role_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('role_id', role_obj.id)
+
+        return role_obj
+
+    def _add_user_role(self, action):
+        role_id = action.data['role_id']
+        target_user_id = action.data['target_user_id']
+        user_id = action.data['user']
+
+        role_obj = self.find_role(role_id)
+        target_user_obj = self.find_user(target_user_id)
+        user_obj = self.find_user(user_id)
+
+        if role_obj is None:
+            raise KeyError(f"role {role_id} not found to add to {target_user_id}")
+
+        target_user_obj.add_role(role_id)
+
+        role_obj.add_action(action)
+        target_user_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('target_user_id', target_user_obj.id)
+        action.add_output('role_id', role_obj.id)
+
+        return target_user_obj
+
+    def _remove_user_role(self, action):
+        role_id = action.data['role_id']
+        target_user_id = action.data['target_user_id']
+        user_id = action.data['user']
+
+        role_obj = self.find_role(role_id)
+        target_user_obj = self.find_user(target_user_id)
+        user_obj = self.find_user(user_id)
+
+        if role_obj is None:
+            raise KeyError(f"role {role_id} not found to remove from {target_user_id}")
+
+        target_user_obj.remove_role(role_id)
+
+        role_obj.add_action(action)
+        target_user_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('target_user_id', target_user_obj.id)
+        action.add_output('role_id', role_obj.id)
+
+        return target_user_obj
+
+    def _add_role_permission(self, action):
+        role_id = action.data['role_id']
+        permission = action.data['permission']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+        role_obj = self.find_role(role_id)
+
+        if role_obj is None:
+            return
+        if user_obj is None:
+            return
+
+        role_obj.add_permission(permission)
+
+        role_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('role_id', role_obj.id)
+
+        return role_obj
+
+    def _remove_role_permission(self, action):
+        role_id = action.data['role_id']
+        permission = action.data['permission']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+        role_obj = self.find_role(role_id)
+
+        if role_obj is None:
+            return
+        if user_obj is None:
+            return
+
+        role_obj.remove_permission(permission)
+
+        role_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('role_id', role_obj.id)
+
+        return role_obj
 
     def _create_item(self, action):
 
@@ -1020,4 +1172,8 @@ class ContinuousMaterialManager(CoreMaterialManager):
 
 
 if __name__ == '__main__':
-    pass
+    container = ContinuousMaterialManager()
+    container.load_json()
+    user_obj = container.find_user('50wk1wvxK6Re')
+    user_obj.add_role('qTQNZYIMPYKe')
+    container.save_json()

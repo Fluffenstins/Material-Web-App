@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, redirect, jsonify, send_file
 import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
-from MaterialCore import Site, Material, Action, User, CataloguedItem
+from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
@@ -76,6 +76,7 @@ def list_action_history_breakdown(obj):
 
 @app.before_request
 def check_maintenance_mode():
+
     if os.environ.get('MAINTENANCE_MODE') == '1':
         # You can bypass specific routes (like an admin dashboard) here
         if request.path in ['/api/setMaintenanceMode', '/setMaintenance', '/api/dbBackup']:
@@ -105,7 +106,8 @@ def home_page():
         [Material, f"/material?item_id={obj_id}"],
         [Action, f"/action?action_id={obj_id}"],
         [User, f"/user?user_id={obj_id}"],
-        [CataloguedItem, f"/catalogue?item_id={obj_id}"]
+        [CataloguedItem, f"/catalogue?item_id={obj_id}"],
+        [Role, f"/role?role_id={obj_id}"]
     ]
 
     for data_type, redirect_link in redirects:
@@ -249,11 +251,13 @@ def user_url():
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
         action_history = list_action_history_breakdown(displayed_user_obj)
+        role_objs = [{'id': role_id, 'text': role_obj.display_name} for role_id, role_obj in MATERIAL_APP.roles.items()]
         if user_obj.id == displayed_user_obj.id:
             is_viewing_self = True
     except AttributeError:
         user_obj = None
         action_history = 'N/A'
+        role_objs = 'N/A'
 
     return render_template(
         "UserPage.html",
@@ -261,6 +265,7 @@ def user_url():
         displayed_user_obj=displayed_user_obj,
         user_obj=user_obj,
         action_history=action_history,
+        role_objs=role_objs,
         current_tab="User",
         is_viewing_self=is_viewing_self
     )
@@ -690,6 +695,49 @@ def items_directory_url():
         current_tab="Items",
         catalogue_item_objs=catalogue_item_objs,
         user_obj=user_obj,
+    )
+
+
+@app.route("/roles")
+@flask_login.login_required
+def roles_directory_url():
+    role_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.roles.items()]
+    role_objs = sorted(role_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "RoleDirectory.html",
+        current_tab="Roles",
+        role_objs=role_objs,
+        user_obj=user_obj,
+    )
+
+
+@app.route("/role")
+@flask_login.login_required
+def role_url():
+    role_id = request.args.get('role_id', default="")
+    role_obj = MATERIAL_APP.lookup(role_id)
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+        action_history = list_action_history_breakdown(role_obj)
+
+    except AttributeError:
+        user_obj = None
+        action_history = 'N/A'
+
+    return render_template(
+        "RolePage.html",
+        # qr_code_url=f"{request.url_root}downloadQRCode?obj_id={role_obj.id}",
+        role_obj=role_obj,
+        user_obj=user_obj,
+        action_history=action_history,
+        current_tab="Role"
     )
 
 
@@ -1207,6 +1255,155 @@ def api_create_site():
 
     return jsonify({
         "message": "Site created successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/createRole', methods=['POST'])
+def api_create_role():
+    data = request.get_json()
+    site_name = data.get('role_name')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.create_role(
+        name=site_name,
+        user_id=user_obj.id
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Role created successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/addPermission', methods=['PATCH'])
+def api_add_permission():
+    data = request.get_json()
+    role_id = data.get('role_id')
+    permission_title = data.get('permission')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.add_role_permission(
+        role_id=role_id,
+        permission=permission_title,
+        user_id=user_obj.id
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Role permission added successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/addUserRole', methods=['PATCH'])
+def api_add_role():
+    data = request.get_json()
+    role_id = data.get('role_id')
+    target_user_id = data.get('target_user_id')
+
+    role_obj = MATERIAL_APP.find_role(role_id)
+
+    if role_obj is None:
+        return jsonify({
+            "error": f"Role \"{role_id}\" not found."
+        }), 404
+
+    target_user_obj = MATERIAL_APP.find_user(target_user_id)
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{flask_login.current_user.id}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.add_user_role(
+        role_id=role_obj.id,
+        target_user_id=target_user_obj.id,
+        user_id=user_obj.id
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Role added successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/removeUserRole', methods=['PATCH'])
+def api_remove_role():
+    data = request.get_json()
+    role_id = data.get('role_id')
+    target_user_id = data.get('target_user_id')
+
+    role_obj = MATERIAL_APP.find_role(role_id)
+
+    if role_obj is None:
+        return jsonify({
+            "error": f"Role \"{role_id}\" not found."
+        }), 404
+
+    target_user_obj = MATERIAL_APP.find_user(target_user_id)
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{flask_login.current_user.id}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.remove_user_role(
+        role_id=role_obj.id,
+        target_user_id=target_user_obj.id,
+        user_id=user_obj.id
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Role removed successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/removePermission', methods=['PATCH'])
+def remove_add_permission():
+    data = request.get_json()
+    role_id = data.get('role_id')
+    permission_title = data.get('permission')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.remove_role_permission(
+        role_id=role_id,
+        permission=permission_title,
+        user_id=user_obj.id
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Role permission added successfully!",
         "data": {"id": ret.id}
     }), 200
 

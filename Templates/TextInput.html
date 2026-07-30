@@ -1,0 +1,18 @@
+<div style="display: flex; gap: 8px; align-items: center;">
+    <input
+        type="text"
+        id="itemName"
+        placeholder="Enter name"
+        style="flex: 1; padding: 8px;"
+    />
+    <button type="button" onclick="createItem()">
+        Create
+    </button>
+</div>
+
+<script>
+function createItem() {
+    const value = document.getElementById('itemName').value;
+    console.log('Creating:', value);
+}
+</script>

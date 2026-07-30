@@ -4,7 +4,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NuBuild Edit Item</title>
+<title>NuBuild Items</title>
 
 <style>
 body {
@@ -85,27 +85,6 @@ input {
   cursor: pointer;
 }
 
-.submit-btn {
-  background: #51F59F;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-}
-
-.error-message {
-  font-size: 14px;
-  color: #ff0000;
-}
-
-.success-message {
-  font-size: 14px;
-  color: #00ff00;
-}
-
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -119,6 +98,11 @@ input {
   justify-content: space-around;
   z-index: 1000;
   background: #ffffff;
+}
+
+.text-inp {
+  flex: 1; 
+  padding: 8px;
 }
 
 .action-btn {
@@ -149,16 +133,22 @@ border-bottom: 1px solid #ddd;
 border-bottom: none;
 }
 
-.site-header {
-            color: #000;
-            padding: 20px 15px;
-			font-size: 20px;
-        }
-		
+.create { background: #28a745; }
+
 .receive { background: #28a745; }
 .move { background: #dc3545; }
 .stage { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
+
+.error-message {
+  font-size: 14px;
+  color: #ff0000;
+}
+
+.success-message {
+  font-size: 14px;
+  color: #00ff00;
+}
 
 @media (max-width: 480px) {
   .value {
@@ -174,46 +164,20 @@ border-bottom: none;
 <div class="container">
 
   <div class="card">
-	<div class="site-header">Edit Catalogue Item</div>
-  
     <div class="field">
-      <div class="label">Item Type</div>
-		<input type="text" id="item_type_input" onkeyup="" placeholder="E.g. Spade">
-    </div>
-  
-    <div class="field">
-      <div class="label">Supplier</div>
-		<input type="text" id="supplier_input" onkeyup="" placeholder="E.g. Sega">
-    </div>
-  
-    <div class="field">
-		<div class="label">Item ID</div>
-		<input type="text" id="item_id_input" onkeyup="" placeholder="E.g. 01NA0001">
-    </div>
+      <div class="label">Roles</div>
 	
-    <div class="field">
-		<div class="label">MPN</div>
-		<input type="text" id="mpn_input" onkeyup="" placeholder="E.g. GDE1106">
+	{% with search_list_id="role", item_type="Role", material_children=role_objs, hide_by_default=false, call_api=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
     </div>
-	
-    <div class="field">
-		<div class="label">Description</div>
-		<input type="text" id="description_input" onkeyup="" placeholder="">
-    </div>
-	
-    <div class="field">
-		<div class="label">Shorthand</div>
-		<input type="text" id="shorthand_input" onkeyup="" placeholder="E.g. 16 Grommet, 16way, etc.">
-    </div>
-	
-	
-	{% if item_obj.correct_item %}
-      <div class="update-btn" id="correctItem" onclick="window.location.assign('/?obj_id={{item_obj.correct_item}}');">{{item_obj.get_item.display_name}}</div>
-	{% endif %}
 	
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Edit successful.</div>
-	<div class="submit-btn" id="submit_button" onclick="submitReceive()">Submit</div>
+	
+	<input class="text-inp" type="text" id="newRoleNameInput" placeholder="Enter new role name"/>
+    <button class="action-btn create" type="button" onclick="create_new_role()">Create</button>
 
 </div>
 
@@ -221,6 +185,29 @@ border-bottom: none;
 </div>
 
 <script>
+
+async function create_new_role() {
+	let role_name_inp = document.getElementById("newRoleNameInput");
+	let value = role_name_inp.value;
+	let url = "/api/createRole";
+	const data = {
+	"role_name": value
+	};
+	let ret = await post_request(url, data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Role added!");
+		//history.back();
+		window.location.reload();
+	}
+	
+	console.log(response_data);
+}
+
 function handleButtonUrl(action, open_new_window) {
 			if (open_new_window) {
 				window.open(action, '_blank');
@@ -234,6 +221,7 @@ function showChildSite(display_name, site_id) {
 	const new_elem = element.cloneNode(true);
 	element.after(new_elem);
 }
+
 
 function display_generic_error(error_text) {
   const error_elem = document.getElementById("receive_error");
@@ -251,48 +239,6 @@ function display_generic_success(success_text) {
   hide_all_errors();
 }
 		
-async function submitReceive() {
-console.log("Attempting to edit catalogue item.");
-	const item_obj_id = "{{item_obj.id}}";
-	const item_type_elem = document.getElementById("item_type_input");
-	const supplier_elem = document.getElementById("supplier_input");
-	const item_id_elem = document.getElementById("item_id_input");
-	const mpn_elem = document.getElementById("mpn_input");
-	const description_elem = document.getElementById("description_input");
-	const shorthand_elem = document.getElementById("shorthand_input");
-	console.log(item_type_elem.value);
-	console.log(supplier_elem.value);
-	console.log(item_id_elem.value);
-	console.log(mpn_elem.value);
-	console.log(description_elem.value);
-	console.log(shorthand_elem.value);
-	
-	const data = {
-	"item_id": item_obj_id,
-	"item_type": item_type_elem.value,
-	"supplier": supplier_elem.value,
-	"provided_item_id": item_id_elem.value,
-	"mpn": mpn_elem.value,
-	"description": description_elem.value,
-	"shorthand": shorthand_elem.value
-	};
-	let ret = await patch_request("/api/editCatalogueItem", data);
-	let response_data = await ret.json();
-	
-	if (!ret.ok) {
-		console.log("Displaying error " + response_data['error']);
-		display_generic_error(response_data['error']);
-	} else {
-		display_generic_success("Creation successful!");
-		//history.back();
-		window.location.replace(document.referrer);
-	}
-	
-	console.log(response_data);
-}
-
-{% include "Request.js" %}
-  
 function hide_all_errors() {
 error_elems = document.getElementsByClassName("error-message");
 for (i = 0; i < error_elems.length; i++) {
@@ -309,8 +255,11 @@ for (i = 0; i < error_elems.length; i++) {
 }
 }
 
+{% include "Request.js" %}
+
 hide_all_errors();
 hide_all_successes();
+
 </script>
 
 </body>

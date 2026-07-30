@@ -4,7 +4,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>User</title>
+<title>Role</title>
 
 <style>
 body {
@@ -36,6 +36,7 @@ body {
 .container {
   padding: 16px;
   flex: 1;
+  margin-bottom: 50px;
 }
 
 .card {
@@ -47,7 +48,7 @@ body {
 }
 
 .field {
-  margin-bottom: 50px;
+  margin-bottom: 12px;
 }
 
 .label {
@@ -113,13 +114,9 @@ input {
   color: white;
   cursor: pointer;
 }
+
 .delete { background: #ee2222; }
 .add { background: #28a745; }
-
-.receive { background: #28a745; }
-.move { background: #dc3545; }
-.stage { background: #ffc107; color: black; }
-.qr { background: #17a2b8; }
 
 .error-message {
   font-size: 14px;
@@ -144,59 +141,33 @@ input {
 {% include "Header.html" %}
 
 <div class="container">
+
   <div class="card">
 
     <div class="field">
       <div class="label">Name</div>
-      <div class="value" id="description">{{displayed_user_obj.display_name}}</div>
+      <div class="value" id="description">{{role_obj.name}}</div>
     </div>
 
     <div class="field">
-      <div class="label">Email</div>
-      <div class="value" id="mpn">{{displayed_user_obj.email}}</div>
+      <div class="label">Description</div>
+      <div class="value" id="description">{{role_obj.description}}</div>
     </div>
-	{% if is_viewing_self %}
-        <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-	{% endif %}
 	
-</div>
-
-  <div class="card">
-      <div class="label">Roles</div>
-	{% for role in displayed_user_obj.roles %}
-		<input readonly class="permission" type="text" value="{{user_obj.lookup(role).display_name}}"></input>
-		<button class="action-btn delete" type="button" onclick="delete_role('{{role}}')">Delete</button>
+	{% for permission in role_obj.allowed_actions %}
+		<input readonly class="permission" type="text" value="{{permission}}"></input>
+		<button class="action-btn delete" type="button" onclick="delete_permission('{{permission}}')">Delete</button>
 		<br>
 	{% endfor %}
 	
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Edit successful.</div>
-	{% with search_list_id="role_objs", item_type="Role", material_children=role_objs, hide_by_default=true, call_api=false %}
-    {% include "SimpleDropdown.html" %}
-    <button class="action-btn add" type="button" onclick="add_role()">Add</button>
-	{% endwith %}
-  </div>
+	<input class="permission" type="text" id="newPermissionInput" placeholder="Enter new permission"/>
+    <button class="action-btn add" type="button" onclick="create_permission()">Add</button>
 
-    <div class="field">
-      <div class="label">Action History</div>
-	
-	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
-	
-		</div>
-	</div>
-
-<div class="bottom-bar">
-  <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}')">Get QR Code</button>
-</div>
 </div>
 
 <script>
-function handleButtonUrl(action) {
-			// window.open(action, '_blank');
-			window.location.assign(action);
-        }
 
 function display_generic_error(error_text) {
   const error_elem = document.getElementById("receive_error");
@@ -214,22 +185,22 @@ function display_generic_success(success_text) {
   hide_all_errors();
 }
 		
-async function add_role() {
-	console.log("Attempting to add role.");
-	const role_name_inp = document.getElementById("role_objs_input");
+async function create_permission() {
+console.log("Attempting to add role permission.");
+	const permission_inp = document.getElementById("newPermissionInput");
 	
 	const data = {
-		"role_id": role_name_inp.value,
-		"target_user_id": "{{displayed_user_obj.id}}",
+		"role_id": "{{role_obj.id}}",
+		"permission": permission_inp.value
 	};
-	let ret = await patch_request("/api/addUserRole", data);
+	let ret = await patch_request("/api/addPermission", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
 		console.log("Displaying error " + response_data['error']);
 		display_generic_error(response_data['error']);
 	} else {
-		display_generic_success("Role added!");
+		display_generic_success("Permission added!");
 		//history.back();
 		window.location.reload();
 	}
@@ -237,13 +208,13 @@ async function add_role() {
 	console.log(response_data);
 }
 		
-async function delete_role(role_id) {
-console.log("Attempting to remove role.");
+async function delete_permission(permission) {
+console.log("Attempting to remove role permission.");
 	const data = {
-		"role_id": role_id,
-		"target_user_id": "{{displayed_user_obj.id}}",
+		"role_id": "{{role_obj.id}}",
+		"permission": permission
 	};
-	let ret = await patch_request("/api/removeUserRole", data);
+	let ret = await patch_request("/api/removePermission", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {

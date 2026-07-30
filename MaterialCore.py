@@ -136,6 +136,9 @@ class User(CoreMaterialObj):
         else:
             self.password = self.hash_password(password)
 
+        if self.roles is None:
+            self.roles = []
+
     @property
     def display_name(self):
         return self.full_name
@@ -156,6 +159,49 @@ class User(CoreMaterialObj):
         ret = bcrypt.checkpw(password_bytes, password_hash)
         return ret
 
+    def add_role(self, role_id):
+        if role_id in self.roles:
+            print(f"user {self.display_name} already has the role {role_id}")
+            return
+
+        role = self.lookup(role_id)
+        if type(role) is not Role:
+            return
+
+        self.roles.append(role.id)
+        role.user_list.append(self.id)
+
+    def remove_role(self, role_id):
+        if role_id not in self.roles:
+            print(f"user {self.display_name} does not have the role {role_id}")
+            return
+
+        role = self.lookup(role_id)
+        if type(role) is not Role:
+            return
+
+        try:
+            role_idx = self.roles.index(role_id)
+            self.roles.pop(role_idx)
+        except IndexError:
+            pass
+
+        try:
+            user_idx = role.user_list.index(self.id)
+            if user_idx != -1:
+                role.user_list.pop(user_idx)
+        except IndexError:
+            pass
+
+    def check_permission(self, permission):
+        for role_id in self.roles:
+            role = self.lookup(role_id)
+            if role is None:
+                continue
+            if role.check_permission(permission):
+                return True
+        return False
+
 
 class Role(CoreMaterialObj):
     def __init__(self, name=None, save_data=None, **kwargs):
@@ -167,12 +213,37 @@ class Role(CoreMaterialObj):
 
         self.indexed_values += [
             'name',
-            'allowed_actions'
+            'allowed_actions',
             'user_list'
         ]
 
         if save_data is not None:
             self.load_from_json(save_data)
+
+    @property
+    def display_name(self):
+        return self.name
+
+    def add_permission(self, permission):
+        permission = permission.lower()
+        if permission in self.allowed_actions:
+            return
+        self.allowed_actions.append(permission)
+
+    def remove_permission(self, permission):
+        permission = permission.lower()
+        try:
+            permission_idx = self.allowed_actions.index(permission)
+            self.allowed_actions.pop(permission_idx)
+        except IndexError:
+            pass
+
+    def check_permission(self, permission):
+        permission = permission.lower()
+        for allowed_action in self.allowed_actions:
+            if permission == allowed_action.lower():
+                return True
+        return False
 
 
 class CataloguedItem(CoreMaterialObj):
