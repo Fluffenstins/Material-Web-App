@@ -108,16 +108,11 @@ body {
     <div class="topbar-left">
         <button class="back-btn" onclick="history.back()">←</button>
 
-        <div class="tabs">
-				<div class="tab {{'active' if current_tab == 'Locations'}}" onclick="window.location.href='/locations'">Locations</div>
-				<div class="tab {{'active' if current_tab == 'Projects'}}" onclick="window.location.href='/projects'">Projects</div>
-				<div class="tab {{'active' if current_tab == 'Stages'}}" onclick="window.location.href='/stages'">Stages</div>
-				<div class="tab {{'active' if current_tab == 'Items'}}" onclick="window.location.href='/items'">Items</div>
-				<div class="tab {{'active' if current_tab == 'Users'}}" onclick="window.location.href='/users'">Users</div>
-				<div class="tab {{'active' if current_tab == 'Roles'}}" onclick="window.location.href='/roles'">Roles</div>
-				<div class="tab {{'active' if current_tab == 'Create Site'}}" onclick="window.location.href='/createSite'">Create Site</div>
-				<div class="tab {{'active' if current_tab == 'Create Item'}}" onclick="window.location.href='/createItem'">Create Item</div>
-				{% if current_tab not in ['Locations', 'Projects', 'Stages', 'Items', 'Users', 'Roles', 'Create Site', 'Create Item']%}
+		<div class="tabs">
+				{% for key, value in header_options.items() %}
+					<div class="tab {{'active' if current_tab == key}}" onclick={{value[1]}}>{{key}}</div>
+				{% endfor %}
+				{% if current_tab not in header_options%}
 				<div class="tab active">{{current_tab}}</div>
 				{% endif %}
         </div>

@@ -77,17 +77,17 @@ def list_action_history_breakdown(obj):
 
 def list_header_options(user_id):
     header_permission_pairs = {
-        'Locations':    (['view_locations', 'edit_all'],                    "window.location.href='/locations'"),
-        'Projects':     (['view_projects', 'edit_all'],                     "window.location.href='/locations'"),
-        'Stages':       (['view_stages', 'edit_all'],                       "window.location.href='/locations'"),
-        'Items':        (['view_items', 'edit_catalogue_item', 'edit_all'], "window.location.href='/locations'"),
-        'Users':        (['view_users', 'edit_user', 'edit_all'],           "window.location.href='/locations'"),
-        'Roles':        (['view_roles', 'edit_role', 'edit_all'],           "window.location.href='/locations'"),
-        'Create Site':  (['create_site', 'edit_all'],                       "window.location.href='/locations'"),
-        'Create Item':  (['create_item', 'edit_all'],                       "window.location.href='/locations'")
+        'Locations':    (['read_location', 'edit_site', 'read_site', 'read_all', 'edit_all'], "window.location.href='/locations'"),
+        'Projects':     (['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/projects'"),
+        'Stages':       (['read_stage', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/stages'"),
+        'Items':        (['read_catalogue_item', 'edit_catalogue_item', 'read_all', 'edit_all'], "window.location.href='/items'"),
+        'Users':        (['read_user', 'edit_user', 'read_all', 'edit_all'], "window.location.href='/users'"),
+        'Roles':        (['read_role', 'edit_role', 'read_all', 'edit_all'], "window.location.href='/roles'"),
+        'Create Site':  (['create_site', 'edit_site', 'edit_all'], "window.location.href='/createSite'"),
+        'Create Item':  (['create_item', 'edit_catalogue_item', 'edit_all'], "window.location.href='/createItem'")
     }
     header_permission_pairs = {
-        key: val for key, val in header_permission_pairs
+        key: val for key, val in header_permission_pairs.items()
         if MATERIAL_APP.check_permission(user_id=user_id, permission_ids=val[0])
     }
     return header_permission_pairs
@@ -203,7 +203,8 @@ def create_site_url():
         current_tab="Create Site",
         parent_sites=site_objs,
         site_type_options=site_type_options,
-        parent_site_name=parent_site_name
+        parent_site_name=parent_site_name,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -252,6 +253,7 @@ def create_item_url():
         current_tab="Create Item",
         item_type_options=item_type_options,
         supplier_options=supplier_options,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -275,12 +277,13 @@ def edit_item_url():
         user_obj=user_obj,
         item_obj=item_obj,
         current_tab="Edit Item",
+        header_options=list_header_options(user_obj.id)
     )
 
 
 @app.route("/user")
 @flask_login.login_required
-@permission_required(['read_user', 'read_all', 'edit_all'])
+@permission_required(['read_self', 'read_user', 'read_all', 'edit_all'])
 def user_url():
     user_id = request.args.get('user_id', default="")
     displayed_user_obj = MATERIAL_APP.lookup(user_id)
@@ -298,6 +301,10 @@ def user_url():
         action_history = 'N/A'
         role_objs = 'N/A'
 
+    if not (is_viewing_self or MATERIAL_APP.check_permission(user_id, ['read_user', 'read_all', 'edit_all'])):
+        print(is_viewing_self)
+        return jsonify({"error": "Permission denied"}), 403
+
     return render_template(
         "UserPage.html",
         qr_code_url=f"{request.url_root}downloadQRCode?obj_id={displayed_user_obj.id}",
@@ -306,7 +313,8 @@ def user_url():
         action_history=action_history,
         role_objs=role_objs,
         current_tab="User",
-        is_viewing_self=is_viewing_self
+        is_viewing_self=is_viewing_self,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -345,7 +353,8 @@ def catalogue_url():
         user_obj=user_obj,
         action_history=action_history,
         deprecated_status=deprecated_status,
-        current_tab="Catalogue Item"
+        current_tab="Catalogue Item",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -392,7 +401,8 @@ def action_url():
         action_user_obj=action_user_obj,
         current_tab="Action",
         interpreted_data=interpreted_data,
-        interpreted_output=interpreted_output
+        interpreted_output=interpreted_output,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -460,7 +470,8 @@ def site_url():
         site_children=site_children,
         action_history=action_history,
         user_obj=user_obj,
-        current_tab="Site"
+        current_tab="Site",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -500,7 +511,8 @@ def intermediate_site_url():
         site_children=site_children,
         action_history=action_history,
         user_obj=user_obj,
-        current_tab="Site"
+        current_tab="Site",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -534,7 +546,8 @@ def set_site_parent_page():
         site_obj=site_obj,
         user_obj=user_obj,
         site_objs=site_objs,
-        current_tab="Site"
+        current_tab="Site",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -568,7 +581,8 @@ def set_site_destination_page():
         destination_obj=destination_obj,
         user_obj=user_obj,
         site_objs=site_objs,
-        current_tab="Site"
+        current_tab="Site",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -607,7 +621,8 @@ def receive_material_page():
         user_obj=user_obj,
         site_objs=site_objs,
         catalogue_objs=catalogue_objs,
-        current_tab="Receive"
+        current_tab="Receive",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -641,7 +656,8 @@ def transfer_material_page():
         user_obj=user_obj,
         site_objs=site_objs,
         catalogue_objs=catalogue_objs,
-        current_tab="Transfer Material"
+        current_tab="Transfer Material",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -663,6 +679,7 @@ def sites_directory_url():
         current_tab="Sites",
         site_objs=site_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -684,6 +701,7 @@ def locations_directory_url():
         current_tab="Locations",
         site_objs=site_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -705,6 +723,7 @@ def projects_directory_url():
         current_tab="Projects",
         site_objs=site_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -726,6 +745,7 @@ def users_directory_url():
         current_tab="Users",
         user_objs=site_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -747,6 +767,7 @@ def items_directory_url():
         current_tab="Items",
         catalogue_item_objs=catalogue_item_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -767,6 +788,7 @@ def roles_directory_url():
         current_tab="Roles",
         role_objs=role_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -790,7 +812,8 @@ def role_url():
         role_obj=role_obj,
         user_obj=user_obj,
         action_history=action_history,
-        current_tab="Role"
+        current_tab="Role",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -807,6 +830,7 @@ def set_maintenance_url():
     return render_template(
         "SetMaintenanceModePage.html",
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -828,6 +852,7 @@ def stages_directory_url():
         current_tab="Stages",
         site_objs=site_objs,
         user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
     )
 
 
