@@ -629,6 +629,8 @@ class Action(CoreMaterialObj):
                 return f"Added permission \"{data['permission']}\" to role \"{output['role_id']}\""
             case "remove_role_permission":
                 return f"Removed permission \"{data['permission']}\" from role \"{output['role_id']}\""
+            case "remove_site_parent":
+                return f"Removed parent site \"{output['parent_site_id']}\""
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

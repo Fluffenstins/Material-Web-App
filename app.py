@@ -301,8 +301,7 @@ def user_url():
         action_history = 'N/A'
         role_objs = 'N/A'
 
-    if not (is_viewing_self or MATERIAL_APP.check_permission(user_id, ['read_user', 'read_all', 'edit_all'])):
-        print(is_viewing_self)
+    if not (is_viewing_self or MATERIAL_APP.check_permission(user_obj.id, ['read_user', 'read_all', 'edit_all'])):
         return jsonify({"error": "Permission denied"}), 403
 
     return render_template(
@@ -364,7 +363,6 @@ def catalogue_url():
 def action_url():
     action_id = request.args.get('action_id', default="")
     action_obj = MATERIAL_APP.lookup(action_id)
-    print(action_obj.json())
     try:
         action_user_obj = MATERIAL_APP.lookup(action_obj.user)
     except KeyError:
@@ -532,10 +530,15 @@ def set_site_parent_page():
 
     parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
 
-    print((user_obj, site_obj, parent_site_obj))
-
     if None not in (user_obj, site_obj, parent_site_obj):
-        MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
+        need_to_set_parent = True
+        for parent_site_id in site_obj.parent_site_ids:
+            if parent_site_id == parent_site_obj.id:
+                need_to_set_parent = False
+                continue
+            MATERIAL_APP.remove_site_parent(user_obj.id, site_obj.id, parent_site_id)
+        if need_to_set_parent:
+            MATERIAL_APP.set_site_parent(user_obj.id, site_obj.id, parent_site_obj.id)
         return redirect(f"/site?site_id={parent_site_id}")
 
     site_objs = list_all_sites()
@@ -1430,8 +1433,6 @@ def api_add_role():
         user_id=user_obj.id
     )
 
-    print(ret)
-
     return jsonify({
         "message": "Role added successfully!",
         "data": {"id": ret.id}
@@ -1466,8 +1467,6 @@ def api_remove_role():
         user_id=user_obj.id
     )
 
-    print(ret)
-
     return jsonify({
         "message": "Role removed successfully!",
         "data": {"id": ret.id}
@@ -1493,8 +1492,6 @@ def remove_add_permission():
         permission=permission_title,
         user_id=user_obj.id
     )
-
-    print(ret)
 
     return jsonify({
         "message": "Role permission added successfully!",

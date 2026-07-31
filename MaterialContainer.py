@@ -50,7 +50,6 @@ class CoreMaterialManager:
         self.backup_manager = BackupManager()
 
     def save_json(self):
-        print("Saving?")
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
         self._save_core_dict_json(self.users, "users")
@@ -219,15 +218,11 @@ class CoreMaterialManager:
 
         for obj_id, role in self.roles.items():
             if role.display_name == role_id:
-                print(role.display_name, role_id, 'kerchew')
                 return role
         return None
 
     def check_permission(self, user_id, permission_ids: list):
         user_obj = self.find_user(user_id)
-        print(user_obj.json())
-        role = self.find_role('rSUfAjMJjj3q')
-        print(role.json())
         for permission_id in permission_ids:
             if not user_obj.check_permission(permission_id):
                 continue
@@ -1110,78 +1105,6 @@ class ContinuousMaterialManager(CoreMaterialManager):
     def create_action_from_legacy(self):
         # action = Action()
         pass
-
-
-# def init_routine():
-#     from GraphAPI import MSDrive
-#
-#     drive = MSDrive(batch=False, meta_remote=True)
-#     drive.getMeta()
-#
-#     manager = ContinuousMaterialManager()
-#     manager.save_after_action = False
-#
-#     # set up users
-#     print("Setting up users")
-#     system_user = manager.create_user(
-#         email='administration@nubuildinc.ca',
-#         password='not applicable',
-#         first_name='system',
-#         last_name='administration'
-#     )
-#
-#     # set up location data
-#     print("Setting up locations")
-#
-#     # set up project data
-#     #   import project
-#     #   attach parent projects
-#     print("Setting up projects")
-#     count = 0
-#     for nb_id, job in drive.meta.items():
-#         sub_project_ids = []
-#         for key in ['ADM', 'RPAT', 'customer id']:
-#             try:
-#                 sub_project_ids += job[key]
-#             except KeyError:
-#                 pass
-#         address = job['address']
-#
-#         master_site = manager.ensure_site(
-#             site_type='project',
-#             site_id=nb_id,
-#             address=address
-#         )
-#         count += 1
-#
-#         for sub_project_id in sub_project_ids:
-#             if manager.find_site(sub_project_id) is not None:
-#                 continue
-#             manager.create_site(
-#                 site_type='project',
-#                 site_id=sub_project_id,
-#                 address=address,
-#                 parent_site_ids=[master_site.id]
-#             )
-#             count += 1
-#     print(f"Instruction count: {count}")
-#
-#     # run all previous instructions
-#     print("Running instructions")
-#     instructions = manager.load_instructions()
-#     for instruction in instructions:
-#         manager.interpret_legacy_instruction(instruction)
-#
-#     # set up item catalogue data
-#     #   for the moment lets only update existing catalogue items
-#     #   this reduces the clutter in our system of overlapping items
-#     print("Setting up catalogue items")
-#     bad_item = manager.find_item('369305000')
-#     good_item = manager.find_item('02TW0002')
-#     manager.deprecate_item(system_user.id, bad_item.id, good_item.id)
-#
-#     # Save init
-#     manager.async_save()
 
 
 if __name__ == '__main__':
