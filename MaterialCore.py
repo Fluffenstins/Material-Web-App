@@ -620,6 +620,15 @@ class Action(CoreMaterialObj):
                 return f"All material transferred from {output['source_id']} to {output['target_id']}"
             case "deprecate_item":
                 return f"Deprecated {output['deprecated_item_id']}. Correct item is now {output['correct_item_id']}"
+            case "create_role":
+                return f"Created role \"{output['role_id']}\""
+            case "add_user_role":
+                return f"Added role \"{output['role_id']}\" to user \"{output['target_user_id']}\""
+            case "add_role_permission":
+                print(output)
+                return f"Added permission \"{data['permission']}\" to role \"{output['role_id']}\""
+            case "remove_role_permission":
+                return f"Removed permission \"{data['permission']}\" from role \"{output['role_id']}\""
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

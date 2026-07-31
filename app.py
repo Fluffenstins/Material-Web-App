@@ -5,6 +5,7 @@ import flask_login
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
+from functools import wraps
 
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
@@ -74,6 +75,24 @@ def list_action_history_breakdown(obj):
     return action_history
 
 
+def list_header_options(user_id):
+    header_permission_pairs = {
+        'Locations':    (['view_locations', 'edit_all'],                    "window.location.href='/locations'"),
+        'Projects':     (['view_projects', 'edit_all'],                     "window.location.href='/locations'"),
+        'Stages':       (['view_stages', 'edit_all'],                       "window.location.href='/locations'"),
+        'Items':        (['view_items', 'edit_catalogue_item', 'edit_all'], "window.location.href='/locations'"),
+        'Users':        (['view_users', 'edit_user', 'edit_all'],           "window.location.href='/locations'"),
+        'Roles':        (['view_roles', 'edit_role', 'edit_all'],           "window.location.href='/locations'"),
+        'Create Site':  (['create_site', 'edit_all'],                       "window.location.href='/locations'"),
+        'Create Item':  (['create_item', 'edit_all'],                       "window.location.href='/locations'")
+    }
+    header_permission_pairs = {
+        key: val for key, val in header_permission_pairs
+        if MATERIAL_APP.check_permission(user_id=user_id, permission_ids=val[0])
+    }
+    return header_permission_pairs
+
+
 @app.before_request
 def check_maintenance_mode():
 
@@ -85,6 +104,20 @@ def check_maintenance_mode():
             "MaintenancePage.html"
         )
     return None
+
+
+def permission_required(permission_ids):
+    app.app_context()
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+            user_id = user_obj.id
+            if not MATERIAL_APP.check_permission(user_id, permission_ids=permission_ids):
+                return jsonify({"error": "Permission denied"}), 403
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
 @app.route("/")
@@ -119,6 +152,7 @@ def home_page():
 
 @app.route("/material")
 @flask_login.login_required
+@permission_required(['edit_material', 'edit_all'])
 def material_url():
     item_id = request.args.get('item_id', default="")
     material_obj = MATERIAL_APP.lookup(item_id)
@@ -137,12 +171,14 @@ def material_url():
         material_obj=material_obj,
         user_obj=user_obj,
         action_history=action_history,
-        current_tab="Material"
+        current_tab="Material",
+        header_options=list_header_options(user_obj.id)
     )
 
 
 @app.route("/createSite")
 @flask_login.login_required
+@permission_required(['create_site', 'edit_site', 'edit_all'])
 def create_site_url():
     parent_id = request.args.get('parent_id', default="")
     try:
@@ -173,6 +209,7 @@ def create_site_url():
 
 @app.route("/createItem")
 @flask_login.login_required
+@permission_required(['create_catalogue_item', 'edit_catalogue_item', 'edit_all'])
 def create_item_url():
 
     item_type_options = [
@@ -220,6 +257,7 @@ def create_item_url():
 
 @app.route("/editItem")
 @flask_login.login_required
+@permission_required(['edit_catalogue_item', 'edit_all'])
 def edit_item_url():
     item_id = request.args.get('item_id', default="")
     try:
@@ -242,6 +280,7 @@ def edit_item_url():
 
 @app.route("/user")
 @flask_login.login_required
+@permission_required(['read_user', 'read_all', 'edit_all'])
 def user_url():
     user_id = request.args.get('user_id', default="")
     displayed_user_obj = MATERIAL_APP.lookup(user_id)
@@ -280,6 +319,7 @@ def user_chart_url():
 
 @app.route("/catalogue")
 @flask_login.login_required
+@permission_required(['read_catalogue_item', 'edit_catalogue_item', 'edit_all'])
 def catalogue_url():
     item_id = request.args.get('item_id', default="")
     catalogue_item_obj = MATERIAL_APP.lookup(item_id)
@@ -311,6 +351,7 @@ def catalogue_url():
 
 @app.route("/action")
 @flask_login.login_required
+@permission_required(['read_action', 'edit_action', 'edit_all'])
 def action_url():
     action_id = request.args.get('action_id', default="")
     action_obj = MATERIAL_APP.lookup(action_id)
@@ -357,6 +398,7 @@ def action_url():
 
 @app.route("/site")
 @flask_login.login_required
+@permission_required(['read_site', 'edit_site', 'edit_all'])
 def site_url():
     site_id = request.args.get('site_id', default="")
     try:
@@ -424,6 +466,7 @@ def site_url():
 
 @app.route("/intermediateSite")
 @flask_login.login_required
+@permission_required(['read_stage', 'read_site', 'edit_stage', 'edit_site', 'edit_all'])
 def intermediate_site_url():
     site_id = request.args.get('site_id', default="")
     try:
@@ -463,6 +506,7 @@ def intermediate_site_url():
 
 @app.route("/setSiteParent", methods=['GET'])
 @flask_login.login_required
+@permission_required(['edit_site', 'edit_site_parent', 'edit_all'])
 def set_site_parent_page():
     site_id = request.args.get('site_id', default="")
     parent_site_id = request.args.get('site_parent', default="")
@@ -496,6 +540,7 @@ def set_site_parent_page():
 
 @app.route("/setSiteDestination", methods=['GET'])
 @flask_login.login_required
+@permission_required(['edit_site', 'edit_stage', 'edit_all'])
 def set_site_destination_page():
     site_id = request.args.get('site_id', default="")
     destination_site_id = request.args.get('destination_id', default="")
@@ -529,6 +574,7 @@ def set_site_destination_page():
 
 @app.route("/receive", methods=['GET'])
 @flask_login.login_required
+@permission_required(['edit_material', 'edit_all'])
 def receive_material_page():
     location_id = request.args.get('location_id', default="")
     project_id = request.args.get('project_id', default="")
@@ -567,6 +613,7 @@ def receive_material_page():
 
 @app.route("/transfer", methods=['GET'])
 @flask_login.login_required
+@permission_required(['edit_material', 'edit_all'])
 def transfer_material_page():
     source_site_id = request.args.get('source_id', default="")
     target_site_id = request.args.get('target_id', default="")
@@ -600,6 +647,7 @@ def transfer_material_page():
 
 @app.route("/sites")
 @flask_login.login_required
+@permission_required(['read_site', 'read_all', 'edit_site', 'edit_all'])
 def sites_directory_url():
 
     site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items()]
@@ -620,6 +668,7 @@ def sites_directory_url():
 
 @app.route("/locations")
 @flask_login.login_required
+@permission_required(['read_location', 'read_site', 'edit_site', 'read_all', 'edit_all'])
 def locations_directory_url():
 
     site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location' and len(val.parent_site_ids) == 0]
@@ -640,6 +689,7 @@ def locations_directory_url():
 
 @app.route("/projects")
 @flask_login.login_required
+@permission_required(['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'])
 def projects_directory_url():
 
     site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'project']
@@ -660,6 +710,7 @@ def projects_directory_url():
 
 @app.route("/users")
 @flask_login.login_required
+@permission_required(['read_user', 'edit_user', 'read_all', 'edit_all'])
 def users_directory_url():
 
     site_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.users.items()]
@@ -680,6 +731,7 @@ def users_directory_url():
 
 @app.route("/items")
 @flask_login.login_required
+@permission_required(['read_catalogue_item', 'edit_catalogue_item', 'read_all', 'edit_all'])
 def items_directory_url():
 
     catalogue_item_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.items.items()]
@@ -700,6 +752,7 @@ def items_directory_url():
 
 @app.route("/roles")
 @flask_login.login_required
+@permission_required(['read_role', 'edit_role', 'read_all', 'edit_all'])
 def roles_directory_url():
     role_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.roles.items()]
     role_objs = sorted(role_objs, key=lambda x: x['text'])
@@ -719,6 +772,7 @@ def roles_directory_url():
 
 @app.route("/role")
 @flask_login.login_required
+@permission_required(['read_role', 'edit_role', 'read_all', 'edit_all'])
 def role_url():
     role_id = request.args.get('role_id', default="")
     role_obj = MATERIAL_APP.lookup(role_id)
@@ -726,7 +780,6 @@ def role_url():
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
         action_history = list_action_history_breakdown(role_obj)
-
     except AttributeError:
         user_obj = None
         action_history = 'N/A'
@@ -743,6 +796,7 @@ def role_url():
 
 @app.route("/setMaintenance")
 @flask_login.login_required
+@permission_required(['set_maintenance'])
 def set_maintenance_url():
 
     try:
@@ -758,6 +812,7 @@ def set_maintenance_url():
 
 @app.route("/stages")
 @flask_login.login_required
+@permission_required(['read_stage', 'read_site', 'edit_site', 'edit_all', 'read_all'])
 def stages_directory_url():
 
     site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'intermediate']
@@ -778,6 +833,7 @@ def stages_directory_url():
 
 @app.route("/stage")
 @flask_login.login_required
+@permission_required(['read_stage', 'read_site', 'edit_site', 'edit_all', 'read_all'])
 def stage_url():
     source_site_id = request.args.get('source_id', default="")
     target_site_id = request.args.get('target_id', default="")
@@ -923,6 +979,7 @@ def barcode_test():
 
 
 @app.route('/api/site', methods=['GET', 'POST', 'PATCH'])
+@permission_required(['edit_site', 'edit_all'])
 def api_site():
     # get
     # return site json
@@ -985,6 +1042,7 @@ def api_site():
 
 
 @app.route('/api/catalogueItems', methods=['GET'])
+@permission_required(['read_catalogue_item', 'edit_all'])
 def api_items():
     # get
     # return user json
@@ -1009,6 +1067,7 @@ def api_items():
 
 
 @app.route('/api/catalogueItem', methods=['GET', 'POST', 'PATCH'])
+@permission_required(['edit_catalogue_item', 'edit_all'])
 def api_catalogue_item():
     # get
     # return item json
@@ -1044,6 +1103,7 @@ def api_catalogue_item():
 
 
 @app.route('/api/receiveMaterial', methods=['POST'])
+@permission_required(['edit_material', 'edit_all'])
 def api_receive_material():
     data = request.get_json()
 
@@ -1099,6 +1159,7 @@ def api_receive_material():
 
 
 @app.route('/api/setSiteParent', methods=['POST'])
+@permission_required(['edit_site', 'edit_all'])
 def api_set_site_parent():
     data = request.get_json()
 
@@ -1132,6 +1193,7 @@ def api_set_site_parent():
 
 
 @app.route('/api/transferMaterial', methods=['POST'])
+@permission_required(['edit_material', 'edit_all'])
 def api_transfer_material():
     data = request.get_json()
 
@@ -1186,6 +1248,7 @@ def api_transfer_material():
 
 
 @app.route('/api/setInventory', methods=['POST'])
+@permission_required(['edit_material', 'perform_inventory', 'edit_all'])
 def api_set_inventory():
     data = request.get_json()
     site_id = data.get('site_id')
@@ -1224,6 +1287,7 @@ def api_set_inventory():
 
 
 @app.route('/api/createSite', methods=['POST'])
+@permission_required(['edit_site', 'edit_all'])
 def api_create_site():
     data = request.get_json()
     site_name = data.get('site_name')
@@ -1260,6 +1324,7 @@ def api_create_site():
 
 
 @app.route('/api/createRole', methods=['POST'])
+@permission_required(['edit_role', 'edit_all'])
 def api_create_role():
     data = request.get_json()
     site_name = data.get('role_name')
@@ -1285,6 +1350,7 @@ def api_create_role():
 
 
 @app.route('/api/addPermission', methods=['PATCH'])
+@permission_required(['edit_permission', 'edit_all'])
 def api_add_permission():
     data = request.get_json()
     role_id = data.get('role_id')
@@ -1312,6 +1378,7 @@ def api_add_permission():
 
 
 @app.route('/api/addUserRole', methods=['PATCH'])
+@permission_required(['assign_role', 'edit_all'])
 def api_add_role():
     data = request.get_json()
     role_id = data.get('role_id')
@@ -1347,6 +1414,7 @@ def api_add_role():
 
 
 @app.route('/api/removeUserRole', methods=['PATCH'])
+@permission_required(['assign_role', 'edit_all'])
 def api_remove_role():
     data = request.get_json()
     role_id = data.get('role_id')
@@ -1382,6 +1450,7 @@ def api_remove_role():
 
 
 @app.route('/api/removePermission', methods=['PATCH'])
+@permission_required(['edit_permission', 'edit_all'])
 def remove_add_permission():
     data = request.get_json()
     role_id = data.get('role_id')
@@ -1409,6 +1478,7 @@ def remove_add_permission():
 
 
 @app.route('/api/createCatalogueItem', methods=['POST'])
+@permission_required(['create_catalogue_item', 'edit_catalogue_item', 'edit_all'])
 def api_create_catalogue_item():
     data = request.get_json()
     item_type = data.get('item_type')
@@ -1448,6 +1518,7 @@ def api_create_catalogue_item():
 
 
 @app.route('/api/editCatalogueItem', methods=['PATCH'])
+@permission_required(['edit_catalogue_item', 'edit_all'])
 def api_edit_catalogue_item():
     data = request.get_json()
     item_id = data.get('item_id')
@@ -1500,6 +1571,7 @@ def api_edit_catalogue_item():
 
 
 @app.route('/api/inventoryReport', methods=['GET'])
+@permission_required(['read_all', 'edit_all'])
 def api_inventory_report():
     # allow tags so we can filter material
     pass
@@ -1667,24 +1739,28 @@ def api_set_maintenance_mode():
 
 
 @app.route('/downloads/rustdesk', methods=['GET'])
+@permission_required(['download_all'])
 def download_rustdesk():
     url = 'https://github.com/rustdesk/rustdesk/releases/download/1.4.4/rustdesk-1.4.4-x86_64.msi'
     return redirect(url)
 
 
 @app.route('/downloads/bitdefender', methods=['GET'])
+@permission_required(['download_all'])
 def download_bitdefender():
     url = 'https://cloud.gravityzone.bitdefender.com/Packages/BSTWIN/0/setupdownloader_[aHR0cHM6Ly9jbG91ZC1lY3MuZ3Jhdml0eXpvbmUuYml0ZGVmZW5kZXIuY29tL1BhY2thZ2VzL0JTVFdJTi8wL2k4ckVuVy9pbnN0YWxsZXIueG1sP2xhbmc9ZW4tVVM=].exe'
     return redirect(url)
 
 
 @app.route('/downloads/rmm', methods=['GET'])
+@permission_required(['download_all'])
 def download_rmm():
     url = 'https://shared.outlook.inky.com/link?domain=ca.ninjarmm.com&t=h.eJxtj7tywyAQRX_Fozq8BBhw5SRVitjfsIZFJkbII9CkyOTfYzIp0949e-ber2Fb83DYDdfW7vXAmAdaUvmAdZ6pX2YGE5bGUqkNcsaVjWHUXFtJxmgEUU4E4gxwYoWwKpoYESITnHKqjLDs1F3nguS5e8hpe9lSDq9LaSv4lsr0Vjx5h1TOMSb_wLa20Lmm4Wk33Hqvsl36B5sqwies4fgXpOKpBybNRXOBTkqn9jLspYuPSKB2KDQGYMJoJ-w4WtULcSW6GX8XY74HrLejnxr6a1nyMiWsfXVnQmf-OX3_AKBlYQc.MEQCIFpgCRxHezk9Uz4zOBqqtGPSiD9IxP0bwuuDmvF9pt6XAiB7uCDoXTmqYrHXzfodbv0ugwFBSwO1hFOQ9Y7LIHCfBg'
     return redirect(url)
 
 
 @app.route('/downloads/params', methods=['GET'])
+@permission_required(['download_all'])
 def download_params():
     return send_file('Parameters.json')
 

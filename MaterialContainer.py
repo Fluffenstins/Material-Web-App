@@ -223,8 +223,16 @@ class CoreMaterialManager:
                 return role
         return None
 
-    def check_permission(self, user_id, permission_id):
-        pass
+    def check_permission(self, user_id, permission_ids: list):
+        user_obj = self.find_user(user_id)
+        print(user_obj.json())
+        role = self.find_role('rSUfAjMJjj3q')
+        print(role.json())
+        for permission_id in permission_ids:
+            if not user_obj.check_permission(permission_id):
+                continue
+            return True
+        return False
 
     def create_site(self, site_id, site_type, status=None, parent_site_ids=(), user_id=None, address=None, shorthand=None):
         action = Action(
@@ -488,6 +496,7 @@ class CoreMaterialManager:
         user_obj.add_action(action)
 
         action.add_output('role_id', role_obj.id)
+        action.add_output('user_id', user_obj.id)
 
         return role_obj
 
@@ -511,6 +520,7 @@ class CoreMaterialManager:
 
         action.add_output('target_user_id', target_user_obj.id)
         action.add_output('role_id', role_obj.id)
+        action.add_output('user_id', user_obj.id)
 
         return target_user_obj
 
@@ -534,6 +544,7 @@ class CoreMaterialManager:
 
         action.add_output('target_user_id', target_user_obj.id)
         action.add_output('role_id', role_obj.id)
+        action.add_output('user_id', user_obj.id)
 
         return target_user_obj
 
@@ -556,6 +567,7 @@ class CoreMaterialManager:
         user_obj.add_action(action)
 
         action.add_output('role_id', role_obj.id)
+        action.add_output('user_id', user_obj.id)
 
         return role_obj
 
@@ -578,6 +590,7 @@ class CoreMaterialManager:
         user_obj.add_action(action)
 
         action.add_output('role_id', role_obj.id)
+        action.add_output('user_id', user_obj.id)
 
         return role_obj
 
@@ -1174,6 +1187,6 @@ class ContinuousMaterialManager(CoreMaterialManager):
 if __name__ == '__main__':
     container = ContinuousMaterialManager()
     container.load_json()
-    user_obj = container.find_user('50wk1wvxK6Re')
-    user_obj.add_role('qTQNZYIMPYKe')
+    role = container.find_role('rSUfAjMJjj3q')
+    role.add_permission('edit_all')
     container.save_json()

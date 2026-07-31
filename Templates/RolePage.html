@@ -164,7 +164,18 @@ input {
 	<div class="success-message" id="receive_success">Edit successful.</div>
 	<input class="permission" type="text" id="newPermissionInput" placeholder="Enter new permission"/>
     <button class="action-btn add" type="button" onclick="create_permission()">Add</button>
-
+<div class="field">
+	</div>
+	
+	</div>
+	<div class="card">
+      <div class="label">Action History</div>
+	
+	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
+    {% include "SearchableSubitems.html" %}
+	{% endwith %}
+	
+		</div>
 </div>
 
 <script>
