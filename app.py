@@ -79,6 +79,7 @@ def list_header_options(user_id):
     header_permission_pairs = {
         'Locations':    (['read_location', 'edit_site', 'read_site', 'read_all', 'edit_all'], "window.location.href='/locations'"),
         'Projects':     (['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/projects'"),
+        'Contractors':  (['read_contractor', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/contractorSites'"),
         'Stages':       (['read_stage', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/stages'"),
         'Items':        (['read_catalogue_item', 'edit_catalogue_item', 'read_all', 'edit_all'], "window.location.href='/items'"),
         'Users':        (['read_user', 'edit_user', 'read_all', 'edit_all'], "window.location.href='/users'"),
@@ -187,8 +188,9 @@ def create_site_url():
         parent_site_name = ""
 
     site_type_options = [
-        {'id': 'location', 'text': 'Location'},
-        {'id': 'project', 'text': 'Project'}
+        {'id': 'location', 'text': 'location'},
+        {'id': 'project', 'text': 'project'},
+        {'id': 'contractor', 'text': 'contractor'}
     ]
 
     site_objs = list_all_sites()
@@ -702,6 +704,28 @@ def locations_directory_url():
     return render_template(
         "SitesDirectory.html",
         current_tab="Locations",
+        site_objs=site_objs,
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route("/contractorSites")
+@flask_login.login_required
+@permission_required(['read_contractor', 'read_site', 'edit_site', 'read_all', 'edit_all'])
+def contractor_sites_directory_url():
+
+    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'contractor' and len(val.parent_site_ids) == 0]
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="Contractors",
         site_objs=site_objs,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
