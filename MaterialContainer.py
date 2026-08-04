@@ -191,9 +191,12 @@ class CoreMaterialManager:
         except KeyError:
             pass
         item_id = item_id.strip().lower()
+        print(f"\"{item_id}\"")
         for obj_id, item in self.items.items():
-            if item_id == item.item_id.lower() or (item.nubuild_id is not None and item_id == item.nubuild_id.lower()):
+            print(item.item_id.lower(), item_id == item.item_id.lower())
+            if item_id == item.item_id.strip().lower() or (item.nubuild_id is not None and item_id == item.nubuild_id.lower()):
                 return item.get_item()
+        print("Couldn't find it ")
 
     def find_user(self, email):
         if email is None:
@@ -413,6 +416,8 @@ class CoreMaterialManager:
         return action
 
     def enact_action(self, action):
+        # people are adding spaces by accident, this removes them before updating the system
+        action.strip_data()
         action_dict = {
             'receive': self._receive,
             'create_material': self._create_material,

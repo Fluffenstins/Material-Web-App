@@ -636,6 +636,10 @@ class Action(CoreMaterialObj):
                 print(self.data)
                 return self.action_type
 
+    def strip_data(self):
+        for key, value in self.data.items():
+            self.data[key] = value.strip()
+
     def add_output(self, key, value):
         self.output[key] = value
 
