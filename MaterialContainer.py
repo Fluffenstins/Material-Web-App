@@ -1112,6 +1112,5 @@ class ContinuousMaterialManager(CoreMaterialManager):
 if __name__ == '__main__':
     container = ContinuousMaterialManager()
     container.load_json()
-    role = container.find_role('rSUfAjMJjj3q')
-    role.add_permission('edit_all')
+    # for item_id, item in container.items.items():
     container.save_json()

@@ -457,7 +457,8 @@ def site_url():
             site_children=site_children,
             action_history=action_history,
             user_obj=user_obj,
-            current_tab="Site"
+            current_tab="Site",
+            header_options=list_header_options(user_obj.id)
         )
     return render_template(
         "SitePage.html",
