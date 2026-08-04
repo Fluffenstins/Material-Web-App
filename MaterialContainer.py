@@ -191,12 +191,9 @@ class CoreMaterialManager:
         except KeyError:
             pass
         item_id = item_id.strip().lower()
-        print(f"\"{item_id}\"")
         for obj_id, item in self.items.items():
-            print(item.item_id.lower(), item_id == item.item_id.lower())
             if item_id == item.item_id.strip().lower() or (item.nubuild_id is not None and item_id == item.nubuild_id.lower()):
                 return item.get_item()
-        print("Couldn't find it ")
 
     def find_user(self, email):
         if email is None:

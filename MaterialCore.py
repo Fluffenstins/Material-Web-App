@@ -638,6 +638,8 @@ class Action(CoreMaterialObj):
 
     def strip_data(self):
         for key, value in self.data.items():
+            if type(value) is not str:
+                continue
             self.data[key] = value.strip()
 
     def add_output(self, key, value):
