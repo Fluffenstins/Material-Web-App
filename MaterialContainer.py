@@ -1,5 +1,5 @@
 import json
-from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, ITEM_SPACE
+from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, Comment, ITEM_SPACE
 from BackupManager import BackupManager
 from copy import deepcopy
 import threading
@@ -14,6 +14,7 @@ class CoreMaterialManager:
         self.users = {}
         self.items = {}
         self.roles = {}
+        self.comments = {}
         self.action_history = []
         self.last_action_date = datetime.now()
 
@@ -55,6 +56,7 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.users, "users")
         self._save_core_dict_json(self.items, "items")
         self._save_core_dict_json(self.roles, "roles")
+        self._save_core_dict_json(self.comments, "comments")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -64,6 +66,7 @@ class CoreMaterialManager:
         self.users = self._load_core_dict_json('users', User)
         self.items = self._load_core_dict_json('items', CataloguedItem)
         self.roles = self._load_core_dict_json('roles', Role)
+        self.comments = self._load_core_dict_json('comments', Comment)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
@@ -412,6 +415,17 @@ class CoreMaterialManager:
         self.enact_action(action)
         return action
 
+    def create_comment(self, user_id, parent_id, text):
+        action = Action(
+            action_type='create_comment',
+            user=user_id,
+            parent_id=parent_id,
+            text=text
+        )
+        action.description = f"Comment made."
+        self.enact_action(action)
+        return action
+
     def enact_action(self, action):
         # people are adding spaces by accident, this removes them before updating the system
         action.strip_data()
@@ -434,7 +448,8 @@ class CoreMaterialManager:
             'add_role_permission': self._add_role_permission,
             'remove_role_permission': self._remove_role_permission,
             'add_user_role': self._add_user_role,
-            'remove_user_role': self._remove_user_role
+            'remove_user_role': self._remove_user_role,
+            'create_comment': self._create_comment
         }
         ret = None
         try:
@@ -496,6 +511,43 @@ class CoreMaterialManager:
         action.add_output('user_id', user_obj.id)
 
         return role_obj
+
+    def _create_comment(self, action):
+
+        parent_id = action.data['parent_id']
+        text = action.data['text']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+        parent_obj = self.lookup(parent_id)
+
+        if user_obj is None:
+            raise KeyError(f"Unable to find user object: {user_id}")
+
+        if parent_obj is None:
+            raise KeyError(f"Unable to find parent object: {parent_id}")
+
+        if text is None:
+            raise KeyError(f"No text provided")
+
+        comment_obj = Comment(
+            parent_id=parent_obj.id,
+            user_id=user_id,
+            text=text
+        )
+
+        parent_obj.comments.append(comment_obj.id)
+
+        self.comments[comment_obj.id] = comment_obj
+
+        comment_obj.add_action(action)
+        user_obj.add_action(action)
+        parent_obj.add_action(action)
+
+        action.add_output('parent_id', parent_obj.id)
+        action.add_output('comment_id', comment_obj.id)
+
+        return comment_obj
 
     def _add_user_role(self, action):
         role_id = action.data['role_id']

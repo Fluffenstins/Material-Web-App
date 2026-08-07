@@ -657,12 +657,12 @@ class Action(CoreMaterialObj):
 
 
 class Comment(CoreMaterialObj):
-    def __init__(self, save_data=None, **kwargs):
+    def __init__(self, parent_id=None, text=None, user_id=None, save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.type = 'comment'
-        self.parent_id = None
-        self.text = None
-        self.user = None
+        self.parent_id = parent_id
+        self.text = text
+        self.user = user_id
 
         self.indexed_values += [
             'parent_id',

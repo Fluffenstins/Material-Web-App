@@ -188,6 +188,10 @@ input {
 
 </div>
 
+{% with parent_obj=material_obj %}
+{% include "CommentsTemplate.html" %}
+{% endwith %}
+
 <div class="bottom-bar">
   <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Receive</button>
   <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer</button>

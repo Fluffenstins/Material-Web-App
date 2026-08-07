@@ -406,6 +406,32 @@ def action_url():
     )
 
 
+@app.route("/comments")
+@flask_login.login_required
+# @permission_required(['read_action', 'edit_action', 'edit_all'])
+def comments_url():
+    parent_id = request.args.get('parent_id', default="")
+    parent_obj = MATERIAL_APP.lookup(parent_id)
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    comment_objs = [MATERIAL_APP.lookup(i) for i in parent_obj.comments]
+    print(comment_objs)
+
+    return render_template(
+        "CommentsPage.html",
+        qr_code_url=f"{request.url_root}comments?parent_id={parent_obj.id}",
+        parent_obj=parent_obj,
+        user_obj=user_obj,
+        comment_objs=comment_objs,
+        current_tab="Comments",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
 @app.route("/site")
 @flask_login.login_required
 @permission_required(['read_site', 'edit_site', 'edit_all'])
@@ -805,6 +831,8 @@ def items_directory_url():
 def roles_directory_url():
     role_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.roles.items()]
     role_objs = sorted(role_objs, key=lambda x: x['text'])
+
+    print(role_objs)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -1561,6 +1589,39 @@ def api_create_catalogue_item():
     return jsonify({
         "message": "Item created successfully!",
         "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/createComment', methods=['POST'])
+@permission_required(['create_comment', 'edit_all'])
+def api_create_comment():
+    data = request.get_json()
+    parent_id = data.get('parent_id')
+    text = data.get('text')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    parent_obj = MATERIAL_APP.lookup(parent_id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"Parent object \"{parent_id}\" not found."
+        }), 404
+
+    ret = MATERIAL_APP.create_comment(
+        text=text,
+        parent_id=parent_obj.id,
+        user_id=user_obj.id
+    )
+
+    return jsonify({
+        "message": "Comment created successfully!",
+        "data": {"id": ret.id, "text": text, "parent_id": parent_obj.id}
     }), 200
 
 
