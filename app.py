@@ -418,7 +418,7 @@ def comments_url():
     except AttributeError:
         user_obj = None
 
-    comment_objs = [MATERIAL_APP.lookup(i) for i in parent_obj.comments]
+    comment_objs = [MATERIAL_APP.lookup(i) for i in parent_obj.comments[::-1]]
     print(comment_objs)
 
     return render_template(
@@ -442,13 +442,11 @@ def site_url():
     except KeyError:
         site_obj = MATERIAL_APP.find_site(site_id)
     if site_obj is not None:
-        # site_id = site_obj.site_id
-        # site_type = site_obj.site_type
-        # address = site_obj.address
         material_children = sorted([
-            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).item.display_name}
+            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).display_name}
             for i in site_obj.material_children
         ], key=lambda x: x['text'])
+
         parent_sites = sorted([
             {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name}
             for i in site_obj.parent_site_ids
@@ -486,6 +484,8 @@ def site_url():
             current_tab="Site",
             header_options=list_header_options(user_obj.id)
         )
+    if site_obj.site_type == 'material':
+        return redirect(f"/material?item_id={MATERIAL_APP.lookup(site_obj.material_children[0]).id}")
     return render_template(
         "SitePage.html",
         qr_code_url=f"{request.url_root}downloadQRCode?obj_id={site_obj.id}",
@@ -549,6 +549,7 @@ def intermediate_site_url():
 def set_site_parent_page():
     site_id = request.args.get('site_id', default="")
     parent_site_id = request.args.get('site_parent', default="")
+    print(site_id)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -576,6 +577,47 @@ def set_site_parent_page():
         "SetSiteParentPage.html",
         site_url=f"{request.url_root}/?obj_id={site_obj.id}",
         site_obj=site_obj,
+        user_obj=user_obj,
+        site_objs=site_objs,
+        current_tab="Site",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route("/setMaterialParent", methods=['GET'])
+@flask_login.login_required
+@permission_required(['edit_material', 'edit_material_parent', 'edit_all'])
+def set_material_parent_page():
+    material_id = request.args.get('material_id', default="")
+    parent_site_id = request.args.get('site_parent', default="")
+    print(material_id)
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    material_obj = MATERIAL_APP.lookup(material_id)
+
+    parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
+
+    # if None not in (user_obj, material_obj, parent_site_obj):
+    #     need_to_set_parent = True
+    #     for parent_site_id in material_obj.parent_site_ids:
+    #         if parent_site_id == parent_site_obj.id:
+    #             need_to_set_parent = False
+    #             continue
+    #         MATERIAL_APP.remove_site_parent(user_obj.id, material_obj.id, parent_site_id)
+    #     if need_to_set_parent:
+    #         MATERIAL_APP.set_site_parent(user_obj.id, material_obj.id, parent_site_obj.id)
+    #     return redirect(f"/site?site_id={parent_site_id}")
+
+    site_objs = list_all_sites()
+
+    return render_template(
+        "SetMaterialParentPage.html",
+        site_url=f"{request.url_root}/?obj_id={material_obj.id}",
+        material_obj=material_obj,
         user_obj=user_obj,
         site_objs=site_objs,
         current_tab="Site",
@@ -1192,10 +1234,17 @@ def api_receive_material():
     project = data.get('project')
     item = data.get('item')
     qty = data.get('qty')
+    unique_id = data.get('unique_id')
 
     location_obj = MATERIAL_APP.find_site(location)
     project_obj = MATERIAL_APP.find_site(project)
     item_obj = MATERIAL_APP.find_item(item)
+
+    if item_obj.tracked and not unique_id:
+        return jsonify({
+            "error": "This is a tracked item, a unique identifier is required.",
+            "error_code": 2
+        }), 404
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
@@ -1230,7 +1279,8 @@ def api_receive_material():
         project_id=project_id,
         location=location_obj.id,
         qty=qty,
-        item_id=item_obj.id
+        item_id=item_obj.id,
+        unique_id=unique_id
     )
 
     return jsonify({
@@ -1269,6 +1319,44 @@ def api_set_site_parent():
 
     return jsonify({
         "message": f"Site {site_obj.site_id}'s parent set to {parent_site_obj.site_id}.",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/setMaterialParent', methods=['POST'])
+@permission_required(['edit_material', 'set_material_parent', 'edit_all'])
+def api_set_material_parent():
+    data = request.get_json()
+
+    material_id = data.get('material_id')
+    parent_site_id = data.get('parent_site_id')
+
+    material_obj = MATERIAL_APP.lookup(material_id)
+    parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": "User not found."
+        }), 404
+    if material_obj is None:
+        return jsonify({
+            "error": f"Material {material_id} not found."
+        }), 404
+    if parent_site_obj is None:
+        return jsonify({
+            "error": f"Site {parent_site_id} not found."
+        }), 404
+
+    ret = MATERIAL_APP.set_material_parent(
+        user_id=user_obj.id,
+        material_id=material_obj.id,
+        parent_site_id=parent_site_obj.id
+    )
+
+    return jsonify({
+        "message": f"Material {material_obj.display_name}'s parent set to {parent_site_obj.site_id}.",
         "data": {"id": ret.id}
     }), 200
 
@@ -1562,6 +1650,7 @@ def api_create_catalogue_item():
     mpn = data.get('mpn')
     description = data.get('description')
     shorthand = data.get('shorthand')
+    tracked = data.get('tracked') == 'yes'
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
@@ -1583,7 +1672,8 @@ def api_create_catalogue_item():
         shorthand=shorthand,
         item_type=item_type,
         supplier=supplier,
-        user=user_obj.id
+        user=user_obj.id,
+        tracked=tracked
     )
 
     return jsonify({

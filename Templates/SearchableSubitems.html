@@ -53,7 +53,7 @@ border-bottom: none;
 	
     <ul class="child-list" id="{{search_list_id}}_list">
 	{% for item in material_children %}
-		<li class="{{search_list_id}}-update-btn" onclick="{{search_list_id}}HandleButtonUrl('{{item['id']}}', false)">
+		<li class="{{search_list_id}}-update-btn" onclick="{{search_list_id}}HandleButtonUrl('{{item['id']}}', false, '{{item['text']}}')">
 			<span>{{item['text']}}</span>
 		</li>
 	{% endfor %}
@@ -145,16 +145,20 @@ border-bottom: none;
     }
 	{{search_list_id}}_set_show_more_visibility(qty_to_show);
   }
-	function {{search_list_id}}HandleButtonUrl(action, open_new_window) {
+	function {{search_list_id}}HandleButtonUrl(action, open_new_window, button_text) {
 	console.log(action);
+    input = document.getElementById('{{search_list_id}}_input');
 	
-		{% if call_api %}
+		{% if call_api | d(False) %}
 			const url = new URL(window.location.href);
 			// Add your query parameter
 			url.searchParams.set("{{search_list_id}}", action);
 			// Update the browser's address bar smoothly
 			//window.history.pushState({}, '', url);
 			window.location.assign(url);
+			
+		{% elif simple_update|d(False)%}
+			input.value = button_text;
 		{% else %}
 			if (open_new_window) {
 				window.open("/?obj_id=" + action, '_blank');

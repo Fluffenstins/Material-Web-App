@@ -277,7 +277,7 @@ class CoreMaterialManager:
         role_obj = self.enact_action(action)
         return role_obj
 
-    def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None, item_type=None, supplier=None):
+    def create_item(self, item_id, mpn=None, description=None, user=None, shorthand=None, item_type=None, supplier=None, tracked=False):
         action = Action(
             'create_item',
             item_id=item_id,
@@ -286,7 +286,8 @@ class CoreMaterialManager:
             shorthand=shorthand,
             user=user,
             item_type=item_type,
-            supplier=supplier
+            supplier=supplier,
+            tracked=tracked
         )
         item = self.enact_action(action)
         return item
@@ -297,7 +298,7 @@ class CoreMaterialManager:
         user = self.enact_action(action)
         return user
 
-    def receive(self, user_id, project_id, item_id, qty, location, date_str=None):
+    def receive(self, user_id, project_id, item_id, qty, location, unique_id=None, date_str=None):
         action = Action(
             action_type='receive',
             user=user_id,
@@ -305,7 +306,8 @@ class CoreMaterialManager:
             item_id=item_id,
             qty=qty,
             location=location,
-            date_str=date_str
+            date_str=date_str,
+            unique_id=unique_id
         )
         action.description = "Receive material."
         ret = self.enact_action(action)
@@ -366,6 +368,17 @@ class CoreMaterialManager:
             action_type='set_site_parent',
             user=user_id,
             site_id=site_id,
+            parent_site_id=parent_site_id
+        )
+        action.description = "Parent site set."
+        ret = self.enact_action(action)
+        return ret
+
+    def set_material_parent(self, user_id, material_id, parent_site_id):
+        action = Action(
+            action_type='set_material_parent',
+            user=user_id,
+            material_id=material_id,
             parent_site_id=parent_site_id
         )
         action.description = "Parent site set."
@@ -437,6 +450,7 @@ class CoreMaterialManager:
             'create_item': self._create_item,
             'create_user': self._create_user,
             'set_site_parent': self._set_site_parent,
+            'set_material_parent': self._set_material_parent,
             'transfer_material': self._transfer_material,
             'set_inventory': self._set_inventory,
             'transfer_all_material': self._transfer_all_material,
@@ -651,6 +665,7 @@ class CoreMaterialManager:
         shorthand = action.data['shorthand']
         item_type = action.data['item_type']
         supplier = action.data['supplier']
+        tracked = action.data['tracked']
         user_id = action.data['user']
 
         if item_type is not None and supplier is not None:
@@ -665,7 +680,8 @@ class CoreMaterialManager:
             mpn=mpn,
             nubuild_id=nubuild_id,
             description=description,
-            shorthand=shorthand
+            shorthand=shorthand,
+            tracked=tracked
         )
 
         self.items[item_obj.id] = item_obj
@@ -745,6 +761,7 @@ class CoreMaterialManager:
         item_id = action.data['item_id']
         qty = action.data['qty']
         location = action.data['location']
+        unique_id = action.data['unique_id']
         # date_str = action.data['date_str']
 
         try:
@@ -763,7 +780,11 @@ class CoreMaterialManager:
         item_id = catalogue_obj.item_id
 
         location_site = self.ensure_site('location', location)
-        location_material_obj = self.ensure_material(location_site, item_id)
+        if catalogue_obj.tracked:
+            location_material_obj = self.create_material(location_site, item_id, user_id=user_obj.id)
+            location_material_obj.unique_id = unique_id
+        else:
+            location_material_obj = self.ensure_material(location_site, item_id, user_id=user_obj.id)
 
         location_material_obj.qty_received += qty
         location_material_obj.qty += qty
@@ -771,11 +792,10 @@ class CoreMaterialManager:
         if user_obj is not None:
             user_obj.add_action(action)
             action.add_output('user_id', user_obj.id)
-        # add site actions
+
+        # add actions to history
         location_site.add_action(action)
-        # add material actions
         location_material_obj.add_action(action)
-        # add catalogue actions
         catalogue_obj.add_action(action)
 
         action.add_output('location_id', location_site.id)
@@ -792,7 +812,7 @@ class CoreMaterialManager:
             action.add_output('project_id', project_site.id)
             action.add_output('project_material_id', project_material_obj.id)
 
-        return action
+        return location_material_obj
 
     def _move_out(self, action):
         user_name = action.data['user']
@@ -946,6 +966,28 @@ class CoreMaterialManager:
             raise AttributeError("Unable to assign site parent.")
 
         return site_obj
+
+    def _set_material_parent(self, action):
+        user_id = action.data['user']
+        material_id = action.data['material_id']
+        parent_site_id = action.data['parent_site_id']
+
+        user_obj = self.find_user(user_id)
+        parent_site_obj = self.find_site(parent_site_id)
+        material_obj = self.lookup(material_id)
+
+        material_obj.set_parent(parent_site_obj.id)
+
+        parent_site_obj.add_action(action)
+        material_obj.add_action(action)
+        user_obj.add_action(action)
+
+        action.add_output('user_id', user_obj.id)
+
+        action.add_output('material_id', material_obj.id)
+        action.add_output('parent_site_id', parent_site_obj.id)
+
+        return material_obj
 
     def _remove_site_parent(self, action):
         user_id = action.data['user']

@@ -247,7 +247,7 @@ class Role(CoreMaterialObj):
 
 
 class CataloguedItem(CoreMaterialObj):
-    def __init__(self, item_id=None, mpn=None, description=None, shorthand=None, nubuild_id=None, supplier=None, item_type=None, save_data=None, **kwargs):
+    def __init__(self, item_id=None, mpn=None, description=None, shorthand=None, nubuild_id=None, supplier=None, item_type=None, tracked=False, save_data=None, **kwargs):
         super().__init__(save_data=save_data, **kwargs)
         self.description = description
         self.item_type = item_type
@@ -256,6 +256,7 @@ class CataloguedItem(CoreMaterialObj):
         self.item_id = item_id
         self.supplier = supplier
         self.shorthand = shorthand
+        self.tracked = tracked
         self.correct_item = None
         self.deprecated_items = []
 
@@ -268,7 +269,8 @@ class CataloguedItem(CoreMaterialObj):
             'supplier',
             'shorthand',
             'correct_item',
-            'deprecated_items'
+            'deprecated_items',
+            'tracked'
         ]
 
         if save_data is not None:
@@ -316,6 +318,7 @@ class Material(CoreMaterialObj):
         self.parent_site = None
         self.qty = 0
         self.qty_received = 0
+        self.unique_id = None
         self.borrows = []
 
         self.indexed_values += [
@@ -323,7 +326,8 @@ class Material(CoreMaterialObj):
             'parent_site',
             'qty',
             'qty_received',
-            'borrows'
+            'borrows',
+            'unique_id'
         ]
 
         if save_data is not None:
@@ -335,6 +339,8 @@ class Material(CoreMaterialObj):
 
     @property
     def display_name(self):
+        if self.unique_id is not None:
+            return self.unique_id
         return f"{self.item.item_id}"
 
     def item_match(self, text):
@@ -355,6 +361,21 @@ class Material(CoreMaterialObj):
             ret = {'qty': action.data['qty'], 'previous_qty': action.output['previous_qty'], 'date': action.get_date(date_format="%Y-%m-%d")}
             print(ret)
             return ret
+
+    def set_parent(self, parent_site_id):
+        site = self.site
+        new_parent_site = self.lookup(parent_site_id)
+
+        if self.id in new_parent_site.material_children:
+            raise IndexError("Material already in target site.")
+
+        try:
+            site.material_children.pop(site.material_children.index(self.id))
+        except IndexError:
+            raise IndexError("Material not found in current site.")
+
+        new_parent_site.material_children.append(self.id)
+        self.parent_site = new_parent_site.id
 
 
 class Site(CoreMaterialObj):

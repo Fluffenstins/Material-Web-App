@@ -4,7 +4,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NuBuild Site</title>
+<title>NuBuild Material</title>
 
 <style>
 body {
@@ -85,28 +85,6 @@ input {
   cursor: pointer;
 }
 
-.submit-btn {
-  background: #51F59F;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-}
-
-
-.error-message {
-  font-size: 14px;
-  color: #ff0000;
-}
-
-.success-message {
-  font-size: 14px;
-  color: #00ff00;
-}
-
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -131,6 +109,27 @@ input {
   font-size: 12px;
   color: white;
   cursor: pointer;
+}
+
+.submit-btn {
+  background: #51F59F;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.error-message {
+  font-size: 14px;
+  color: #ff0000;
+}
+
+.success-message {
+  font-size: 14px;
+  color: #00ff00;
 }
 
 .child-list {
@@ -170,49 +169,22 @@ border-bottom: none;
 
   <div class="card">
   
-    <div class="field">
-      <div class="label">Location</div>
-	
-	{% with search_list_id="location", item_type="Location", material_children=site_objs, hide_by_default=true, default_text=location_obj.path %}
-    {% include "SimpleDropdown.html" %}
-	{% endwith %}
-	
-    </div>
+	<div class="field">
+		<div class="label">Material</div>
+		<div class="update-btn" id="site_path" onclick="handleButtonUrl('{{site_url}}', false)">{{material_obj.display_name}}</div>
+	</div>
   
     <div class="field">
-      <div class="label">Project</div>
+      <div class="label">Parent Site Options</div>
 	
-	{% with search_list_id="project", item_type="Project", material_children=site_objs, hide_by_default=true, default_text=project_obj.path %}
-    {% include "SimpleDropdown.html" %}
+	{% with search_list_id="site_parent", item_type="Site", material_children=site_objs, hide_by_default=false, simple_update=true %}
+    {% include "SearchableSubitems.html" %}
 	{% endwith %}
 	
-    </div>
-  
-    <div class="field">
-      <div class="label">Item</div>
-	
-	{% with search_list_id="catalogue_item", item_type="Item", material_children=catalogue_objs, hide_by_default=true, default_text=catalogue_obj.item_id %}
-    {% include "SimpleDropdown.html" %}
-	{% endwith %}
-	
-    </div>
-	
-	
-    <div class="field">
-		<div class="label">Qty</div>
-		<input type="number" id="qty_input" onkeyup="" placeholder="E.g. 1, 2, 3">
-		<div class="error-message" id="qty_error">Incorrect Qty.</div>
-    </div>
-	
-	
-    <div class="field" id="id_input_field">
-		<div class="label">Unique Identifier</div>
-		<input type="text" id="id_input" onkeyup="" placeholder="E.g. Reel #114">
-		<div class="error-message" id="id_error">Invalid Identifier.</div>
     </div>
 	
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
-	<div class="success-message" id="receive_success">Receive successful.</div>
+	<div class="success-message" id="receive_success">Parent set successful.</div>
 	<div class="submit-btn" id="submit_button" onclick="submitReceive()">Submit</div>
 
 </div>
@@ -221,40 +193,6 @@ border-bottom: none;
 </div>
 
 <script>
-
-{% include "Request.js" %}
-
-function updateCount() {
-  const currentEl = document.getElementById("currentCount");
-  const previousEl = document.getElementById("previousCount");
-  const currentElDate = document.getElementById("current_date");
-  const previousElDate = document.getElementById("previous_date");
-  const input = document.getElementById("newCount");
-
-  var today = new Date();
-  var dd = String(today.getDate()).padStart(2, '0');
-  var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-  var yyyy = today.getFullYear();
-  var date_str = yyyy + "-" + mm + "-" + dd
-
-  const newValue = input.value;
-
-  if (newValue === "" || isNaN(newValue)) {
-    alert("Please enter a valid number");
-    return;
-  }
-
-  // Set previous = current
-  previousEl.textContent = currentEl.textContent;
-  previousElDate.textContent = currentElDate.textContent;
-
-  // Set current = new input
-  currentEl.textContent = newValue;
-  currentElDate.textContent = date_str;
-
-  // Clear input
-  input.value = "";
-}
 function handleButtonUrl(action, open_new_window) {
 			if (open_new_window) {
 				window.open(action, '_blank');
@@ -286,36 +224,22 @@ function display_generic_success(success_text) {
 }
 		
 async function submitReceive() {
-console.log("Attempting to receive.");
-	const location_elem = document.getElementById("location_input");
-	const project_elem = document.getElementById("project_input");
-	const item_elem = document.getElementById("catalogue_item_input");
-	const qty_elem = document.getElementById("qty_input");
-	const id_elem = document.getElementById("id_input");
-	console.log(location_elem.value);
-	console.log(project_elem.value);
-	console.log(item_elem.value);
-	console.log(qty_elem.value);
-	console.log(id_elem.value);
+console.log("Attempting to create catalogue item.");
+	const parent_site_input = document.getElementById("site_parent_input");
+	console.log(parent_site_input.value);
 	
 	const data = {
-	"location": location_elem.value,
-	"project": project_elem.value,
-	"item": item_elem.value,
-	"qty": qty_elem.value,
-	"unique_id": id_elem.value
+	"material_id": "{{material_obj.id}}",
+	"parent_site_id": parent_site_input.value
 	};
-	let ret = await post_request("/api/receiveMaterial", data);
+	let ret = await post_request("/api/setMaterialParent", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
 		console.log("Displaying error " + response_data['error']);
 		display_generic_error(response_data['error']);
-		if (response_data['error_code'] == 2) {
-			show_id_input();
-		}
 	} else {
-		display_generic_success("Receive successful!");
+		display_generic_success("Parent set successful!");
 		//history.back();
 		window.location.replace(document.referrer);
 	}
@@ -323,20 +247,8 @@ console.log("Attempting to receive.");
 	console.log(response_data);
 }
 
-
-function hide_id_input() {
-	unique_id_input = document.getElementById("id_input_field");
-	unique_id_input.style.display = "none";
-}
-
-
-function show_id_input() {
-	unique_id_input = document.getElementById("id_input_field");
-	unique_id_input.style.display = "";
-}
-
-
-
+{% include "Request.js" %}
+  
 function hide_all_errors() {
 error_elems = document.getElementsByClassName("error-message");
 for (i = 0; i < error_elems.length; i++) {
@@ -355,7 +267,8 @@ for (i = 0; i < error_elems.length; i++) {
 
 hide_all_errors();
 hide_all_successes();
-hide_id_input();
+
+
 </script>
 
 </body>

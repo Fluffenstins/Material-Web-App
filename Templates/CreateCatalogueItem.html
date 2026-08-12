@@ -166,6 +166,11 @@ border-bottom: none;
     font-size: 16px;
   }
 }
+
+.basic-checkbox {
+margin-top: 10px;
+margin-bottom: 30px;
+}
 </style>
 </head>
 
@@ -215,6 +220,12 @@ border-bottom: none;
 		<input type="text" id="shorthand_input" onkeyup="" placeholder="E.g. 16 Grommet, 16way, etc.">
     </div>
 	
+	<label>
+  <input class="basic-checkbox" type="checkbox" name="subscribe" value="yes" id="tracked_input">
+  Individually Tracked
+</label>
+
+	
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Receive successful.</div>
 	<div class="submit-btn" id="submit_button" onclick="submitReceive()">Submit</div>
@@ -263,12 +274,14 @@ console.log("Attempting to create catalogue item.");
 	const mpn_elem = document.getElementById("mpn_input");
 	const description_elem = document.getElementById("description_input");
 	const shorthand_elem = document.getElementById("shorthand_input");
+	const tracked_elem = document.getElementById("tracked_input");
 	console.log(item_type_elem.value);
 	console.log(supplier_elem.value);
 	console.log(item_id_elem.value);
 	console.log(mpn_elem.value);
 	console.log(description_elem.value);
 	console.log(shorthand_elem.value);
+	console.log(tracked_elem.value);
 	
 	const data = {
 	"item_type": item_type_elem.value,
@@ -276,7 +289,8 @@ console.log("Attempting to create catalogue item.");
 	"item_id": item_id_elem.value,
 	"mpn": mpn_elem.value,
 	"description": description_elem.value,
-	"shorthand": shorthand_elem.value
+	"shorthand": shorthand_elem.value,
+	"tracked": tracked_elem.value
 	};
 	let ret = await post_request("/api/createCatalogueItem", data);
 	let response_data = await ret.json();
