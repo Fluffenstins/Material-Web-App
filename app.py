@@ -232,16 +232,7 @@ def create_item_url():
         {'id': '14', 'text': 'OLT'}
         ]
 
-    supplier_options = [
-        {'id': 'HA', 'text': 'Hall'},
-        {'id': 'HX', 'text': 'Hexatronic'},
-        {'id': 'NR', 'text': 'Noramco'},
-        {'id': 'TW', 'text': 'TVC/Wesco'},
-        {'id': 'NK', 'text': 'Nokia'},
-        {'id': 'CN', 'text': 'Connect'},
-        {'id': 'TC', 'text': 'Technity'},
-        {'id': 'MC', 'text': 'CT&M'}
-        ]
+    supplier_options = MATERIAL_APP.supplier_options
 
     # site_objs = list_all_sites()
     try:

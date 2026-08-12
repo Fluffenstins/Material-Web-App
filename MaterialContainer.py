@@ -43,7 +43,8 @@ class CoreMaterialManager:
             {'id': 'NK', 'text': 'Nokia'},
             {'id': 'CN', 'text': 'Connect'},
             {'id': 'TC', 'text': 'Technity'},
-            {'id': 'MC', 'text': 'CT&M'}
+            {'id': 'MC', 'text': 'CT&M'},
+            {'id': 'TX', 'text': 'Telonix'}
         ]
 
         self.save_after_action = True

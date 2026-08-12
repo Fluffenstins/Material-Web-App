@@ -301,7 +301,7 @@ console.log("Attempting to create catalogue item.");
 	} else {
 		display_generic_success("Creation successful!");
 		//history.back();
-		window.location.replace(document.referrer);
+		window.location.href = "/catalogue?item_id=" + response_data['data']['id'];
 	}
 	
 	console.log(response_data);
