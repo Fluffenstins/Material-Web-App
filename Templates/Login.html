@@ -77,6 +77,10 @@
         .register:hover {
             text-decoration: underline;
         }
+		.error-message {
+			font-size: 14px;
+			color: #ff0000;
+		}
     </style>
 </head>
 <body>
@@ -85,6 +89,7 @@
     <h2>Login</h2>
         <input type="text" name="email" id="email" placeholder="Email" required>
         <input type="password" name="password" id="password" placeholder="Password" required>
+		<div class="error-message" id="login_error">Please make sure all inputs are filled.</div>
         <button type="submit" onclick="login();">Sign In</button>
     <a href="/updatePassword" class="forgot">Forgot Password?</a>
     <a href="/register" class="register">Register</a>
@@ -97,6 +102,11 @@ async function login() {
 	const email_elem = document.getElementById("email");
 	const password_elem = document.getElementById("password");
 	
+	if (email_elem.value == "" || password_elem.value == "") {
+		display_error("Please make sure all fields are filled.");
+		return;
+	}
+	
 	const data = {
 	"email": email_elem.value,
 	"password": password_elem.value
@@ -105,10 +115,28 @@ async function login() {
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
-		window.location.replace("/register");
+	
+		console.log(ret.status);
+		console.log("Error: " + ret.status + " : " + response_data['error']);
+		switch (ret.status) {
+			case 400:
+				// username or password is not filled out
+				display_error("Please provide both an email and a password.");
+				break;
+			case 403:
+				// password is incorrect
+				display_error("Password does not match the provided email.");
+				break;
+			case 424:
+				// unable to find user
+				window.location.replace("/register");
+				break;
+		default: // Runs if no cases match
+			console.log("Unknown error: " + ret.status + " : " + response_data['error']);
+		}
 	} else {
 		let params = new URLSearchParams(document.location.search);
-		let next_page = params.get("next"); // is the string "Jonathan"
+		let next_page = params.get("next");
 		console.log(next_page);
 		window.location.replace(document.referrer);
 	}
@@ -126,6 +154,20 @@ async function post_request(url, data) {
 });
 return ret;
 }
+
+function display_error(error_text) {
+	const error_elem = document.getElementById("login_error");
+	error_elem.textContent = error_text;
+	error_elem.style.display = "";
+}
+
+function hide_error() {
+	const error_elem = document.getElementById("login_error");
+	error_elem.style.display = "None";
+}
+
+hide_error();
+
 </script>
 
 </html>

@@ -274,6 +274,31 @@ def edit_item_url():
     )
 
 
+@app.route("/editCoreObj")
+@flask_login.login_required
+@permission_required(['edit_all'])
+def edit_core_obj_url():
+    item_id = request.args.get('obj_id', default="")
+
+    try:
+        core_obj = MATERIAL_APP.find_item(item_id)
+    except AttributeError:
+        return redirect(f"/")
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "GenericObjectEdit.html",
+        user_obj=user_obj,
+        core_obj=core_obj,
+        current_tab="Edit Item",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
 @app.route("/user")
 @flask_login.login_required
 @permission_required(['read_self', 'read_user', 'read_all', 'edit_all'])
@@ -1824,6 +1849,7 @@ def api_complete_intermediate_material():
         source_id=source_obj.id,
         target_id=target_id
     )
+
     MATERIAL_APP.patch_site(
         user_id=user_obj.id,
         site_id=source_obj.id,

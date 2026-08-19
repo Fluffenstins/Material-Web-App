@@ -3,6 +3,7 @@ from dateutil import parser
 import random
 import string
 import bcrypt
+import json
 
 
 ITEM_SPACE = {}
@@ -28,18 +29,23 @@ class CoreMaterialObj:
         self.creation_date = self.get_date()
         self.action_history = []
 
-        self.indexed_values = [
-            'name',
+        self.indexed_values = {
+            'name':                 {'title': "Name",               'permission': 'edit_all', 'type': 'str'},
+            'id':                   {'title': "Object ID",          'permission': 'edit_all', 'type': 'str'},
+            'type':                 {'title': "Object Type",        'permission': 'edit_all', 'type': 'str'},
+            'action_history':       {'title': "Action History",     'permission': 'edit_all', 'type': 'list'},
+            'comments':             {'title': "Comments",           'permission': 'edit_all', 'type': 'list'},
+            'description':          {'title': "Description",        'permission': 'edit_all', 'type': 'str'},
+            'associated_users':     {'title': "Associated Users",   'permission': 'edit_all', 'type': 'list'},
+            'creation_date':        {'title': "Creation Date",      'permission': 'edit_all', 'type': 'str'}
+        }
+        self.protected_values = [
             'id',
             'type',
             'action_history',
             'comments',
-            'description',
             'associated_users',
             'creation_date'
-        ]
-        self.protected_values = [
-            'id'
         ]
 
     @property
@@ -62,6 +68,10 @@ class CoreMaterialObj:
         for key in self.indexed_values:
             value = self.__getattribute__(key)
             ret[key] = value
+        try:
+            json.dumps(ret)
+        except:
+            print(f"Unable to make json of obj. {self.id} : {ret}")
         return ret
 
     def load_from_json(self, data):
@@ -99,10 +109,10 @@ class Tag(CoreMaterialObj):
         self.value = None
         self.parent_id = None
 
-        self.indexed_values += [
-            'value',
-            'parent_id'
-        ]
+        self.indexed_values = self.indexed_values | {
+            'value': {'title': "Tag Value", 'permission': 'edit_tag', 'type': 'str'},
+            'parent_id': {'title': "Parent ID", 'permission': 'edit_tag', 'type': 'str'},
+        }
 
         if save_data is not None:
             self.load_from_json(save_data)
@@ -119,16 +129,18 @@ class User(CoreMaterialObj):
         self.roles = None
         self.favourites = []
 
-        self.indexed_values += [
+        self.indexed_values = self.indexed_values | {
+            'password': {'title': "Password", 'permission': 'edit_user_password', 'type': 'str'},
+            'first_name': {'title': "First Name", 'permission': 'edit_user', 'type': 'str'},
+            'last_name': {'title': "Last Name", 'permission': 'edit_user', 'type': 'str'},
+            'email': {'title': "Email", 'permission': 'edit_user', 'type': 'str'},
+            'favourites': {'title': "Favourites", 'permission': 'edit_user', 'type': 'list'},
+            'roles': {'title': "Roles", 'permission': 'edit_user', 'type': 'list'},
+        }
+        self.protected_values += [
             'password',
-            'first_name',
-            'last_name',
-            'email',
             'favourites',
             'roles'
-        ]
-        self.protected_values += [
-            'password'
         ]
 
         if save_data is not None:
@@ -211,11 +223,10 @@ class Role(CoreMaterialObj):
         self.user_list = []
         self.name = name
 
-        self.indexed_values += [
-            'name',
-            'allowed_actions',
-            'user_list'
-        ]
+        self.indexed_values = self.indexed_values | {
+            'allowed_actions': {'title': "Allowed Actions", 'permission': 'edit_role', 'type': 'list'},
+            'user_list': {'title': "User List", 'permission': 'edit_role', 'type': 'list'}
+        }
 
         if save_data is not None:
             self.load_from_json(save_data)
@@ -260,17 +271,20 @@ class CataloguedItem(CoreMaterialObj):
         self.correct_item = None
         self.deprecated_items = []
 
-        self.indexed_values += [
-            'item_id',
-            'item_type',
-            'mpn',
-            'nubuild_id',
-            'description',
-            'supplier',
-            'shorthand',
-            'correct_item',
+        self.indexed_values = self.indexed_values | {
+            'item_id': {'title': "Item ID", 'permission': 'edit_item', 'type': 'str'},
+            'item_type': {'title': "Item Type", 'permission': 'edit_item', 'type': 'str'},
+            'mpn': {'title': "MPN", 'permission': 'edit_item', 'type': 'str'},
+            'nubuild_id': {'title': "NuBuild ID", 'permission': 'edit_item', 'type': 'str'},
+            'supplier': {'title': "Supplier", 'permission': 'edit_item', 'type': 'str'},
+            'shorthand': {'title': "Shorthand", 'permission': 'edit_item', 'type': 'str'},
+            'correct_item': {'title': "Correct Item", 'permission': 'edit_item', 'type': 'str'},
+            'deprecated_items': {'title': "Deprecated Items", 'permission': 'edit_item', 'type': 'list'},
+            'tracked': {'title': "Tracked", 'permission': 'edit_item', 'type': 'bool'}
+        }
+        self.protected_values += [
             'deprecated_items',
-            'tracked'
+            'correct_item'
         ]
 
         if save_data is not None:
@@ -321,13 +335,22 @@ class Material(CoreMaterialObj):
         self.unique_id = None
         self.borrows = []
 
-        self.indexed_values += [
-            'item_id',
-            'parent_site',
+        self.indexed_values = self.indexed_values | {
+            'item_id': {'title': "Item ID", 'permission': 'edit_material', 'type': 'str'},
+            'parent_site': {'title': "Parent Site", 'permission': 'edit_material', 'type': 'str'},
+            'qty': {'title': "Quantity", 'permission': 'edit_material', 'type': 'str'},
+            'qty_received': {'title': "Quantity Received", 'permission': 'edit_material', 'type': 'str'},
+            'borrows': {'title': "Borrows", 'permission': 'edit_material', 'type': 'list'},
+            'unique_id': {'title': "Unique ID", 'permission': 'edit_material', 'type': 'str'},
+        }
+        self.protected_values += [
+            'borrows',
+            'unique_id',
             'qty',
             'qty_received',
-            'borrows',
-            'unique_id'
+            'parent_site',
+            'item_id',
+            'description'
         ]
 
         if save_data is not None:
@@ -397,18 +420,23 @@ class Site(CoreMaterialObj):
         self.material_children = []
         self.site_children = []
 
-        self.indexed_values += [
-            'site_type',
-            'shorthand',
-            'description',
-            'site_id',
-            'address',
-            'parent_site_ids',
-            'material_counted_in_inventory',
+        self.indexed_values = self.indexed_values | {
+            'site_type': {'title': "Site Type", 'permission': 'edit_site', 'type': 'str'},
+            'shorthand': {'title': "Shorthand", 'permission': 'edit_site', 'type': 'str'},
+            'description': {'title': "Description", 'permission': 'edit_site', 'type': 'str'},
+            'site_id': {'title': "Site ID", 'permission': 'edit_site', 'type': 'str'},
+            'address': {'title': "Address", 'permission': 'edit_site', 'type': 'str'},
+            'parent_site_ids': {'title': "Parent Site IDs", 'permission': 'edit_site', 'type': 'list'},
+            'material_counted_in_inventory': {'title': "Counted In Inventory", 'permission': 'edit_site', 'type': 'str'},
+            'material_children': {'title': "Material Children", 'permission': 'edit_site', 'type': 'list'},
+            'site_children': {'title': "Site Children", 'permission': 'edit_site', 'type': 'list'},
+            'status': {'title': "Status", 'permission': 'edit_site', 'type': 'str'},
+            'destination_site': {'title': "Destination Site", 'permission': 'edit_site', 'type': 'str'},
+        }
+        self.protected_values += [
             'material_children',
             'site_children',
-            'status',
-            'destination_site'
+            'parent_site_ids'
         ]
 
         if save_data is not None:
@@ -551,20 +579,21 @@ class Action(CoreMaterialObj):
         self.processed = False
         self.user = None
         self.output = {}
-        self.activation_key = self._generate_id
+        self.activation_key = None
 
         try:
             self.creation_date = self.get_date(data['date_str'])
         except KeyError:
             self.creation_date = self.get_date()
 
-        self.indexed_values += [
-            'action_type',
-            'data',
-            'processed',
-            'user',
-            'output'
-        ]
+        self.indexed_values = self.indexed_values | {
+            'action_type': {'title': "Action Type", 'permission': 'edit_action', 'type': 'str'},
+            'data': {'title': "Data", 'permission': 'edit_action', 'type': 'dict'},
+            'processed': {'title': "Processed", 'permission': 'edit_action', 'type': 'bool'},
+            'user': {'title': "User", 'permission': 'edit_action', 'type': 'str'},
+            'output': {'title': "Output", 'permission': 'edit_action', 'type': 'dict'},
+            'activation_key': {'title': "Activation Key", 'permission': 'edit_action', 'type': 'str'}
+        }
         self.protected_values += [
             'activation_key'
         ]
@@ -685,9 +714,14 @@ class Comment(CoreMaterialObj):
         self.text = text
         self.user = user_id
 
-        self.indexed_values += [
-            'parent_id',
-            'text',
+        self.indexed_values = self.indexed_values | {
+            'parent_id': {'title': "Parent ID", 'permission': 'edit_comment', 'type': 'str'},
+            'text': {'title': "Text", 'permission': 'edit_comment', 'type': 'str'},
+            'user': {'title': "User", 'permission': 'edit_comment', 'type': 'str'},
+        }
+
+        self.protected_values += [
+            'parent_id'
             'user'
         ]
 

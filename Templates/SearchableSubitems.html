@@ -53,7 +53,7 @@ border-bottom: none;
 	
     <ul class="child-list" id="{{search_list_id}}_list">
 	{% for item in material_children %}
-		<li class="{{search_list_id}}-update-btn" onclick="{{search_list_id}}HandleButtonUrl('{{item['id']}}', false, '{{item['text']}}')">
+		<li class="{{search_list_id}}-update-btn" onclick='{{search_list_id}}HandleButtonUrl({{item["id"] | tojson}}, false, {{item["text"] | tojson}})'>
 			<span>{{item['text']}}</span>
 		</li>
 	{% endfor %}

@@ -912,19 +912,22 @@ class CoreMaterialManager:
 
         user_obj = self.find_user(user_id)
 
-        source_obj = self.ensure_site('location', source_id)
-        target_obj = self.ensure_site('project', target_id)
+        source_obj = self.find_site(source_id)
+        target_obj = self.find_site(target_id)
 
         for material_id in source_obj.material_children:
             source_material_obj = self.lookup(material_id)
-            target_material_obj = self.ensure_material(site=target_obj, item_id=source_material_obj.item.id)
 
-            target_material_obj.qty += source_material_obj.qty
-            source_material_obj.qty = 0
+            if source_material_obj.item.tracked:
+                source_material_obj.set_parent(target_obj.id)
+            else:
+                target_material_obj = self.ensure_material(site=target_obj, item_id=source_material_obj.item.id)
+                target_material_obj.qty += source_material_obj.qty
+                source_material_obj.qty = 0
+                target_material_obj.add_action(action)
 
             # add material actions
             source_material_obj.add_action(action)
-            target_material_obj.add_action(action)
             # add catalogue actions
             source_material_obj.item.add_action(action)
 
@@ -1046,6 +1049,39 @@ class CoreMaterialManager:
         user_obj.add_action(action=action)
 
         return material_obj
+
+    def _patch_generic_obj(self, action):
+        raise NotImplementedError("Editing generic objects is not yet implemented, and should be a last option anyways.")
+        user_id = action.data['user']
+        obj_id = action.data['obj_id']
+        data = action.data['data']
+
+        user_obj = self.find_user(user_id)
+        core_obj = self.lookup(obj_id)
+
+        if core_obj is None:
+            raise KeyError(f'Object {obj_id} not found.')
+
+        # for key, value in data.items():
+        #     if key in core_obj.accessible_attributes(user_obj.id):
+        #         if value == deepcopy(core_obj.__getattribute__(key)):
+        #             raise AttributeError(f"Value {key} does not differ from existing value")
+        #         action.add_output(f'prev_{key}', deepcopy(core_obj.__getattribute__(key)))
+        #         core_obj.__setattr__(key, value)
+        #     else:
+        #         raise PermissionError(f"Invalid attribute {key}")
+        #         # action.add_output(f'error_{key}', value)
+
+        core_obj.add_action(action)
+
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('item_id', core_obj.id)
+
+
+        return core_obj
 
     def _patch_site(self, action):
         user_id = action.data['user']
