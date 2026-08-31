@@ -15,7 +15,7 @@ GRAPH_DRIVE.batch_instructions = False
 GALA_SAVE_NAME = 'gala_save_data.json'
 existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
 if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
-    with open(f"SaveData/{GALA_SAVE_NAME}", 'w') as file:
+    with open(f"{GALA_SAVE_NAME}", 'w') as file:
         json.dump(existing_gala_data, file, indent=2)
 
 
@@ -1990,9 +1990,8 @@ def download_params():
 
 
 def load_gala_data():
-    save_path = 'SaveData'
     try:
-        with open(f"{save_path}/{GALA_SAVE_NAME}", 'r') as file:
+        with open(f"{GALA_SAVE_NAME}", 'r') as file:
             truth_dict = json.load(file)
     except FileNotFoundError:
         truth_dict = {}
@@ -2030,13 +2029,13 @@ def gala_register():
 
     truth_dict[table][name] = package
 
-    with open(f"SaveData/{GALA_SAVE_NAME}", 'w') as file:
+    with open(f"{GALA_SAVE_NAME}", 'w') as file:
         json.dump(truth_dict, file, indent=2)
 
     ret = GRAPH_DRIVE.upload(
         pref='01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4',
         name=GALA_SAVE_NAME,
-        path=f"SaveDAta/{GALA_SAVE_NAME}"
+        path=f"{GALA_SAVE_NAME}"
     )
     print(f"Done! : {ret}")
     return redirect(f'/gala/entry?id={submission_id}')
