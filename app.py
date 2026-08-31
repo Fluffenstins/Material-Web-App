@@ -7,6 +7,18 @@ from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
 from functools import wraps
 
+from GraphAPI import MSDrive
+import json
+
+GRAPH_DRIVE = MSDrive()
+GRAPH_DRIVE.batch_instructions = False
+GALA_SAVE_NAME = 'gala_save_data.json'
+existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
+if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
+    with open(f"SaveData/{GALA_SAVE_NAME}", 'w') as file:
+        json.dump(existing_gala_data, file, indent=2)
+
+
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = 'dbnfjGYGygJUGYUFYGUGUIYg7Y87G867G87gh8j89ty75F56fd54D54Ds546t7g'
@@ -424,7 +436,7 @@ def action_url():
 
 @app.route("/comments")
 @flask_login.login_required
-# @permission_required(['read_action', 'edit_action', 'edit_all'])
+@permission_required(['read_comment', 'edit_comment', 'edit_all'])
 def comments_url():
     parent_id = request.args.get('parent_id', default="")
     parent_obj = MATERIAL_APP.lookup(parent_id)
@@ -1954,21 +1966,18 @@ def api_set_maintenance_mode():
 
 
 @app.route('/downloads/rustdesk', methods=['GET'])
-@permission_required(['download_all'])
 def download_rustdesk():
     url = 'https://github.com/rustdesk/rustdesk/releases/download/1.4.4/rustdesk-1.4.4-x86_64.msi'
     return redirect(url)
 
 
 @app.route('/downloads/bitdefender', methods=['GET'])
-@permission_required(['download_all'])
 def download_bitdefender():
     url = 'https://cloud.gravityzone.bitdefender.com/Packages/BSTWIN/0/setupdownloader_[aHR0cHM6Ly9jbG91ZC1lY3MuZ3Jhdml0eXpvbmUuYml0ZGVmZW5kZXIuY29tL1BhY2thZ2VzL0JTVFdJTi8wL2k4ckVuVy9pbnN0YWxsZXIueG1sP2xhbmc9ZW4tVVM=].exe'
     return redirect(url)
 
 
 @app.route('/downloads/rmm', methods=['GET'])
-@permission_required(['download_all'])
 def download_rmm():
     url = 'https://shared.outlook.inky.com/link?domain=ca.ninjarmm.com&t=h.eJxtj7tywyAQRX_Fozq8BBhw5SRVitjfsIZFJkbII9CkyOTfYzIp0949e-ber2Fb83DYDdfW7vXAmAdaUvmAdZ6pX2YGE5bGUqkNcsaVjWHUXFtJxmgEUU4E4gxwYoWwKpoYESITnHKqjLDs1F3nguS5e8hpe9lSDq9LaSv4lsr0Vjx5h1TOMSb_wLa20Lmm4Wk33Hqvsl36B5sqwies4fgXpOKpBybNRXOBTkqn9jLspYuPSKB2KDQGYMJoJ-w4WtULcSW6GX8XY74HrLejnxr6a1nyMiWsfXVnQmf-OX3_AKBlYQc.MEQCIFpgCRxHezk9Uz4zOBqqtGPSiD9IxP0bwuuDmvF9pt6XAiB7uCDoXTmqYrHXzfodbv0ugwFBSwO1hFOQ9Y7LIHCfBg'
     return redirect(url)
@@ -1978,6 +1987,102 @@ def download_rmm():
 @permission_required(['download_all'])
 def download_params():
     return send_file('Parameters.json')
+
+
+def load_gala_data():
+    save_path = 'SaveData'
+    try:
+        with open(f"{save_path}/{GALA_SAVE_NAME}", 'r') as file:
+            truth_dict = json.load(file)
+    except FileNotFoundError:
+        truth_dict = {}
+    return truth_dict
+
+
+@app.route('/gala/register', methods=['GET', 'POST'])
+def gala_register():
+    # https://form.jotform.com/262393865563065?displayType=nubuild&tableNumber=Brass
+    # Jotform sends data as multipart/form-data or application/x-www-form-urlencoded
+    truth_dict = load_gala_data()
+    form_data = request.form.to_dict()
+    print(form_data)
+    try:
+        table = form_data['tablenumber']
+    except KeyError:
+        table = 'tableless'
+    try:
+        name = f"{form_data['name[first]']} {form_data['name[last]']}"
+        submission_id = form_data['submission_id']
+    except KeyError:
+        return "I am sorry but there is a problem with your submission. Please feel free to resubmit. If you made a payment, please reach out to gseaward@nubuildinc.ca to resolve this issue."
+    try:
+        plus_one_name = f"{form_data['nameof[first]']} {form_data['nameof[last]']}"
+    except KeyError:
+        plus_one_name = None
+
+    package = {'table': table, 'name': name, 'plus_one_name': plus_one_name, 'paid': False, 'submission_id': submission_id}
+
+    if table not in truth_dict:
+        truth_dict[table] = {}
+
+    if table != 'tableless' and len(truth_dict[table]) >= 10:
+        return "I am sorry but this table has already been fully booked!"
+
+    truth_dict[table][name] = package
+
+    with open(f"SaveData/{GALA_SAVE_NAME}", 'w') as file:
+        json.dump(truth_dict, file, indent=2)
+
+    ret = GRAPH_DRIVE.upload(
+        pref='01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4',
+        name=GALA_SAVE_NAME,
+        path=f"SaveDAta/{GALA_SAVE_NAME}"
+    )
+    print(f"Done! : {ret}")
+    return redirect(f'/gala/entry?id={submission_id}')
+
+
+@app.route('/gala/qrcode', methods=['GET'])
+def gala_qr_code():
+    provided_name = request.args.get('name', default="")
+    fixed_name = provided_name.lower().strip()
+    truth_dict = load_gala_data()
+    submission_id = None
+    for table_id, name_dict in truth_dict.items():
+        for name, submission_data in name_dict.items():
+            if name.lower().strip() != fixed_name:
+                continue
+            provided_name = name
+            submission_id = submission_data['submission_id']
+            break
+    if submission_id is None:
+        return "No submission found, please reach out to gseward@nubuildinc.ca"
+    link_url = f"nubuildapp.ca/gala/entry?id={submission_id}"
+    label = CustomLabel(provided_name, link_url)
+    label.save(path='label')
+    return send_file(
+        'label.png',
+        as_attachment=True,
+        download_name=f"Gala_Access_{submission_id}.png"
+    )
+
+
+@app.route('/gala/entry', methods=['GET'])
+def gala_entry():
+    entry_id = request.args.get('id', default="")
+    entry_name = None
+
+    truth_dict = load_gala_data()
+    for table_id, name_dict in truth_dict.items():
+        for name, submission_data in name_dict.items():
+            if submission_data['submission_id'] != entry_id:
+                continue
+            entry_name = name
+            break
+    return render_template(
+        "GalaEntryPage.html",
+        name=entry_name
+    )
 
 
 if __name__ == '__main__':
