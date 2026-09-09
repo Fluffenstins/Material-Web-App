@@ -669,7 +669,7 @@ class MSDrive:
             print(attachments)
             body['message']['attachments'] = [
                 {"@odata.type": "#microsoft.graph.fileAttachment", "name": attachment['name'],
-                 "contentType": "text/plain", "contentBytes": self.getBytes(attachment['path'])} for attachment in attachments]
+                 "contentType": "text/plain", "contentBytes": self.getBytes(attachment['path']), "contentId": attachment['name']} for attachment in attachments]
 
         ret = self.post(f"{sender}/sendMail", json.dumps(body))
         self.settings.revert()

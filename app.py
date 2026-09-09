@@ -2075,32 +2075,19 @@ def gala_register():
 
     generate_gala_qr_code(provided_name=name, submission_id=submission_id)
 
-    attachment = {
-        'name': 'QRCode.png',
-        'path': 'label.png'
-    }
-    body = '''
-        You're all set! Thank you for registering for NuBuild's 10th Anniversary Gala and ALS Charity Fundraiser.
+    attachments = [
+        {'name': 'QRCode.png', 'path': 'label.png'},
+        {'name': 'registration_image.png', 'path': 'gala_registration_image.png'}
+    ]
 
-**Event Details**
-📅 Friday, October 16, 2026
-📍 The Terrace, 1680 Creditstone Rd, Vaughan
-🕕 7:00pm
-
-Your QR code / digital ticket is attached — please save it to your phone or print it. You'll need to present it at the door for check-in.
-
-We can't wait to celebrate 10 years with you — and support a great cause along the way.
-
-See you there,
-The NuBuild Team
-        '''
+    body = '''<img src='cid:registration_image.png' alt='Company Logo'/>'''
     body = body.replace('\n', '<br>')
     GRAPH_DRIVE.sendMail(
         sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
-        subject="Thank you for your RSVP",
+        subject="You're Registered! NuBuild's 10th Anniversary Gala | October 16",
         recipients=[email],
         body=body,
-        attachments=[attachment]
+        attachments=attachments
     )
 
     print(f"Done! : {ret}")
@@ -2149,4 +2136,33 @@ def gala_entry():
 
 
 if __name__ == '__main__':
+    attachment = {
+        'name': 'QRCode.png',
+        'path': 'label.png'
+    }
+    body = '''
+            You're all set! Thank you for registering for NuBuild's 10th Anniversary Gala and ALS Charity Fundraiser.
+
+    **Event Details**
+    📅 Friday, October 16, 2026
+    📍 The Terrace, 1680 Creditstone Rd, Vaughan
+    🕕 7:00pm
+
+    Your QR code / digital ticket is attached — please save it to your phone or print it. You'll need to present it at the door for check-in.
+
+    We can't wait to celebrate 10 years with you — and support a great cause along the way.
+
+    See you there,
+    The NuBuild Team
+    <img src='cid:QRCode.png' alt='Company Logo'/>
+            '''
+    body = body.replace('\n', '<br>')
+    GRAPH_DRIVE.sendMail(
+        sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
+        subject="Thank you for your RSVP",
+        recipients=['gseaward@nubuildinc.ca'],
+        body=body,
+        attachments=[attachment]
+    )
+    raise NotImplementedError
     app.run(host='0.0.0.0', port=5000)
