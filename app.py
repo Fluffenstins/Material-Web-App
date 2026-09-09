@@ -1998,6 +1998,14 @@ def load_gala_data():
     return truth_dict
 
 
+def generate_gala_qr_code(submission_id, provided_name):
+    link_url = f"nubuildapp.ca/gala/entry?id={submission_id}"
+    label = CustomLabel(provided_name, link_url)
+    label.save(path='label')
+    return 'label.png'
+
+
+
 @app.route('/gala/register', methods=['GET', 'POST'])
 def gala_register():
     # https://form.jotform.com/262393865563065?displayType=nubuild&tableNumber=Brass
@@ -2037,6 +2045,46 @@ def gala_register():
         name=GALA_SAVE_NAME,
         path=f"{GALA_SAVE_NAME}"
     )
+
+    # send confirmation email
+
+    GRAPH_DRIVE.sendMail(
+        sender=GRAPH_DRIVE.grady_drive,
+        recipients=['gseaward@nubuildinc.ca'],
+        body="Template: Thanks for joining!",
+        attachments=['GALA_SAVE_NAME']
+    )
+
+    generate_gala_qr_code(provided_name="Grady Seaward Test1", submission_id="14")
+
+    attachment = {
+        'name': 'QRCode.png',
+        'path': 'label.png'
+    }
+    body = '''
+        You're all set! Thank you for registering for NuBuild's 10th Anniversary Gala and ALS Charity Fundraiser.
+
+**Event Details**
+📅 Friday, October 16, 2026
+📍 The Terrace, 1680 Creditstone Rd, Vaughan
+🕕 7:00pm
+
+Your QR code / digital ticket is attached — please save it to your phone or print it. You'll need to present it at the door for check-in.
+
+We can't wait to celebrate 10 years with you — and support a great cause along the way.
+
+See you there,
+The NuBuild Team
+        '''
+    body = body.replace('\n', '<br>')
+    GRAPH_DRIVE.sendMail(
+        # sender=GRAPH_DRIVE.grady_drive,
+        subject="Thank you for your RSVP",
+        recipients=['gseaward@nubuildinc.ca'],
+        body=body,
+        attachments=[attachment]
+    )
+
     print(f"Done! : {ret}")
     return redirect(f'/gala/entry?id={submission_id}')
 
@@ -2056,9 +2104,7 @@ def gala_qr_code():
             break
     if submission_id is None:
         return "No submission found, please reach out to gseward@nubuildinc.ca"
-    link_url = f"nubuildapp.ca/gala/entry?id={submission_id}"
-    label = CustomLabel(provided_name, link_url)
-    label.save(path='label')
+    generate_gala_qr_code(provided_name=provided_name, submission_id=submission_id)
     return send_file(
         'label.png',
         as_attachment=True,
