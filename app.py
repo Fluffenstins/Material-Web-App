@@ -2042,7 +2042,7 @@ def gala_register():
     if table not in truth_dict:
         truth_dict[table] = {}
 
-    if table != 'tableless' and len(truth_dict[table]) >= 10:
+    if table.lower() not in ['nubuild', 'individual', 'tableless'] and len(truth_dict[table]) >= 10:
         return "I am sorry but this table has already been fully booked!"
 
     truth_dict[table][name] = package
