@@ -2048,13 +2048,6 @@ def gala_register():
 
     # send confirmation email
 
-    GRAPH_DRIVE.sendMail(
-        sender=GRAPH_DRIVE.grady_drive,
-        recipients=['gseaward@nubuildinc.ca'],
-        body="Template: Thanks for joining!",
-        attachments=['GALA_SAVE_NAME']
-    )
-
     generate_gala_qr_code(provided_name="Grady Seaward Test1", submission_id="14")
 
     attachment = {
@@ -2078,7 +2071,7 @@ The NuBuild Team
         '''
     body = body.replace('\n', '<br>')
     GRAPH_DRIVE.sendMail(
-        # sender=GRAPH_DRIVE.grady_drive,
+        sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
         subject="Thank you for your RSVP",
         recipients=['gseaward@nubuildinc.ca'],
         body=body,
