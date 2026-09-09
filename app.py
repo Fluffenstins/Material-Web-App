@@ -2032,7 +2032,7 @@ def gala_register():
 
     package = {
         'table': table,
-        'name': name, 
+        'name': name,
         'email': email,
         'plus_one_name': plus_one_name,
         'paid': False,
@@ -2058,7 +2058,7 @@ def gala_register():
 
     # send confirmation email
 
-    generate_gala_qr_code(provided_name="Grady Seaward Test1", submission_id="14")
+    generate_gala_qr_code(provided_name=name, submission_id=submission_id)
 
     attachment = {
         'name': 'QRCode.png',
