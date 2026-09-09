@@ -580,11 +580,13 @@ class CoreMaterialManager:
 
         role_obj.add_action(action)
         target_user_obj.add_action(action)
-        user_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
 
         action.add_output('target_user_id', target_user_obj.id)
         action.add_output('role_id', role_obj.id)
-        action.add_output('user_id', user_obj.id)
+        if user_obj is not None:
+            action.add_output('user_id', user_obj.id)
 
         return target_user_obj
 
@@ -739,6 +741,7 @@ class CoreMaterialManager:
 
         existing_user = self.find_user(email)
         if existing_user is not None:
+            print("email already exists")
             raise KeyError("Email already exists. Please provide a new email, reset password, or login using previous credentials.")
 
         new_user = User(
@@ -753,6 +756,12 @@ class CoreMaterialManager:
         new_user.add_action(action)
 
         action.add_output('user_id', new_user.id)
+
+        # make sure that they start with some minimum permissions
+        self.add_user_role(
+            target_user_id=new_user.id,
+            role_id=self.find_role('Default').id
+        )
 
         return new_user
 

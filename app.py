@@ -139,9 +139,19 @@ def home_page():
     from_qr = request.args.get('from_qr', default="")
 
     try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    def default_redirect():
+        if user_obj is not None:
+            return redirect(f"/user?user_id={user_obj.id}")
+        return redirect("/sites")
+
+    try:
         obj = MATERIAL_APP.lookup(obj_id)
     except KeyError:
-        return redirect("/sites")
+        return default_redirect()
 
     if isinstance(obj, Site):
         if obj.is_intermediate and from_qr != '':
@@ -160,7 +170,7 @@ def home_page():
         if isinstance(obj, data_type):
             return redirect(redirect_link)
 
-    return redirect("/sites")
+    return default_redirect()
 
 
 @app.route("/material")
@@ -324,12 +334,15 @@ def user_url():
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
         action_history = list_action_history_breakdown(displayed_user_obj)
         role_objs = [{'id': role_id, 'text': role_obj.display_name} for role_id, role_obj in MATERIAL_APP.roles.items()]
-        if user_obj.id == displayed_user_obj.id:
-            is_viewing_self = True
     except AttributeError:
         user_obj = None
         action_history = 'N/A'
         role_objs = 'N/A'
+
+
+    print(user_obj.id, displayed_user_obj.id, user_obj.id == displayed_user_obj.id)
+    if user_obj.id == displayed_user_obj.id:
+        is_viewing_self = True
 
     if not (is_viewing_self or MATERIAL_APP.check_permission(user_obj.id, ['read_user', 'read_all', 'edit_all'])):
         return jsonify({"error": "Permission denied"}), 403
@@ -1099,7 +1112,9 @@ def register():
 
     MATERIAL_APP.async_save()
 
-    return redirect("site?site_id=OLT1")
+    print(f"User Made: {first_name}")
+
+    return redirect("/")
 
 
 @app.route('/login', methods=['GET'])

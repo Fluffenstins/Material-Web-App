@@ -3,9 +3,20 @@
     "Grady Seaward": {
       "table": "tableless",
       "name": "Grady Seaward",
+      "email": "gseaward@nubuildinc.ca",
+      "plus_one_name": "Marilyn Murrin",
+      "paid": false,
+      "submission_id": "6647730162847289080"
+    }
+  },
+  "NuBuild": {
+    "Grady Seaward": {
+      "table": "NuBuild",
+      "name": "Grady Seaward",
+      "email": "gseaward@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6647692472849444057"
+      "submission_id": "6647731932845849024"
     }
   }
 }
