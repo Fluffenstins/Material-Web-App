@@ -111,7 +111,7 @@ def check_maintenance_mode():
 
     if os.environ.get('MAINTENANCE_MODE') == '1':
         # You can bypass specific routes (like an admin dashboard) here
-        if request.path in ['/api/setMaintenanceMode', '/setMaintenance', '/api/dbBackup']:
+        if request.path in ['/api/setMaintenanceMode', '/setMaintenance', '/api/dbBackup', '/login']:
             return None
         return render_template(
             "MaintenancePage.html"
@@ -2005,7 +2005,6 @@ def generate_gala_qr_code(submission_id, provided_name):
     return 'label.png'
 
 
-
 @app.route('/gala/register', methods=['GET', 'POST'])
 def gala_register():
     # https://form.jotform.com/262393865563065?displayType=nubuild&tableNumber=Brass
@@ -2026,8 +2025,19 @@ def gala_register():
         plus_one_name = f"{form_data['nameof[first]']} {form_data['nameof[last]']}"
     except KeyError:
         plus_one_name = None
+    try:
+        email = form_data['email']
+    except KeyError:
+        email = None
 
-    package = {'table': table, 'name': name, 'plus_one_name': plus_one_name, 'paid': False, 'submission_id': submission_id}
+    package = {
+        'table': table,
+        'name': name, 
+        'email': email,
+        'plus_one_name': plus_one_name,
+        'paid': False,
+        'submission_id': submission_id
+    }
 
     if table not in truth_dict:
         truth_dict[table] = {}
@@ -2073,7 +2083,7 @@ The NuBuild Team
     GRAPH_DRIVE.sendMail(
         sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
         subject="Thank you for your RSVP",
-        recipients=['gseaward@nubuildinc.ca'],
+        recipients=[email],
         body=body,
         attachments=[attachment]
     )
