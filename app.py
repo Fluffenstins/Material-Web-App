@@ -2076,8 +2076,8 @@ def gala_register():
     generate_gala_qr_code(provided_name=name, submission_id=submission_id)
 
     attachments = [
-        {'name': 'QRCode.png', 'path': 'label.png'},
-        {'name': 'registration_image.png', 'path': 'gala_registration_image.png'}
+        {'name': 'registration_image.png', 'path': 'gala_registration_image.png'},
+        {'name': 'QRCode.png', 'path': 'label.png'}
     ]
 
     body = '''<img src='cid:registration_image.png' alt='Company Logo'/>'''
