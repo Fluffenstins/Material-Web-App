@@ -2084,7 +2084,7 @@ def gala_register():
     body = body.replace('\n', '<br>')
     GRAPH_DRIVE.sendMail(
         sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
-        subject="You're Registered! NuBuild's 10th Anniversary Gala | October 16",
+        subject="This is your event ticket! Please save this QR code, as it will be required for entry.",
         recipients=[email],
         body=body,
         attachments=attachments
