@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Styled Table</title>
+
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f7fa;
+        padding: 30px;
+    }
+
+    .table-container {
+        max-width: 1000px;
+        margin: auto;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+    }
+
+    th {
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+
+    tbody tr:hover {
+        background: #eaf2ff;
+        transition: background 0.2s ease;
+    }
+
+    .status {
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+	
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e40af;
+}
+
+.page-header p {
+    margin-top: 8px;
+    font-size: 1.1rem;
+    color: #64748b;
+}
+	
+</style>
+</head>
+<body>
+
+
+<div class="page-header">
+    <h1>Grady-less Gala Registration List</h1>
+</div>
+
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Plus One</th>
+                <th>Table</th>
+                <th>Paid</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+		{% for ticket in tickets %}
+			<tr>
+                <td>{{ticket["name"]}}</td>
+                <td>{{ticket["email"]}}</td>
+				{% if ticket["plus_one_name"] is none %}
+					<td><span class="status inactive">No +1</span></td>
+				{% else %}
+					<td>{{ticket["plus_one_name"]}}</td>
+				{% endif %}
+                <td>{{ticket["table"]}}</td>
+				{% if ticket["paid"] %}
+					<td><span class="status active">Yes</span></td>
+				{% else %}
+					<td><span class="status inactive">No</span></td>
+				{% endif %}
+                <td><span class="status active">Submitted</span></td>
+            </tr>
+		{% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

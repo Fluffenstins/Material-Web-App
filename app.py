@@ -13,10 +13,14 @@ import json
 GRAPH_DRIVE = MSDrive()
 GRAPH_DRIVE.batch_instructions = False
 GALA_SAVE_NAME = 'gala_save_data.json'
-existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
-if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
-    with open(f"{GALA_SAVE_NAME}", 'w') as file:
-        json.dump(existing_gala_data, file, indent=2)
+
+def download_gala_data():
+    existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
+    if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
+        with open(f"{GALA_SAVE_NAME}", 'w') as file:
+            json.dump(existing_gala_data, file, indent=2)
+
+download_gala_data()
 
 
 template_dir = os.path.abspath('Templates')
@@ -2024,6 +2028,7 @@ def generate_gala_qr_code(submission_id, provided_name):
 def gala_register():
     # https://form.jotform.com/262393865563065?displayType=nubuild&tableNumber=Brass
     # Jotform sends data as multipart/form-data or application/x-www-form-urlencoded
+    download_gala_data()
     truth_dict = load_gala_data()
     form_data = request.form.to_dict()
     print(form_data)
@@ -2132,6 +2137,20 @@ def gala_entry():
     return render_template(
         "GalaEntryPage.html",
         name=entry_name
+    )
+
+
+@app.route('/gala/list', methods=['GET'])
+def gala_list():
+    download_gala_data()
+    truth_dict = load_gala_data()
+    ret = []
+    for _, table_group in truth_dict.items():
+        for _, submission in table_group.items():
+            ret.append(submission)
+    return render_template(
+        "GalaRegisterList.html",
+        tickets=ret
     )
 
 
