@@ -364,7 +364,7 @@ class Material(CoreMaterialObj):
     def display_name(self):
         if self.unique_id is not None:
             return self.unique_id
-        return f"{self.item.item_id}"
+        return f"{self.item.item_id} : {self.item.shorthand}"
 
     def item_match(self, text):
         if text == self.id:

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<style>
+table_body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 30px;
+}
+
+.table-wrapper {
+    margin: auto;
+}
+
+.search-box {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+}
+
+thead {
+    background: linear-gradient(135deg, #0066ff, #00b4ff);
+    color: white;
+}
+
+td {
+    padding: 10px 16px;
+    text-align: center;
+}
+
+th {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease;
+    padding: 10px 16px;
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+tbody tr:hover {
+    background: #eaf4ff;
+}
+
+.filters input {
+    width: 100%;
+    padding: 6px;
+    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+.sort-indicator {
+    margin-left: 6px;
+    font-size: 12px;
+}
+
+.filter-indicator {
+    display: none;
+    margin-left: 4px;
+    font-size: 12px;
+}
+
+th.filtered {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+th.filtered .filter-indicator {
+    display: inline;
+}
+
+
+.show-more-btn {
+  background: #45D686;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="table-wrapper">
+
+    <input
+        type="text"
+        id="{{table_id}}_globalSearch"
+        class="search-box"
+        placeholder="Search {{ table_data.table_name }}..."
+    >
+
+    <table id="{{table_id}}_dataTable">
+
+        <thead>
+            <tr id="headerRow">
+				{% for column in table_data.columns %}
+					<th onclick="{{table_id}}_sortTable({{ loop.index0 }})">
+						{{ column }}
+						<span class="sort-indicator">⇅</span>
+					</th>
+				{% endfor %}
+            </tr>
+
+            <tr class="filters">
+				{% for column in table_data.columns %}
+					<th><input type="text" data-column="{{ loop.index0 }}" placeholder="Filter {{ column }}"></th>
+				{% endfor %}
+            </tr>
+
+        </thead>
+
+        <tbody>
+		
+			{% for row in table_data.data %}
+			<tr>
+				{% set outer_loop = loop %}
+				{% for val in row %}
+				
+					{% if table_data.cell_links[outer_loop.index0][loop.index0] is not none %}
+						<td ondblclick="handleDoubleClick('{{table_data.cell_links[outer_loop.index0][loop.index0]}}')">{{ val }}</td>
+					{% elif table_data.row_links[outer_loop.index0] is not none %}
+						<td ondblclick="handleDoubleClick('{{table_data.row_links[outer_loop.index0]}}')">{{ val }}</td>
+					{% else %}
+						<td>{{ val }}</td>
+					{% endif %}
+				{% endfor %}
+            </tr>
+			{% endfor %}
+			
+        </tbody>
+
+    </table>
+	
+	<button class="show-more-btn" id="{{search_list_id}}_show_more_btn" onclick="{{table_id}}_table_add_limit()">Show More</button>
+
+</div>
+
+<script>
+const {{table_id}}_table = document.getElementById("{{table_id}}_dataTable");
+let {{table_id}}_currentSortColumn = null;
+let {{table_id}}_currentSortDirection = true;
+let {{table_id}}_max_row_count = 10;
+
+document.getElementById("{{table_id}}_globalSearch")
+    .addEventListener("input", {{table_id}}_filterTable);
+
+{{table_id}}_table.querySelectorAll(".filters input")
+    .forEach(input => {
+        input.addEventListener("input", {{table_id}}_filterTable);
+    });
+	
+
+{{table_id}}_filterTable();
+	
+function handleDoubleClick(val) {
+	window.location.href = val;
+}
+
+function {{table_id}}_table_add_limit() {
+	{{table_id}}_max_row_count += 25;
+	{{table_id}}_filterTable();
+	
+}
+
+function {{table_id}}_filterTable() {
+
+    const globalSearch =
+        document.getElementById("{{table_id}}_globalSearch")
+        .value
+        .toLowerCase();
+
+    const rows =
+        {{table_id}}_table.querySelectorAll("tbody tr");
+
+    const filters = [];
+
+    {{table_id}}_table.querySelectorAll(".filters input")
+        .forEach((input, index) => {
+
+            filters.push(input.value.toLowerCase());
+
+            const header =
+                {{table_id}}_table.querySelectorAll("#headerRow th")[index];
+
+            if (input.value.trim() !== "") {
+                header.classList.add("filtered");
+            } else {
+                header.classList.remove("filtered");
+            }
+        });
+
+	let row_count = 0;
+
+    rows.forEach(row => {
+
+        const cells = row.getElementsByTagName("td");
+
+        const matchesGlobal =
+            row.innerText.toLowerCase()
+                .includes(globalSearch);
+
+        let matchesColumns = true;
+
+        filters.forEach((filterValue, columnIndex) => {
+
+            if (
+                filterValue &&
+                !cells[columnIndex]
+                    .innerText
+                    .toLowerCase()
+                    .includes(filterValue)
+            ) {
+                matchesColumns = false;
+            }
+
+        });
+		
+		if (matchesGlobal && matchesColumns) {
+			row_count += 1;
+		}
+        row.style.display =
+            matchesGlobal && matchesColumns && ({{table_id}}_max_row_count - row_count >= 0)
+                ? ""
+                : "none";
+    });
+}
+
+function {{table_id}}_sortTable(columnIndex) {
+
+    const tbody =
+        {{table_id}}_table.querySelector("tbody");
+
+    const rows =
+        Array.from(tbody.querySelectorAll("tr"));
+
+    if ({{table_id}}_currentSortColumn === columnIndex) {
+        {{table_id}}_currentSortDirection = !{{table_id}}_currentSortDirection;
+    } else {
+        {{table_id}}_currentSortColumn = columnIndex;
+        {{table_id}}_currentSortDirection = true;
+    }
+
+    {{table_id}}_table.querySelectorAll("#headerRow th")
+        .forEach(th => {
+
+            th.querySelector(".sort-indicator")
+                .textContent = "⇅";
+        });
+
+    const activeHeader =
+        {{table_id}}_table.querySelectorAll("#headerRow th")[columnIndex];
+
+    activeHeader.querySelector(".sort-indicator")
+        .textContent =
+            {{table_id}}_currentSortDirection ? "▲" : "▼";
+
+    rows.sort((a, b) => {
+
+        let x =
+            a.cells[columnIndex]
+                .innerText
+                .trim();
+
+        let y =
+            b.cells[columnIndex]
+                .innerText
+                .trim();
+
+        const xNum = Number(x);
+        const yNum = Number(y);
+
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return {{table_id}}_currentSortDirection
+                ? xNum - yNum
+                : yNum - xNum;
+        }
+
+        return {{table_id}}_currentSortDirection
+            ? x.localeCompare(y)
+            : y.localeCompare(x);
+
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+
+</body>
+</html>

@@ -44,7 +44,7 @@
       "table": "tableless",
       "name": "Nicola Pileggi",
       "email": "npileggi@nubuildinc.ca",
-      "plus_one_name": "Jessica  Pileggi",
+      "plus_one_name": "Jessica Pileggi",
       "paid": false,
       "submission_id": "6652241238433061712"
     },
@@ -80,11 +80,11 @@
       "paid": false,
       "submission_id": "6652242086918365402"
     },
-    "Mitchell  Baker-Bell": {
+    "Mitchell Baker-Bell": {
       "table": "tableless",
-      "name": "Mitchell  Baker-Bell",
+      "name": "Mitchell Baker-Bell",
       "email": "mbakerbell@gmail.com",
-      "plus_one_name": "Samantha  Baker-Bell",
+      "plus_one_name": "Samantha Baker-Bell",
       "paid": false,
       "submission_id": "6652248044561044830"
     },
@@ -108,15 +108,15 @@
       "table": "tableless",
       "name": "Gary Wilson",
       "email": "garytwilson10@gmail.com",
-      "plus_one_name": "Anne Marie  Boothman",
+      "plus_one_name": "Anne Marie Boothman",
       "paid": false,
       "submission_id": "6652385543028727120"
     },
-    "Renzo  Barros Milesi ": {
+    "Renzo Barros Milesi ": {
       "table": "tableless",
-      "name": "Renzo  Barros Milesi ",
+      "name": "Renzo Barros Milesi ",
       "email": "renzobarros98@gmail.com",
-      "plus_one_name": "Marcia  Goncalves ",
+      "plus_one_name": "Marcia Goncalves ",
       "paid": false,
       "submission_id": "6652396420221335020"
     },
@@ -208,9 +208,9 @@
       "paid": false,
       "submission_id": "6654361375526617885"
     },
-    "David  Swan": {
+    "David Swan": {
       "table": "tableless",
-      "name": "David  Swan",
+      "name": "David Swan",
       "email": "Daveswan1980@gmail.com",
       "plus_one_name": "Alicia Swan",
       "paid": false,
@@ -311,16 +311,110 @@
       "plus_one_name": null,
       "paid": false,
       "submission_id": "6655601139617551308"
-    }
-  },
-  "NuBuild": {
-    "Grady Seaward": {
-      "table": "NuBuild",
-      "name": "Grady Seaward",
-      "email": "gseaward@nubuildinc.ca",
+    },
+    "Scott Drysdale": {
+      "table": "tableless",
+      "name": "Scott Drysdale",
+      "email": "drysdale1111@outlook.com",
+      "plus_one_name": "Emma Hutchinson",
+      "paid": false,
+      "submission_id": "6655748132516114653"
+    },
+    "Mark Kulchyski": {
+      "table": "tableless",
+      "name": "Mark Kulchyski",
+      "email": "KULCHYSKIMA@GMAIL.COM",
+      "plus_one_name": "Thania Mendez",
+      "paid": false,
+      "submission_id": "6655788956011267811"
+    },
+    "Gus Reppas": {
+      "table": "tableless",
+      "name": "Gus Reppas",
+      "email": "greppas@nubuildinc.ca",
+      "plus_one_name": "Margo Reppas",
+      "paid": false,
+      "submission_id": "6655795338452544068"
+    },
+    "James Wright": {
+      "table": "tableless",
+      "name": "James Wright",
+      "email": "jtwright@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6647731932845849024"
+      "submission_id": "6656690072315024710"
+    },
+    "Brandon Jessup": {
+      "table": "tableless",
+      "name": "Brandon Jessup",
+      "email": "brandonjessup12@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6657976244921176814"
+    },
+    "Lynetricia Jessup": {
+      "table": "tableless",
+      "name": "Lynetricia Jessup",
+      "email": "lynetriciaderrett@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6657976403716509455"
+    },
+    "Reid Halstead": {
+      "table": "tableless",
+      "name": "Reid Halstead",
+      "email": "reiderh97@hotmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6658027530268762905"
+    },
+    "Jazmine Kreische": {
+      "table": "tableless",
+      "name": "Jazmine Kreische",
+      "email": "xmasbaby1997@hotmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6658031430264205925"
+    },
+    "Jasper Penaflor": {
+      "table": "tableless",
+      "name": "Jasper Penaflor",
+      "email": "jjasper@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6658031542844686067"
+    },
+    "Cameron Ross": {
+      "table": "tableless",
+      "name": "Cameron Ross",
+      "email": "cameronross907@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6658167797896474188"
+    },
+    "Mike Lyons": {
+      "table": "tableless",
+      "name": "Mike Lyons",
+      "email": "mlyons@nubuildinc.ca",
+      "plus_one_name": "Michelle Lyons",
+      "paid": false,
+      "submission_id": "6658218689612806248"
+    },
+    "Dario Capirchio": {
+      "table": "tableless",
+      "name": "Dario Capirchio",
+      "email": "dcapirchio@nubuildinc.ca",
+      "plus_one_name": "Paula  Capirchio",
+      "paid": false,
+      "submission_id": "6658371692633187311"
+    },
+    "Janet Johnson": {
+      "table": "tableless",
+      "name": "Janet Johnson",
+      "email": "jjohnson@nubuildinc.ca",
+      "plus_one_name": "Suneel  Warrican",
+      "paid": false,
+      "submission_id": "6658925042841537843"
     }
   },
   "FERRARI INSURANCE": {
@@ -346,7 +440,7 @@
       "table": "BORING SOLUTIONS",
       "name": "Russell Black",
       "email": "russell@boringsolutions.ca",
-      "plus_one_name": "Nicole  Black",
+      "plus_one_name": "Nicole Black",
       "paid": false,
       "submission_id": "6655501142849461452"
     },
@@ -377,7 +471,7 @@
     "Tony Sero": {
       "table": "BORING SOLUTIONS",
       "name": "Tony Sero",
-      "email": "Tony.sero@hunting-int.com",
+      "email": "Tony.sero@hunting-intl.com",
       "plus_one_name": "Rochelle Sero",
       "paid": false,
       "submission_id": "6655503462842348807"

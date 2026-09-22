@@ -7,6 +7,8 @@ from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
 from functools import wraps
 
+from MatAppUtils import AppTableData, MaterialTableData
+
 from GraphAPI import MSDrive
 import json
 
@@ -101,7 +103,8 @@ def list_header_options(user_id):
         'Users':        (['read_user', 'edit_user', 'read_all', 'edit_all'], "window.location.href='/users'"),
         'Roles':        (['read_role', 'edit_role', 'read_all', 'edit_all'], "window.location.href='/roles'"),
         'Create Site':  (['create_site', 'edit_site', 'edit_all'], "window.location.href='/createSite'"),
-        'Create Item':  (['create_item', 'edit_catalogue_item', 'edit_all'], "window.location.href='/createItem'")
+        'Create Item':  (['create_item', 'edit_catalogue_item', 'edit_all'], "window.location.href='/createItem'"),
+        'Maintenance':  (['set_maintenance'], "window.location.href='/setMaintenance'")
     }
     header_permission_pairs = {
         key: val for key, val in header_permission_pairs.items()
@@ -487,10 +490,14 @@ def site_url():
     except KeyError:
         site_obj = MATERIAL_APP.find_site(site_id)
     if site_obj is not None:
-        material_children = sorted([
-            {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).display_name}
+        material_children = MaterialTableData(sorted([
+            MATERIAL_APP.lookup(i)
             for i in site_obj.material_children
-        ], key=lambda x: x['text'])
+        ], key=lambda x: x.id))
+        # material_children = sorted([
+        #     {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).display_name}
+        #     for i in site_obj.material_children
+        # ], key=lambda x: x['text'])
 
         parent_sites = sorted([
             {'id': MATERIAL_APP.lookup(i).id, 'text': MATERIAL_APP.lookup(i).name}
@@ -2113,7 +2120,7 @@ def gala_qr_code():
             submission_id = submission_data['submission_id']
             break
     if submission_id is None:
-        return "No submission found, please reach out to gseward@nubuildinc.ca"
+        return "No submission found, please reach out to gseaward@nubuildinc.ca"
     generate_gala_qr_code(provided_name=provided_name, submission_id=submission_id)
     return send_file(
         'label.png',
@@ -2151,6 +2158,16 @@ def gala_list():
     return render_template(
         "GalaRegisterList.html",
         tickets=ret
+    )
+
+
+@app.route('/test', methods=['GET'])
+def test_url():
+    table_data = AppTableData("Material", ['ID', 'Name', 'Shorthand', 'Qty', 'Status'], [[1, "Grady", "GY", 14, 'Paid'], [2, "Steve", "Steve-o Magui", 0, 'Unpaid']])
+    mat_table_data = MaterialTableData([MATERIAL_APP.lookup(i) for i in MATERIAL_APP.material])
+    return render_template(
+        "TestSearchableTable.html",
+        material_list=mat_table_data
     )
 
 
