@@ -3,11 +3,6 @@
 <head>
 
 <style>
-table_body {
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #f4f6f9;
-    padding: 30px;
-}
 
 .table-wrapper {
     margin: auto;
@@ -134,7 +129,7 @@ th.filtered .filter-indicator {
         <tbody>
 		
 			{% for row in table_data.data %}
-			<tr>
+			<tr style="display: none">
 				{% set outer_loop = loop %}
 				{% for val in row %}
 				
@@ -153,7 +148,7 @@ th.filtered .filter-indicator {
 
     </table>
 	
-	<button class="show-more-btn" id="{{search_list_id}}_show_more_btn" onclick="{{table_id}}_table_add_limit()">Show More</button>
+	<button class="show-more-btn" id="{{table_id}}_show_more_btn" onclick="{{table_id}}_table_add_limit()">Show More</button>
 
 </div>
 
@@ -161,7 +156,7 @@ th.filtered .filter-indicator {
 const {{table_id}}_table = document.getElementById("{{table_id}}_dataTable");
 let {{table_id}}_currentSortColumn = null;
 let {{table_id}}_currentSortDirection = true;
-let {{table_id}}_max_row_count = 10;
+let {{table_id}}_max_row_count = 15;
 
 document.getElementById("{{table_id}}_globalSearch")
     .addEventListener("input", {{table_id}}_filterTable);
@@ -171,8 +166,12 @@ document.getElementById("{{table_id}}_globalSearch")
         input.addEventListener("input", {{table_id}}_filterTable);
     });
 	
+const {{table_id}}_rows = {{table_id}}_table.querySelectorAll("tbody tr");
+for (let i = 0; i < Math.min({{table_id}}_max_row_count, {{table_id}}_rows.length); i++) {
+  {{table_id}}_rows[i].style.display = "";
+}
 
-{{table_id}}_filterTable();
+conditionally_hide_show_more();
 	
 function handleDoubleClick(val) {
 	window.location.href = val;
@@ -181,7 +180,19 @@ function handleDoubleClick(val) {
 function {{table_id}}_table_add_limit() {
 	{{table_id}}_max_row_count += 25;
 	{{table_id}}_filterTable();
+	if ({{table_id}}_max_row_count >= {{table_id}}_rows.length) {
+		document.getElementById("{{table_id}}_show_more_btn").style.display = "none";
+	}
 	
+}
+
+function conditionally_hide_show_more() {
+	if ({{table_id}}_max_row_count >= {{table_id}}_rows.length) {
+		document.getElementById("{{table_id}}_show_more_btn").style.display = "none";
+	} else {
+		console.log("limit: " + {{table_id}}_max_row_count + ", Total: " + {{table_id}}_rows.length)
+	}
+
 }
 
 function {{table_id}}_filterTable() {
@@ -222,7 +233,7 @@ function {{table_id}}_filterTable() {
                 .includes(globalSearch);
 
         let matchesColumns = true;
-
+		console.log(row.style.display);
         filters.forEach((filterValue, columnIndex) => {
 
             if (
@@ -304,6 +315,7 @@ function {{table_id}}_sortTable(columnIndex) {
     });
 
     rows.forEach(row => tbody.appendChild(row));
+	{{table_id}}_filterTable();
 }
 </script>
 

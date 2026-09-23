@@ -175,18 +175,16 @@ border-bottom: none;
     <div class="field">
       <div class="label">Material</div>
 	
-	{% with search_list_id="material", item_type="Item", material_children=material_children, hide_by_default=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
+	{% set table_id, table_data = "table_material", material_children %}
+	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 
     <div class="field">
       <div class="label">Action History</div>
 	
-	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
+	{% set table_id, table_data = "table_action", action_history %}
+	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 

@@ -487,6 +487,9 @@ class CoreMaterialManager:
 
         site_id = action.data['site']
         item_id = action.data['item_id']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
 
         site = self.sites[site_id]
 
@@ -505,6 +508,8 @@ class CoreMaterialManager:
         action.add_output('site_id', site.id)
         action.add_output('material_id', material_obj.id)
         action.add_output('catalogue_item_id', item_obj.id)
+        if user_obj is not None:
+            action.add_output('user_id', user_obj.id)
 
         return material_obj
 

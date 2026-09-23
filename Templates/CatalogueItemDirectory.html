@@ -150,9 +150,8 @@ border-bottom: none;
     <div class="field">
       <div class="label">Items</div>
 	
-	{% with search_list_id="item", item_type="Item", material_children=catalogue_item_objs, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
+	{% set table_id, table_data = "table_1", catalogue_item_table %}
+	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 

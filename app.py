@@ -7,20 +7,23 @@ from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
 from functools import wraps
 
-from MatAppUtils import AppTableData, MaterialTableData
+from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData
 
 from GraphAPI import MSDrive
 import json
+from datetime import datetime
 
 GRAPH_DRIVE = MSDrive()
 GRAPH_DRIVE.batch_instructions = False
 GALA_SAVE_NAME = 'gala_save_data.json'
+
 
 def download_gala_data():
     existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
     if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
         with open(f"{GALA_SAVE_NAME}", 'w') as file:
             json.dump(existing_gala_data, file, indent=2)
+
 
 download_gala_data()
 
@@ -82,7 +85,7 @@ def list_all_catalogue_items():
     return catalogue_objs
 
 
-def list_action_history_breakdown(obj):
+def deprecated_list_action_history_breakdown(obj):
     action_objs = []
     for i in obj.action_history[::-1]:
         try:
@@ -91,6 +94,17 @@ def list_action_history_breakdown(obj):
             continue
     action_history = [{'id': i.id, 'text': i.display_text()} for i in action_objs]
     return action_history
+
+
+def list_action_history_breakdown(obj):
+    action_objs = []
+    for i in obj.action_history[::-1]:
+        try:
+            action_objs.append(MATERIAL_APP.lookup(i))
+        except KeyError:
+            continue
+    action_table = ActionTableData(action_objs)
+    return action_table
 
 
 def list_header_options(user_id):
@@ -388,6 +402,12 @@ def catalogue_url():
         user_obj = None
         action_history = 'N/A'
 
+    live_material_references = [i for _, i in MATERIAL_APP.material.items() if i.item.id == item_id]
+    live_material_references = sorted(live_material_references, key=lambda x: MATERIAL_APP.lookup(x.parent_site).path)
+    linked_material_table = AppTableData("Linked Material", columns=('Path', 'Qty'))
+    for row in live_material_references:
+        linked_material_table.add_row([MATERIAL_APP.lookup(row.parent_site).path, row.qty], row_link=f'/?obj_id={row.parent_site}')
+
     aliases = [MATERIAL_APP.lookup(i) for i in catalogue_item_obj.deprecated_items]
     aliases = sorted(aliases, key=lambda x: x.item_id)
     aliases = [{'id': i.id, 'text': i.item_id} for i in aliases]
@@ -399,6 +419,7 @@ def catalogue_url():
         qr_code_url=f"{request.url_root}downloadQRCode?obj_id={catalogue_item_obj.id}",
         catalogue_item_obj=catalogue_item_obj,
         aliases=aliases,
+        linked_material_table=linked_material_table,
         user_obj=user_obj,
         action_history=action_history,
         deprecated_status=deprecated_status,
@@ -853,6 +874,50 @@ def contractor_sites_directory_url():
     )
 
 
+@app.route("/peopleSites")
+@flask_login.login_required
+@permission_required(['read_person', 'read_site', 'edit_site', 'read_all', 'edit_all'])
+def person_sites_directory_url():
+
+    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'person' and len(val.parent_site_ids) == 0]
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="People",
+        site_objs=site_objs,
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route("/fleetSites")
+@flask_login.login_required
+@permission_required(['read_fleet', 'read_site', 'edit_site', 'read_all', 'edit_all'])
+def fleet_sites_directory_url():
+
+    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'fleet' and len(val.parent_site_ids) == 0]
+    site_objs = sorted(site_objs, key=lambda x: x['text'])
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "SitesDirectory.html",
+        current_tab="Fleet",
+        site_objs=site_objs,
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
 @app.route("/projects")
 @flask_login.login_required
 @permission_required(['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'])
@@ -902,8 +967,11 @@ def users_directory_url():
 @permission_required(['read_catalogue_item', 'edit_catalogue_item', 'read_all', 'edit_all'])
 def items_directory_url():
 
-    catalogue_item_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.items.items()]
-    catalogue_item_objs = sorted(catalogue_item_objs, key=lambda x: x['text'])
+    # catalogue_item_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.items.items()]
+    # catalogue_item_objs = sorted(catalogue_item_objs, key=lambda x: x['text'])
+
+    catalogue_item_objs = [val for key, val in MATERIAL_APP.items.items()]
+    catalogue_item_table = ItemTableData(catalogue_item_objs)
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -913,7 +981,7 @@ def items_directory_url():
     return render_template(
         "CatalogueItemDirectory.html",
         current_tab="Items",
-        catalogue_item_objs=catalogue_item_objs,
+        catalogue_item_table=catalogue_item_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )

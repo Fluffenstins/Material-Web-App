@@ -134,6 +134,16 @@ input {
     font-size: 16px;
   }
 }
+
+
+.flex-container {
+  display: flex;
+  gap: 20px; /* Optional: adds space between the columns */
+}
+
+.column {
+  flex: 1; /* Makes both columns take up equal width */
+}
 </style>
 </head>
 
@@ -144,51 +154,60 @@ input {
 <div class="container">
 
   <div class="card">
-    <div class="field">
-      <div class="label">Item ID</div>
-      <div class="value" id="description">{{catalogue_item_obj.item_id}}</div>
-    </div>
+	<div class="flex-container">
+		<div class="column">
+			<div class="field">
+			  <div class="label">Item ID</div>
+			  <div class="value" id="description">{{catalogue_item_obj.item_id}}</div>
+			</div>
 
-    <div class="field">
-      <div class="label">Shorthand</div>
-      <div class="value" id="description">{{catalogue_item_obj.shorthand}}</div>
-    </div>
+			<div class="field">
+			  <div class="label">Shorthand</div>
+			  <div class="value" id="description">{{catalogue_item_obj.shorthand}}</div>
+			</div>
 
-    <div class="field">
-      <div class="label">Description</div>
-      <div class="value" id="description">{{catalogue_item_obj.description}}</div>
-    </div>
+			<div class="field">
+			  <div class="label">Description</div>
+			  <div class="value" id="description">{{catalogue_item_obj.description}}</div>
+			</div>
 
-    <div class="field">
-      <div class="label">MPN</div>
-      <div class="value" id="mpn">{{catalogue_item_obj.mpn}}</div>
-    </div>
-	
-	{% if deprecated_status %}
-		<div class="field">
-		  <div class="label">Item Deprecated. Correct Item:</div>
-		  <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{catalogue_item_obj.id}}')">{{catalogue_item_obj.get_item().display_name}}</div>
+			<div class="field">
+			  <div class="label">MPN</div>
+			  <div class="value" id="mpn">{{catalogue_item_obj.mpn}}</div>
+			</div>
+		
+			{% if deprecated_status %}
+				<div class="field">
+				  <div class="label">Item Deprecated. Correct Item:</div>
+				  <div class="update-btn" id="itemId" onclick="handleButtonUrl('/?obj_id={{catalogue_item_obj.id}}')">{{catalogue_item_obj.get_item().display_name}}</div>
+				</div>
+			{% endif %}
+		<button class="edit-btn" onclick="window.location.href='/editItem?item_id={{catalogue_item_obj.id}}'">Edit Item</button>
+	  </div>
+
+		<div class="column">
+			<div class="field">
+				<div class="label">Aliases</div>
+			
+				{% with search_list_id="aliases", item_type="Action", material_children=aliases, hide_by_default=false, call_api=false %}
+				{% include "SearchableSubitems.html" %}
+				{% endwith %}
+			
+			</div>
 		</div>
-	{% endif %}
-	<button class="edit-btn" onclick="window.location.href='/editItem?item_id={{catalogue_item_obj.id}}'">Edit Item</button>
+	</div>
   </div>
-
-
-    <div class="field">
-      <div class="label">Aliases</div>
-	
-	{% with search_list_id="aliases", item_type="Action", material_children=aliases, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
-	
-    </div>
+  
+	{% set table_id, table_data = "table_1", linked_material_table %}
+	{% include "SearchableSubitemsTable.html" %}
+  
 
     <div class="field">
       <div class="label">Action History</div>
 	
-	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
+	
+	{% set table_id, table_data = "table_action", action_history %}
+	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 

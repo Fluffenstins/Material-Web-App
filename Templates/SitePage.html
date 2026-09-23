@@ -14,6 +14,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  
 }
 
 /* Header */
@@ -139,6 +140,15 @@ border-bottom: none;
     font-size: 16px;
   }
 }
+
+.flex-container {
+  display: flex;
+  gap: 20px; /* Optional: adds space between the columns */
+}
+
+.column {
+  flex: 1; /* Makes both columns take up equal width */
+}
 </style>
 </head>
 
@@ -177,38 +187,42 @@ border-bottom: none;
     </div>
 	{% endif %}
 
-    <div class="field">
-      <div class="label">Parent Site</div>
-	
-	{% with search_list_id="parent_sites", item_type="Site", material_children=parent_sites, hide_by_default=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
-	
-    </div>
-
-    <div class="field">
-      <div class="label">Child Sites</div>
-	
-	{% with search_list_id="child_sites", item_type="Site", material_children=site_children, hide_by_default=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
-	
-    </div>
+	<div class="flex-container">
+		<div class="column">
+			<div class="field">
+			  <div class="label">Child Sites</div>
+			
+			{% with search_list_id="child_sites", item_type="Site", material_children=site_children, hide_by_default=false %}
+			{% include "SearchableSubitems.html" %}
+			{% endwith %}
+			
+			</div>
+		</div>
+		
+		<div class="column">
+			<div class="field">
+			  <div class="label">Parent Site</div>
+			
+			{% with search_list_id="parent_sites", item_type="Site", material_children=parent_sites, hide_by_default=false %}
+			{% include "SearchableSubitems.html" %}
+			{% endwith %}
+			
+			</div>
+		</div>
+	</div>
 
     <div class="field">
       <div class="label">Material</div>
 	{% set table_id, table_data = "table_1", material_children %}
 	{% include "SearchableSubitemsTable.html" %}
 	
-	
     </div>
 
     <div class="field">
       <div class="label">Action History</div>
 	
-	{% with search_list_id="action_history", item_type="Action", material_children=action_history, hide_by_default=false, call_api=false %}
-    {% include "SearchableSubitems.html" %}
-	{% endwith %}
+	{% set table_id, table_data = "table_action", action_history %}
+	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 
