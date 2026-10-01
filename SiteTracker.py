@@ -294,7 +294,11 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         for i in nubuild_ids:
             print(i)
 
-        return my_project_record_ids
+        ret = {}
+        for allocation in allocations:
+            ret[allocation['Project__r']['NuBuild_Project_ID__c']] = allocation['Project__r']
+
+        return ret
 
     def list_my_resource_ids(self, user_resource_record_id):
         # include both user resource and crew resources that the user is a part of

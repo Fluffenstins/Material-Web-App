@@ -9,6 +9,7 @@ from functools import wraps
 
 from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData
 
+from SiteTracker import SiteTrackerExplorer
 from GraphAPI import MSDrive
 import json
 from datetime import datetime
@@ -16,6 +17,8 @@ from datetime import datetime
 GRAPH_DRIVE = MSDrive()
 GRAPH_DRIVE.batch_instructions = False
 GALA_SAVE_NAME = 'gala_save_data.json'
+
+SITETRACKER_EXPLORER = SiteTrackerExplorer()
 
 
 def download_gala_data():
@@ -2243,6 +2246,33 @@ def test_url():
     return render_template(
         "TestSearchableTable.html",
         material_list=mat_table_data
+    )
+
+
+@app.route('/subhome', methods=['GET'])
+def subhome_url():
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    sitetracker_resource_id = sitetracker_resource['Id']
+
+    sitetracker_projects = SITETRACKER_EXPLORER.list_my_projects(
+        user_resource_record_id=sitetracker_resource_id
+    )
+    rows = [[nb] for nb, project in sitetracker_projects.items()]
+    rows = sorted(rows, key=lambda x: x[0])
+
+    my_projects = AppTableData("My Projects", ['NuBuild Project ID'], rows)
+
+    return render_template(
+        "SubHome.html",
+        user_obj=user_obj,
+        my_projects=my_projects,
+        current_tab="Home",
+        header_options=list_header_options(user_obj.id)
     )
 
 

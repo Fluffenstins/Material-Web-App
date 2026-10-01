@@ -152,14 +152,6 @@
       "paid": false,
       "submission_id": "6652885122845360914"
     },
-    "Eliana Corredor": {
-      "table": "tableless",
-      "name": "Eliana Corredor",
-      "email": "ecorredor@nubuildinc.ca",
-      "plus_one_name": "Alvaro Jimenez",
-      "paid": false,
-      "submission_id": "6652890534028992164"
-    },
     " Carolyne McMahon": {
       "table": "tableless",
       "name": " Carolyne McMahon",
@@ -727,6 +719,14 @@
       "plus_one_name": null,
       "paid": false,
       "submission_id": "6661875374613068444"
+    },
+    "DOMINIC M PIERRE": {
+      "table": "tableless",
+      "name": "DOMINIC M PIERRE",
+      "email": "mpierre@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6665277349223190637"
     }
   },
   "FERRARI INSURANCE": {
@@ -904,14 +904,6 @@
       "paid": false,
       "submission_id": "6661646715645815027"
     },
-    "Eliana Corredor": {
-      "table": "NuBuild",
-      "name": "Eliana Corredor",
-      "email": "ecorredor@nubuildinc.ca",
-      "plus_one_name": "Alvaro Jimenez",
-      "paid": false,
-      "submission_id": "6661650758711055798"
-    },
     "Adam  Conroy ": {
       "table": "NuBuild",
       "name": "Adam  Conroy ",
@@ -959,6 +951,30 @@
       "plus_one_name": "Francesca  Ayvazian",
       "paid": false,
       "submission_id": "6664266864111364487"
+    },
+    "Adam Tortorici": {
+      "table": "NuBuild",
+      "name": "Adam Tortorici",
+      "email": "adam@torchelectric.ca",
+      "plus_one_name": "Michelle Tortorici",
+      "paid": false,
+      "submission_id": "6664323024014796916"
+    },
+    "Vic Vetro": {
+      "table": "NuBuild",
+      "name": "Vic Vetro",
+      "email": "vic@mimicogroup.com",
+      "plus_one_name": "Brenda Bradley",
+      "paid": false,
+      "submission_id": "6665143863122543612"
+    },
+    "Mike Pothier": {
+      "table": "NuBuild",
+      "name": "Mike Pothier",
+      "email": "mpothier@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6666818662848762211"
     }
   },
   "SPRUCEWOOD": {
@@ -1071,6 +1087,74 @@
       "plus_one_name": null,
       "paid": false,
       "submission_id": "6664284582847127914"
+    }
+  },
+  "LiUNA 183": {
+    "David McCluskey": {
+      "table": "LiUNA 183",
+      "name": "David McCluskey",
+      "email": "noreply@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6664336392849816150"
+    },
+    "Joel Filipe Jr.": {
+      "table": "LiUNA 183",
+      "name": "Joel Filipe Jr.",
+      "email": "noreply@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6664336842846799545"
+    },
+    "Julian Tamburini": {
+      "table": "LiUNA 183",
+      "name": "Julian Tamburini",
+      "email": "noreply@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6664337192846530803"
+    },
+    "Francesco Paonesa": {
+      "table": "LiUNA 183",
+      "name": "Francesco Paonesa",
+      "email": "noreply@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6664337642846917765"
+    },
+    "Denis Padinha": {
+      "table": "LiUNA 183",
+      "name": "Denis Padinha",
+      "email": "noreply@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6664338022842497395"
+    }
+  },
+  "NITRO": {
+    "Dave S": {
+      "table": "NITRO",
+      "name": "Dave S",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6665081417319206961"
+    },
+    "Danny ": {
+      "table": "NITRO",
+      "name": "Danny ",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6665083317311467338"
+    },
+    "Lauren ": {
+      "table": "NITRO",
+      "name": "Lauren ",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6665083517316857971"
     }
   }
 }
