@@ -57,6 +57,11 @@ body {
   color: #666;
 }
 
+.header {
+  font-size: 26px;
+  color: #333;
+}
+
 .value {
   font-size: 18px;
   font-weight: bold;
@@ -212,14 +217,14 @@ border-bottom: none;
 	</div>
 
     <div class="field">
-      <div class="label">Material</div>
+      <div class="header">Material</div>
 	{% set table_id, table_data = "table_1", material_children %}
 	{% include "SearchableSubitemsTable.html" %}
 	
     </div>
 
     <div class="field">
-      <div class="label">Action History</div>
+      <div class="header">Action History</div>
 	
 	{% set table_id, table_data = "table_action", action_history %}
 	{% include "SearchableSubitemsTable.html" %}

@@ -404,9 +404,16 @@ def catalogue_url():
 
     live_material_references = [i for _, i in MATERIAL_APP.material.items() if i.item.id == item_id]
     live_material_references = sorted(live_material_references, key=lambda x: MATERIAL_APP.lookup(x.parent_site).path)
-    linked_material_table = AppTableData("Linked Material", columns=('Path', 'Qty'))
+    linked_material_table = AppTableData("Linked Material", columns=('Path', 'Qty', 'Type'))
     for row in live_material_references:
-        linked_material_table.add_row([MATERIAL_APP.lookup(row.parent_site).path, row.qty], row_link=f'/?obj_id={row.parent_site}')
+        try:
+            parent_site = MATERIAL_APP.lookup(row.parent_site)
+            parent_path = parent_site.path
+            site_type = parent_site.site_type.capitalize()
+        except KeyError:
+            parent_path = None
+            site_type = None
+        linked_material_table.add_row([parent_path, row.qty, site_type], row_link=f'/?obj_id={row.parent_site}')
 
     aliases = [MATERIAL_APP.lookup(i) for i in catalogue_item_obj.deprecated_items]
     aliases = sorted(aliases, key=lambda x: x.item_id)

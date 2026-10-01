@@ -48,19 +48,24 @@ class GalaEmailer:
 
         body = '''<img src='cid:Reminder.png' alt='Reminder Image'/>'''
         body = body.replace('\n', '<br>')
-        self.drive.sendMail(
+        ret = self.drive.sendMail(
             sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
             subject=subject,
             recipients=[attendee['email']],
             body=body,
             attachments=attachments
         )
+        return ret
 
     def send_3_week_reminder(self):
-        for attendee in self.list_attendees():
-            self.send_email(attendee=attendee, pdf_path='3WeekReminder.png', subject="NuBuild Gala: 3 Weeks to Go!")
+        gala_data = self.ensure_gala_data()
+        print(self.send_email(attendee=attendee, pdf_path='3WeekReminder.png', subject="NuBuild Gala: 3 Weeks to Go!"))
 
 
 if __name__ == '__main__':
     emailer = GalaEmailer()
-    emailer.send_3_week_reminder()
+    attendees = emailer.list_attendees()
+
+    print(attendees)
+    for attendee in attendees:
+        print(attendee['name'])
