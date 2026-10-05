@@ -1,5 +1,5 @@
 import json
-from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, Comment, ITEM_SPACE
+from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, Comment, File, ITEM_SPACE
 from BackupManager import BackupManager
 from copy import deepcopy
 import threading
@@ -15,6 +15,7 @@ class CoreMaterialManager:
         self.items = {}
         self.roles = {}
         self.comments = {}
+        self.files = {}
         self.action_history = []
         self.last_action_date = datetime.now()
 
@@ -58,6 +59,7 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.items, "items")
         self._save_core_dict_json(self.roles, "roles")
         self._save_core_dict_json(self.comments, "comments")
+        self._save_core_dict_json(self.files, "files")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -68,6 +70,7 @@ class CoreMaterialManager:
         self.items = self._load_core_dict_json('items', CataloguedItem)
         self.roles = self._load_core_dict_json('roles', Role)
         self.comments = self._load_core_dict_json('comments', Comment)
+        self.files = self._load_core_dict_json('files', File)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
@@ -255,6 +258,19 @@ class CoreMaterialManager:
 
     def create_role(self, name, user_id=None):
         action = Action('create_role', name=name, user=user_id)
+        role_obj = self.enact_action(action)
+        return role_obj
+
+    def create_file(self, parent_id, file_name, extension, extension_type, source, user_id=None):
+        action = Action(
+            'create_file',
+            parent_id=parent_id,
+            file_name=file_name,
+            extension=extension,
+            extension_type=extension_type,
+            source=source,
+            user=user_id
+        )
         role_obj = self.enact_action(action)
         return role_obj
 
@@ -464,7 +480,8 @@ class CoreMaterialManager:
             'remove_role_permission': self._remove_role_permission,
             'add_user_role': self._add_user_role,
             'remove_user_role': self._remove_user_role,
-            'create_comment': self._create_comment
+            'create_comment': self._create_comment,
+            'create_file': self._create_file
         }
         ret = None
         try:
@@ -769,6 +786,43 @@ class CoreMaterialManager:
         )
 
         return new_user
+
+    def _create_file(self, action):
+        parent_id = action.data['parent_id']
+        file_name = action.data['file_name']
+        extension = action.data['extension']
+        extension_type = action.data['extension_type']
+        source = action.data['source']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+
+        # safety checks
+        try:
+            parent_obj = self.lookup(parent_id)
+        except KeyError:
+            raise KeyError("No parent found for file upload.")
+
+        file_obj = File(
+            parent=parent_obj.id,
+            file_name=file_name,
+            extension=extension,
+            extension_type=extension_type,
+            source=source
+        )
+
+        self.files[file_obj.id] = file_obj
+
+        parent_obj.add_file(file_obj)
+
+        file_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('catalogued_item_id', file_obj.id)
+
+        return file_obj
 
     def _receive(self, action):
         user_name = action.data['user']

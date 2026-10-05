@@ -28,11 +28,13 @@ class CoreMaterialObj:
         self.associated_users = []
         self.creation_date = self.get_date()
         self.action_history = []
+        self.files = []
 
         self.indexed_values = {
             'name':                 {'title': "Name",               'permission': 'edit_all', 'type': 'str'},
             'id':                   {'title': "Object ID",          'permission': 'edit_all', 'type': 'str'},
             'type':                 {'title': "Object Type",        'permission': 'edit_all', 'type': 'str'},
+            'files':                {'title': "Files",              'permission': 'edit_all', 'type': 'list'},
             'action_history':       {'title': "Action History",     'permission': 'edit_all', 'type': 'list'},
             'comments':             {'title': "Comments",           'permission': 'edit_all', 'type': 'list'},
             'description':          {'title': "Description",        'permission': 'edit_all', 'type': 'str'},
@@ -42,6 +44,7 @@ class CoreMaterialObj:
         self.protected_values = [
             'id',
             'type',
+            'files',
             'action_history',
             'comments',
             'associated_users',
@@ -85,6 +88,9 @@ class CoreMaterialObj:
 
     def add_action(self, action):
         self.action_history.append(action.id)
+
+    def add_file(self, file):
+        self.files.append(file.id)
 
     def get_date(self, date_str=None, date_format=None):
         if date_format is None:
@@ -704,6 +710,35 @@ class Action(CoreMaterialObj):
             # allows scientific notation which is allowed by html
             # note that floating point approximations apply here. We don't like this
             return int(float(text))
+
+
+class File(CoreMaterialObj):
+    def __init__(self, parent=None, source=None, file_name=None, extension=None, extension_type=None, save_data=None, **kwargs):
+        super().__init__(save_data=save_data)
+        self.type = 'file'
+        self.parent = parent
+        self.source = source
+        self.file_name = file_name
+        self.extension = extension
+        self.extension_type = extension_type
+
+        self.indexed_values = self.indexed_values | {
+            'source': {'title': "Source", 'permission': 'edit_file', 'type': 'str'},
+            'file_name': {'title': "File Name", 'permission': 'edit_file', 'type': 'str'},
+            'extension': {'title': "Extension", 'permission': 'edit_file', 'type': 'str'},
+            'extension_type': {'title': "Extension Type", 'permission': 'edit_file', 'type': 'str'},
+            }
+        self.protected_values += [
+        ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
+
+    def display_text(self):
+        return f"{self.file_name}.{self.extension}"
+
+    def bytes(self):
+        pass
 
 
 class Comment(CoreMaterialObj):

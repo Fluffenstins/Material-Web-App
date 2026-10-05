@@ -2,6 +2,7 @@ import os
 from dateutil import parser
 from flask import Flask, request, render_template, redirect, jsonify, send_file
 import flask_login
+from werkzeug.utils import secure_filename
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
@@ -31,9 +32,12 @@ def download_gala_data():
 download_gala_data()
 
 
+UPLOAD_FOLDER = 'Uploads'
+
 template_dir = os.path.abspath('Templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = 'dbnfjGYGygJUGYUFYGUGUIYg7Y87G867G87gh8j89ty75F56fd54D54Ds546t7g'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -1231,6 +1235,68 @@ def barcode_test():
     return render_template(
         "BarCodeScannerTest.html"
     )
+
+
+@app.route('/uploadFile', methods=['GET'])
+def upload_file_url():
+    parent_id = request.args.get('parent_id', default="")
+    redirect_path = request.args.get('redirect', default="")
+    print(f"Parent ID: {parent_id}")
+    return render_template(
+        "UploadFileTemplate.html",
+        file_parent_id=parent_id,
+        redirect_url=redirect_path
+    )
+
+
+@app.route('/uploadFile', methods=['POST'])
+def upload_file_post():
+    parent_id = request.form.get("parent_id")
+    redirect_url = request.form.get("redirect_url")
+    file = request.files['uploaded_file']
+    full_file_name = secure_filename(file.filename)
+    file_name, file_extension = os.path.splitext(full_file_name)
+    extension_type = file.content_type
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+        user_id = user_obj.id
+    except AttributeError:
+        user_id = None
+
+    parent_id = MATERIAL_APP.lookup(parent_id).id
+
+    temp_file_path = os.path.join(app.config['UPLOAD_FOLDER'], "TempFile")
+    file.save(temp_file_path)
+    GRAPH_DRIVE.settings.refresh()
+    GRAPH_DRIVE.drive = 'b!gDjZv2olxk67VLnWtUOPhK5zcmZo5-xHtKJFEcgOBkTJmS8wbP28Q7Igu0QUL2EP'
+    ret = GRAPH_DRIVE.upload(
+        pref="01ZWWTLPKXPASKY3Q3SJFZM3WO4XSTHDPH",
+        name=full_file_name,
+        path=temp_file_path
+    )
+    onedrive_file_id = ret['id']
+    GRAPH_DRIVE.settings.revert()
+
+    source = {
+        "type": "onedrive",
+        "drive": 'gDjZv2olxk67VLnWtUOPhK5zcmZo5-xHtKJFEcgOBkTJmS8wbP28Q7Igu0QUL2EP',
+        "item_id": onedrive_file_id
+    }
+
+    file = MATERIAL_APP.create_file(
+        parent_id=parent_id,
+        file_name=file_name,
+        extension=file_extension,
+        extension_type=extension_type,
+        source=source,
+        user_id=user_id
+    )
+
+    if redirect_url is None:
+        redirect(f"/?obj={file.id}")
+
+    return redirect(redirect_url)
 
 
 @app.route('/api/site', methods=['GET', 'POST', 'PATCH'])
