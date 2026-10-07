@@ -155,15 +155,20 @@ border-bottom: none;
 			font-size: 20px;
         }
 		
-.receive { background: #28a745; }
-.move { background: #dc3545; }
-.stage { background: #ffc107; color: black; }
 .qr { background: #17a2b8; }
 
 @media (max-width: 480px) {
   .value {
     font-size: 16px;
   }
+}
+.flex-container {
+  display: flex;
+  gap: 20px; /* Optional: adds space between the columns */
+}
+
+.column {
+  flex: 1; /* Makes both columns take up equal width */
 }
 </style>
 </head>
@@ -176,35 +181,43 @@ border-bottom: none;
   <div class="card">
 	<div class="site-header">Edit Catalogue Item</div>
   
+	<div class="flex-container">
+		<div class="column">
     <div class="field">
       <div class="label">Item Type</div>
-		<input type="text" id="item_type_input" onkeyup="" placeholder="E.g. Spade">
+		<input type="text" id="item_type_input" onkeyup="" placeholder="E.g. Spade" value='{{item_obj.display_attr("item_type")}}'>
     </div>
   
     <div class="field">
       <div class="label">Supplier</div>
-		<input type="text" id="supplier_input" onkeyup="" placeholder="E.g. Sega">
+		<input type="text" id="supplier_input" onkeyup="" placeholder="E.g. Sega" value='{{item_obj.display_attr("supplier")}}'>
     </div>
   
     <div class="field">
 		<div class="label">Item ID</div>
-		<input type="text" id="item_id_input" onkeyup="" placeholder="E.g. 01NA0001">
+		<input type="text" id="item_id_input" onkeyup="" placeholder="E.g. 01NA0001" value='{{item_obj.display_attr("item_id")}}'>
     </div>
+	
+	</div>
+	<div class="column">
 	
     <div class="field">
 		<div class="label">MPN</div>
-		<input type="text" id="mpn_input" onkeyup="" placeholder="E.g. GDE1106">
+		<input type="text" id="mpn_input" onkeyup="" placeholder="E.g. GDE1106" value='{{item_obj.display_attr("mpn")}}'>
     </div>
 	
     <div class="field">
 		<div class="label">Description</div>
-		<input type="text" id="description_input" onkeyup="" placeholder="">
+		<input type="text" id="description_input" onkeyup="" placeholder="" value='{{item_obj.display_attr("description")}}'>
     </div>
 	
     <div class="field">
 		<div class="label">Shorthand</div>
-		<input type="text" id="shorthand_input" onkeyup="" placeholder="E.g. 16 Grommet, 16way, etc.">
+		<input type="text" id="shorthand_input" onkeyup="" placeholder="E.g. 16 Grommet, 16way, etc." value='{{item_obj.display_attr("shorthand")}}'>
     </div>
+	
+	</div>
+	</div>
 	
 	
 	{% if item_obj.correct_item %}

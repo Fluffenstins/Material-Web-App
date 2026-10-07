@@ -9,7 +9,7 @@ class BackupManager:
         self.storage_location_id = '01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4'
         self.data_dir = "SaveData"
         self.backup_dir = "Backups"
-        self.backup_name = 'MaterialDBBackup'
+        self.backup_name = 'STDBBackup'
         self.extension = "zip"
         self.save_name = f"{self.backup_name}.{self.extension}"
 

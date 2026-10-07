@@ -97,6 +97,14 @@ th.filtered .filter-indicator {
 </head>
 <body>
 
+
+{% if allow_selection | default(false) %}
+	{% set header_offset = 1 %}
+{% else %}
+	{% set header_offset = 0 %}
+{% endif %}
+
+
 <div class="table-wrapper">
 
     <input
@@ -110,8 +118,14 @@ th.filtered .filter-indicator {
 
         <thead>
             <tr id="headerRow">
+				{% if allow_selection | default(false) %}
+					<th>
+						Select
+						<span class="sort-indicator" style="display: none;">⇅</span>
+					</th>
+				{% endif %}
 				{% for column in table_data.columns %}
-					<th onclick="{{table_id}}_sortTable({{ loop.index0 }})">
+					<th onclick="{{table_id}}_sortTable({{ loop.index0 + header_offset }})">
 						{{ column }}
 						<span class="sort-indicator">⇅</span>
 					</th>
@@ -119,8 +133,11 @@ th.filtered .filter-indicator {
             </tr>
 
             <tr class="filters">
+				{% if allow_selection | default(false) %}
+					<th><input type="text" data-column="0" placeholder="Filter Selected" style="display: none;"></th>
+				{% endif %}
 				{% for column in table_data.columns %}
-					<th><input type="text" data-column="{{ loop.index0 }}" placeholder="Filter {{ column }}"></th>
+					<th><input type="text" data-column="{{ loop.index0 + header_offset }}" placeholder="Filter {{ column }}"></th>
 				{% endfor %}
             </tr>
 
@@ -130,6 +147,9 @@ th.filtered .filter-indicator {
 		
 			{% for row in table_data.data %}
 			<tr style="display: none">
+				{% if allow_selection | default(false) %}
+					<td><input type="checkbox" id="row-checkbox" class="row-checkbox"></td>
+				{% endif %}
 				{% set outer_loop = loop %}
 				{% for val in row %}
 				
@@ -223,7 +243,7 @@ function {{table_id}}_filterTable() {
         });
 
 	let row_count = 0;
-
+	console.log("Here are the filters: ", filters);
     rows.forEach(row => {
 
         const cells = row.getElementsByTagName("td");
@@ -233,7 +253,6 @@ function {{table_id}}_filterTable() {
                 .includes(globalSearch);
 
         let matchesColumns = true;
-		console.log(row.style.display);
         filters.forEach((filterValue, columnIndex) => {
 
             if (

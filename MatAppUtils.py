@@ -77,5 +77,45 @@ class ActionTableData(AppTableData):
             self.add_row(row, row_link=f'/?obj_id={action_item.id}')
 
 
+class ProjectTableData(AppTableData):
+    def __init__(self, project_list):
+        table_name = 'Project'
+        columns = ('NuBuild ID', 'Customer ID')
+        super().__init__(table_name=table_name, columns=columns)
+        for project in project_list:
+            nb_id = project.nb_id
+            customer_id = project.customer_id
+            row = [nb_id, customer_id]
+            self.add_row(row, row_link=f'/fieldProject?project_id={project.id}')
+
+
+class TimeEntryTableData(AppTableData):
+    def __init__(self, time_entry_list):
+        table_name = 'Time Entry'
+        columns = ('Project', 'Name', 'Start', 'End', 'Notes')
+        super().__init__(table_name=table_name, columns=columns)
+        for time_entry in time_entry_list:
+            project = time_entry.lookup(time_entry.project).nb_id
+            name = time_entry.name
+            start = time_entry.work_start
+            end = time_entry.work_end
+            notes = time_entry.notes
+            row = [project, name, start, end, notes]
+            self.add_row(row, row_link=f'/timeEntry?entry_id={time_entry.id}')
+
+
+class FileTableData(AppTableData):
+    def __init__(self, file_list):
+        table_name = 'File'
+        columns = ('File Name', 'File Type', 'Extension Type')
+        super().__init__(table_name=table_name, columns=columns)
+        for file in file_list:
+            file_name = file.file_name
+            file_type = file.file_type
+            ext_type = file.extension_type
+            row = [file_name, file_type, ext_type]
+            self.add_row(row, row_link=f'/file?file_id={file.id}')
+
+
 if __name__ == '__main__':
     pass

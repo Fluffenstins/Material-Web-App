@@ -1,6 +1,7 @@
 import json
-from MaterialCore import Action, Material, Site, User, CataloguedItem, Role, Comment, File, ITEM_SPACE
-from BackupManager import BackupManager
+from MaterialCore import Material, Site, CataloguedItem
+from STCore import TimeEntry, Project
+from AppCore import Action, User, Role, Comment, File, ITEM_SPACE
 from copy import deepcopy
 import threading
 from datetime import datetime
@@ -16,6 +17,8 @@ class CoreMaterialManager:
         self.roles = {}
         self.comments = {}
         self.files = {}
+        self.time_entries = {}
+        self.projects = {}
         self.action_history = []
         self.last_action_date = datetime.now()
 
@@ -50,8 +53,6 @@ class CoreMaterialManager:
 
         self.save_after_action = True
 
-        self.backup_manager = BackupManager()
-
     def save_json(self):
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
@@ -60,6 +61,8 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.roles, "roles")
         self._save_core_dict_json(self.comments, "comments")
         self._save_core_dict_json(self.files, "files")
+        self._save_core_dict_json(self.time_entries, "time_entries")
+        self._save_core_dict_json(self.projects, "projects")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -71,20 +74,14 @@ class CoreMaterialManager:
         self.roles = self._load_core_dict_json('roles', Role)
         self.comments = self._load_core_dict_json('comments', Comment)
         self.files = self._load_core_dict_json('files', File)
+        self.time_entries = self._load_core_dict_json('time_entries', TimeEntry)
+        self.projects = self._load_core_dict_json('projects', Project)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
     def async_save(self):
         save_thread = threading.Thread(target=self.save_json)
         save_thread.start()
-
-    def make_backup(self):
-        save_name = self.backup_manager.make_backup()
-        return save_name
-
-    def load_backup(self):
-        self.backup_manager.download_backup()
-        self.backup_manager.load_backup()
 
     def lookup(self, item_id):
         item_obj = ITEM_SPACE[item_id]
@@ -186,6 +183,33 @@ class CoreMaterialManager:
             if ret is not None:
                 return ret
 
+    def find_project(self, project_id):
+        if project_id is None:
+            return None
+        try:
+            obj = self.lookup(project_id)
+            if type(obj) is Project:
+                return obj
+        except KeyError:
+            pass
+
+        def simplify_str(text):
+            text = text.lower()
+            for i in ' \t\n\xa0':
+                text = text.replace(i, '')
+            return text
+
+        simple_project_id = simplify_str(project_id)
+
+        if not project_id:
+            return None
+        for obj_id, project in self.projects.items():
+            for possible_match in (project.customer_id, project.nb_id, project.st_id):
+                if possible_match is None:
+                    continue
+                if simple_project_id == simplify_str(possible_match):
+                    return project
+
     def find_material(self, site, item_id):
         item_id = item_id.strip()
         material_obj = site.find_material(item_id)
@@ -261,7 +285,7 @@ class CoreMaterialManager:
         role_obj = self.enact_action(action)
         return role_obj
 
-    def create_file(self, parent_id, file_name, extension, extension_type, source, user_id=None):
+    def create_file(self, parent_id, file_name, extension, extension_type, source, file_type=None, user_id=None):
         action = Action(
             'create_file',
             parent_id=parent_id,
@@ -269,10 +293,38 @@ class CoreMaterialManager:
             extension=extension,
             extension_type=extension_type,
             source=source,
+            file_type=None,
             user=user_id
         )
-        role_obj = self.enact_action(action)
-        return role_obj
+        file_obj = self.enact_action(action)
+        return file_obj
+
+    def create_project(self, status, customer_id, nb_id, st_id, location=None, user_id=None):
+        action = Action(
+            'create_project',
+            status=status,
+            customer_id=customer_id,
+            nb_id=nb_id,
+            st_id=st_id,
+            location=location,
+            user=user_id
+        )
+        project_obj = self.enact_action(action)
+        return project_obj
+
+    def create_time_entry(self, project, status=None, target=None, work_start=None, work_end=None, notes=None, user_id=None):
+        action = Action(
+            'create_time_entry',
+            project=project,
+            status=status,
+            target=target,
+            work_start=work_start,
+            work_end=work_end,
+            notes=notes,
+            user=user_id
+        )
+        project_obj = self.enact_action(action)
+        return project_obj
 
     def add_user_role(self, target_user_id, role_id, user_id=None):
         action = Action('add_user_role', target_user_id=target_user_id, role_id=role_id, user=user_id)
@@ -481,7 +533,9 @@ class CoreMaterialManager:
             'add_user_role': self._add_user_role,
             'remove_user_role': self._remove_user_role,
             'create_comment': self._create_comment,
-            'create_file': self._create_file
+            'create_file': self._create_file,
+            'create_project': self._create_project,
+            'create_time_entry': self._create_time_entry
         }
         ret = None
         try:
@@ -793,6 +847,7 @@ class CoreMaterialManager:
         extension = action.data['extension']
         extension_type = action.data['extension_type']
         source = action.data['source']
+        file_type = action.data['file_type']
         user_id = action.data['user']
 
         user_obj = self.find_user(user_id)
@@ -808,6 +863,7 @@ class CoreMaterialManager:
             file_name=file_name,
             extension=extension,
             extension_type=extension_type,
+            file_type=file_type,
             source=source
         )
 
@@ -820,9 +876,72 @@ class CoreMaterialManager:
             user_obj.add_action(action)
             action.add_output('user_id', user_obj.id)
 
-        action.add_output('catalogued_item_id', file_obj.id)
+        action.add_output('file_id', file_obj.id)
 
         return file_obj
+
+    def _create_project(self, action):
+        status = action.data['status']
+        customer_id = action.data['customer_id']
+        nb_id = action.data['nb_id']
+        st_id = action.data['st_id']
+        location = action.data['location']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+
+        project_obj = Project(
+            status=status,
+            customer_id=customer_id,
+            nb_id=nb_id,
+            st_id=st_id,
+            location=location
+        )
+
+        self.projects[project_obj.id] = project_obj
+
+        project_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('project_id', project_obj.id)
+
+        return project_obj
+
+    def _create_time_entry(self, action):
+        project = action.data['project']
+        status = action.data['status']
+        target = action.data['target']
+        work_start = action.data['work_start']
+        work_end = action.data['work_end']
+        notes = action.data['notes']
+        user_id = action.data['user']
+
+        if not status:
+            status = 'Draft'
+
+        user_obj = self.find_user(user_id)
+
+        time_entry_obj = TimeEntry(
+            project=project,
+            status=status,
+            target=target,
+            work_start=work_start,
+            work_end=work_end,
+            notes=notes
+        )
+
+        self.time_entries[time_entry_obj.id] = time_entry_obj
+
+        time_entry_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('time_entry_id', time_entry_obj.id)
+
+        return time_entry_obj
 
     def _receive(self, action):
         user_name = action.data['user']

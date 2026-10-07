@@ -627,7 +627,7 @@ class MSDrive:
             ret = 'Added mail request to batch queue.'
         return ret
 
-    def sendMail(self, sender='0cded3a1-2c4c-4eff-8393-399b58925455', recipients='gseaward@nubuildinc.ca',
+    def sendMail(self, sender='67ff38da-105d-4b62-908b-bfacee5335ac', recipients='gseaward@nubuildinc.ca',
                  subject='default', body='default email', saveToSentItems=False, attachments=None, time_to_send=None):
         self.settings.refresh()
         self.mode = 'user'

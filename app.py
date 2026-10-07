@@ -5,10 +5,12 @@ import flask_login
 from werkzeug.utils import secure_filename
 from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
-from MaterialCore import Site, Material, Action, User, CataloguedItem, Role
+from MaterialCore import Site, Material, CataloguedItem
+from AppCore import Action, User, Role
 from functools import wraps
+import bcrypt
 
-from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData
+from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData, ProjectTableData, TimeEntryTableData, FileTableData
 
 from SiteTracker import SiteTrackerExplorer
 from GraphAPI import MSDrive
@@ -79,6 +81,26 @@ def request_loader(request_obj):
     return user
 
 
+def create_verification_hash(example_user_obj):
+    # we want the hash to naturally expire, in this case it lasts until the end of the day
+    # we use the password, because we want this verification to expire once the password changes
+    date_str = datetime.now().strftime("|%d/%m/%Y|")
+    encoded_password = (example_user_obj.password + date_str).encode('utf-8')
+    verification_bytes = bcrypt.hashpw(encoded_password, bcrypt.gensalt(12))
+    verification_str = verification_bytes.decode('utf-8')
+    return verification_str
+
+def check_verification_hash(example_user_obj, provided_hash):
+    try:
+        date_str = datetime.now().strftime("|%d/%m/%Y|")
+        encoded_provided_hash = provided_hash.encode('utf-8')
+        password_bytes = (example_user_obj.password + date_str).encode('utf-8')
+        ret = bcrypt.checkpw(password_bytes, encoded_provided_hash)
+    except ValueError:
+        return False
+    return ret
+
+
 def list_all_sites():
     site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items()]
     site_objs = sorted(site_objs, key=lambda x: x['text'])
@@ -116,6 +138,7 @@ def list_action_history_breakdown(obj):
 
 def list_header_options(user_id):
     header_permission_pairs = {
+        'Home':         (['edit_test'], "window.location.href='/fieldHome'"),
         'Locations':    (['read_location', 'edit_site', 'read_site', 'read_all', 'edit_all'], "window.location.href='/locations'"),
         'Projects':     (['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/projects'"),
         'Contractors':  (['read_contractor', 'read_site', 'edit_site', 'read_all', 'edit_all'], "window.location.href='/contractorSites'"),
@@ -1154,24 +1177,89 @@ def download_qr_code():
     )
 
 
+@app.route('/requestPasswordReset', methods=['GET'])
+def request_password_reset():
+    user_id = request.args.get('user_id', default="")
+
+    def bad_request_redirect():
+        return redirect('/login')
+
+    try:
+        user_obj = MATERIAL_APP.find_user(user_id)
+    except KeyError:
+        return bad_request_redirect()
+
+    def send_verification_email(example_user_obj):
+        verification_str = create_verification_hash(example_user_obj)
+        with open("EmailBodies/PasswordReset.html") as file:
+            body = file.read()
+        for key, val in (
+            ('{{user_name}}', example_user_obj.display_name),
+            ('{{reset_link}}', f"https://nubuildapp.ca/updatePassword?user_id={example_user_obj.id}&verification={verification_str}"),
+            ('{{sign_off_name}}', 'NuBuild')
+        ):
+            body = body.replace(key, val)
+
+        GRAPH_DRIVE.sendMail(
+            sender="67ff38da-105d-4b62-908b-bfacee5335ac",
+            subject="NuBuild App Password Reset",
+            body=body,
+            recipients=[example_user_obj.email]
+        )
+
+    send_verification_email(example_user_obj=user_obj)
+    return render_template(
+        "PasswordResetRequestPage.html"
+    )
+
+
 @app.route('/updatePassword', methods=['GET', 'POST'])
 def update_password():
+    vhash = request.args.get('verification', default="")
+    target_user_id = request.args.get('user_id', default="")
+
+    def bad_request_redirect():
+        return redirect('/login')
+
+    try:
+        target_user_obj = MATERIAL_APP.find_user(target_user_id)
+        if not isinstance(target_user_obj, User):
+            return bad_request_redirect()
+    except KeyError:
+        return bad_request_redirect()
+
+    if not check_verification_hash(target_user_obj, vhash):
+        print("Bad request")
+        return bad_request_redirect()
+
     if request.method == 'GET':
-        return render_template(
-            "UpdatePassword.html"
-        )
+        if target_user_obj is not None:
+            return render_template(
+                "UpdatePassword.html",
+                email=target_user_obj.email,
+                vhash=vhash
+            )
+        else:
+            return bad_request_redirect()
 
     email = request.form.get('email')
     password = request.form.get('password')
+    verification = request.form.get('verification')
+
+    if not check_verification_hash(target_user_obj, verification):
+        return bad_request_redirect()
+
     if None in (email, password):
         return render_template(
-            "UpdatePassword.html"
+            "UpdatePassword.html",
+            email=target_user_obj.email,
+            vhash=vhash
         )
 
     user_obj = MATERIAL_APP.find_user(email=email)
     user_obj.password = user_obj.hash_password(password)
 
-    return redirect("login")
+    return redirect("/login")
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -1220,7 +1308,8 @@ def login():
     print("Trying sincerely to log in.")
     print(f"Path: {template_dir}")
     return render_template(
-        "Login.html"
+        "Login.html",
+        password_reset_link="/requestPasswordReset"
     )
 
 
@@ -1241,7 +1330,10 @@ def barcode_test():
 def upload_file_url():
     parent_id = request.args.get('parent_id', default="")
     redirect_path = request.args.get('redirect', default="")
+    if not redirect_path:
+        redirect_path = "/"
     print(f"Parent ID: {parent_id}")
+    print(f"Redirect Path: {redirect_path}")
     return render_template(
         "UploadFileTemplate.html",
         file_parent_id=parent_id,
@@ -1954,6 +2046,11 @@ def api_edit_catalogue_item():
             continue
         data[key] = new_value
 
+    if not data:
+        return jsonify({
+            "error": f"No values were changed."
+        }), 422
+
     ret = MATERIAL_APP.patch_item(
         item_id=item_id,
         user_id=user_obj.id,
@@ -2315,8 +2412,9 @@ def test_url():
     )
 
 
-@app.route('/subhome', methods=['GET'])
-def subhome_url():
+@app.route('/fieldHome', methods=['GET'])
+@flask_login.login_required
+def field_home_url():
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
@@ -2328,17 +2426,218 @@ def subhome_url():
     sitetracker_projects = SITETRACKER_EXPLORER.list_my_projects(
         user_resource_record_id=sitetracker_resource_id
     )
-    rows = [[nb] for nb, project in sitetracker_projects.items()]
-    rows = sorted(rows, key=lambda x: x[0])
+    nb_ids = [nb for nb, project in sitetracker_projects.items()]
+    projects = [MATERIAL_APP.find_project(nb) for nb in nb_ids]
+    projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
 
-    my_projects = AppTableData("My Projects", ['NuBuild Project ID'], rows)
+    my_projects = ProjectTableData(projects)
 
     return render_template(
-        "SubHome.html",
+        "FieldHome.html",
         user_obj=user_obj,
         my_projects=my_projects,
         current_tab="Home",
         header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/fieldProject', methods=['GET'])
+@flask_login.login_required
+def field_project_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    project_obj = MATERIAL_APP.lookup(project_id)
+
+    return render_template(
+        "FieldProjectPage.html",
+        user_obj=user_obj,
+        project_obj=project_obj,
+        current_tab="Project",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/fieldTimeEntries', methods=['GET'])
+@flask_login.login_required
+def field_time_entries_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    try:
+        project_obj = MATERIAL_APP.lookup(project_id)
+    except KeyError:
+            return redirect('/')
+
+    time_entries = [time_entry for _, time_entry in MATERIAL_APP.time_entries.items() if time_entry.project == project_obj.id]
+
+    time_entry_table = TimeEntryTableData(time_entries)
+
+    return render_template(
+        "FieldTimeEntries.html",
+        current_tab="Time Entries",
+        project_obj=project_obj,
+        time_entry_table=time_entry_table,
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/addTimeEntry', methods=['GET'])
+@flask_login.login_required
+def add_time_entry_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    project_obj = MATERIAL_APP.lookup(project_id)
+
+    time_entry_obj = MATERIAL_APP.create_time_entry(
+        project=project_obj.id,
+    )
+
+    return redirect(f"/timeEntry?entry_id={time_entry_obj.id}")
+
+
+@app.route('/timeEntry', methods=['GET'])
+@flask_login.login_required
+def field_time_entry_url():
+    time_entry_id = request.args.get('entry_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    time_entry_obj = MATERIAL_APP.lookup(time_entry_id)
+
+    possible_projects = [
+        {'id': '1', 'text': 'Misc'},
+        {'id': '2', 'text': 'Consumables'},
+        {'id': '3', 'text': 'Duct'},
+        {'id': '4', 'text': 'Vaults'},
+        {'id': '5', 'text': 'Endcaps'},
+        {'id': '6', 'text': 'Connectors'},
+        {'id': '7', 'text': 'Buried Microcable'},
+        {'id': '8', 'text': 'Aerial Microcable'},
+        {'id': '9', 'text': 'Drop Cable'},
+        {'id': '10', 'text': 'Splicing Tray'},
+        {'id': '11', 'text': 'Splitters'},
+        {'id': '12', 'text': 'Tie wraps'},
+        {'id': '13', 'text': 'Tape'},
+        {'id': '14', 'text': 'OLT'}
+    ]
+
+    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    sitetracker_resource_id = sitetracker_resource['Id']
+    possible_targets = SITETRACKER_EXPLORER.list_possible_crew_mates(sitetracker_resource_id)
+    possible_targets = sorted(list(set([i['sitetracker__Resource__r']['Name'] for i in possible_targets])))
+    possible_targets = [{'id': str(n), 'text': i} for n, i in enumerate(possible_targets)]
+
+
+    return render_template(
+        "TimeEntryPage.html",
+        current_tab="Time Entry",
+        user_obj=user_obj,
+        possible_projects=possible_projects,
+        possible_targets=possible_targets,
+        time_entry_obj=time_entry_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/fieldWorkLogs', methods=['GET'])
+@flask_login.login_required
+def field_work_logs_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    project_obj = MATERIAL_APP.lookup(project_id)
+
+    return render_template(
+        "FieldWorkLogs.html",
+        current_tab="Work Logs",
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/workLog', methods=['GET'])
+@flask_login.login_required
+def field_work_log_url():
+    work_log_id = request.args.get('log_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "WorkLog.html",
+        current_tab="Work Log",
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/fieldMaterial', methods=['GET'])
+@flask_login.login_required
+def field_material_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    project_obj = MATERIAL_APP.lookup(project_id)
+
+    return render_template(
+        "FieldMaterial.html",
+        current_tab="Material",
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/fieldProjectFiles', methods=['GET'])
+@flask_login.login_required
+def field_project_files_url():
+    project_id = request.args.get('project_id', default="")
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    project_obj = MATERIAL_APP.lookup(project_id)
+
+    files = [file for _, file in MATERIAL_APP.files.items()]  #  if file.parent == project_obj.id
+
+    file_table = FileTableData(files)
+    return render_template(
+        "ProjectFiles.html",
+        current_tab="Files",
+        file_table=file_table,
+        user_obj=user_obj,
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route('/file', methods=['GET'])
+@flask_login.login_required
+def file_download_url():
+    return send_file(
+        'label.png',
+        as_attachment=True,
+        download_name="Example.png"
     )
 
 

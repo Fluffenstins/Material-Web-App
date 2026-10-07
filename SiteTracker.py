@@ -289,10 +289,8 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         :return:
         """
         allocations = self.list_my_allocations(user_resource_record_id=user_resource_record_id)
-        my_project_record_ids = sorted(list(set([i['Project__c'] for i in allocations])))
-        nubuild_ids = sorted(list(set([i['Project__r']['NuBuild_Project_ID__c'] for i in allocations])))
-        for i in nubuild_ids:
-            print(i)
+        # my_project_record_ids = sorted(list(set([i['Project__c'] for i in allocations])))
+        # nubuild_ids = sorted(list(set([i['Project__r']['NuBuild_Project_ID__c'] for i in allocations])))
 
         ret = {}
         for allocation in allocations:

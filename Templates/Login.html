@@ -81,6 +81,9 @@
 			font-size: 14px;
 			color: #ff0000;
 		}
+		.forgot-password-button {
+			cursor: pointer;
+		}
     </style>
 </head>
 <body>
@@ -91,13 +94,31 @@
         <input type="password" name="password" id="password" placeholder="Password" required>
 		<div class="error-message" id="login_error">Please make sure all inputs are filled.</div>
         <button type="submit" onclick="login();">Sign In</button>
-    <a href="/updatePassword" class="forgot">Forgot Password?</a>
-    <a href="/register" class="register">Register</a>
+	<div class="forgot-password-button", onclick="reset_password()">Forgot Password?</div>
+    <a href="/register" class="forgot">Register</a>
+	
+
 </div>
 
 </body>
 
 <script>
+const email_input = document.getElementById("email");
+const password_input = document.getElementById("password");
+email_input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+	password_input.focus();
+  }
+});
+password_input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    login();
+  }
+});
+
+
 async function login() {
 	const email_elem = document.getElementById("email");
 	const password_elem = document.getElementById("password");
@@ -153,6 +174,18 @@ async function post_request(url, data) {
   }
 });
 return ret;
+}
+
+function reset_password() {
+	const email_elem = document.getElementById("email");
+	const email = email_elem.value;
+	
+	if (email.includes("@")) {
+		window.open("{{password_reset_link}}?user_id="+email, '_blank');
+	} else {
+		display_error("Please provide a proper email address.");
+	}
+	
 }
 
 function display_error(error_text) {
