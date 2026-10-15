@@ -142,7 +142,6 @@ class SiteTrackerDrive:
         column_string = ",".join(keys)
 
         ret = self.execute_sql_query(f"select {column_string} from {object_id} {filter_string}")
-
         ret = ret.json()['records']
         return ret
 
@@ -192,9 +191,10 @@ class SiteTrackerDrive:
         ret = self.post(f'sobjects/{object_id}', data=data_dict)
         return ret.json()
 
-    def download_content_document(self, content_document_id):
+    def download_content_document(self, content_document_id, save_path=None):
         """
         :param content_document_id:
+        :param save_path:
         :return file path as a string:
 
         Downloads only the latest version by default.
@@ -204,11 +204,14 @@ class SiteTrackerDrive:
         content_document = self.execute_sql_query(f"SELECT {key_str} FROM ContentDocument WHERE id = '{content_document_id}'").json()['records'][0]
 
         file_version_id = content_document['LatestPublishedVersionId']
-        name = f"{content_document['Title']}.{content_document['FileExtension']}",
+        name = f"{content_document['Title']}.{content_document['FileExtension']}"
         link = f"sobjects/ContentVersion/{file_version_id}/VersionData"
-
         data = self.get(link, base_url=False)
-        with open(name, 'wb') as file:
+
+        if save_path is None:
+            save_path = name
+
+        with open(save_path, 'wb') as file:
             file.write(data.content)
 
         return name
@@ -220,7 +223,8 @@ class SiteTrackerDrive:
             record_id=file_record_id,
             keys=['sitetracker__ContentDocumentRecord__c']
         )
-        self.download_content_document(record['sitetracker__ContentDocumentRecord__c'])
+        ret = self.download_content_document(record['sitetracker__ContentDocumentRecord__c'])
+        return ret
 
     def list_project_files(self, project_record_id=None):
         object_id = 'sitetracker__Attachment__c'
@@ -230,7 +234,8 @@ class SiteTrackerDrive:
             'sitetracker__Proj__c',  # project record ID
             'sitetracker__Content_Type__c',  # word describing file type
             'sitetracker__Url__c',  # download link
-            'sitetracker__ContentDocumentRecord__c'
+            'sitetracker__ContentDocumentRecord__c',
+            'sitetracker__External_File_Name__c'
         ]
 
         column_string = ",".join(keys)
@@ -316,9 +321,19 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         if project_record_id is not None:
             filters.append(f"Project__c = '{project_record_id}'")
 
+        keys = [
+            'Project__c',
+            'Project__r.NuBuild_Project_ID__c',
+            'sitetracker__Item__c',
+            # 'sitetracker__Item__r.sitetracker__Description__c',
+            'sitetracker__Total_Planned_Amount__c',
+            'Mobile_Allocation_Summary__c',
+            'NB_Non_Rejected_Work_Log_Qty__c'
+        ]
+
         allocations = self.list_records(
             'sitetracker__Production_Line_Allocation__c',
-            keys=['Project__c', 'Project__r.NuBuild_Project_ID__c'],
+            keys=keys,
             filters=filters
         )
 
@@ -334,6 +349,18 @@ class SiteTrackerExplorer(SiteTrackerDrive):
             filters=filters
         )
         return records
+
+    def get_item_info(self, item_id_list):
+        keys = ['name']
+        possible_items_str = ','.join([f"\'{i}\'" for i in item_id_list])
+        filters = [f"Id in ({possible_items_str})"]
+        # filters = None
+        items = self.list_records(
+            'sitetracker__Item__c',
+            keys=keys,
+            filters=filters
+        )
+        return items
 
 
 if __name__ == '__main__':

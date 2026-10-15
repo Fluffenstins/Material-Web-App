@@ -69,13 +69,14 @@ input {
 }
 
 .update-btn {
-  background: #0078D4;
+  background: #bbbbbb;
   color: white;
   border: none;
   padding: 10px 14px;
   border-radius: 8px;
   font-weight: bold;
-  cursor: pointer;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 .submit-btn {
@@ -85,8 +86,11 @@ input {
   padding: 10px 14px;
   border-radius: 8px;
   font-weight: bold;
-  cursor: pointer;
   text-align: center;
+}
+
+.enabled-btn {
+  cursor: pointer;
 }
 
 .error-message {
@@ -109,15 +113,12 @@ input {
 
 .flex-container {
   display: flex;
-  gap: 20px; /* Optional: adds space between the columns */
+  /*gap: 20px;  Optional: adds space between the columns */
 }
 
 .column {
   flex: 1; /* Makes both columns take up equal width */
 }
-
-
-
 
 
 .datetime-input {
@@ -142,7 +143,11 @@ input {
 	cursor: not-allowed;
 }
 
-
+@media (max-width: 767px) {
+	.flex-container {
+	  flex-direction: column;
+	}
+}
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.jsdelivr.net/npm/pt>
@@ -162,7 +167,7 @@ input {
 			  <div class="label">Project</div>	
 			
 			{% with search_list_id="possible_projects", item_type="Project", material_children=possible_projects, hide_by_default=true, default_text=time_entry_obj.display_attr("project")%}
-			{% include "SimpleDropdown.html" %}
+			{% include "SearchableDropdown2.0.html" %}
 			{% endwith %}
 				
 				
@@ -172,14 +177,14 @@ input {
 			  <div class="label">Name</div>
 			
 			{% with search_list_id="possible_targets", item_type="Name", material_children=possible_targets, hide_by_default=true, default_text=time_entry_obj.display_attr("target")%}
-			{% include "SimpleDropdown.html" %}
+			{% include "SearchableDropdown2.0.html" %}
 			{% endwith %}
 			
 			</div>
 		  
 			<div class="field">
 				<div class="label">Status</div>
-				<input readonly class="disabled_input" type="text" id="shorthand_input" onkeyup="" placeholder="" value='{{time_entry_obj.display_attr("status")}}'>
+				<input readonly class="disabled_input" type="text" id="status_input" onkeyup="" placeholder="" value='{{time_entry_obj.display_attr("status")}}'>
 			</div>
 			
 			</div>
@@ -193,19 +198,20 @@ input {
 			
 			<div class="field">
 				<div class="label">Work End</div>
-				<input type="date" id="endTime" class="datetime-input" onfocus="convertToDatetime(this)">
+				<input type="datetime-local" id="endTime" class="datetime-input">
 			</div>
 			
 			<div class="field">
 				<div class="label">Notes</div>
-				<input type="text" id="shorthand_input" onkeyup="" placeholder="" value='{{time_entry_obj.display_attr("notes")}}'>
+				<input type="text" id="notes_input" onkeyup="" placeholder="" value='{{time_entry_obj.display_attr("notes")}}'>
 			</div>
 		</div>
 	</div>
 		
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Edit successful.</div>
-	<div class="submit-btn" id="submit_button" onclick="submitReceive()">Submit</div>
+	<div class="update-btn enabled-btn" id="update_button" onclick="submitUpdate()">Update</div>
+	<div class="submit-btn enabled-btn" id="submit_button" onclick="submitFinalize()">Submit</div>
 
 </div>
 
@@ -219,26 +225,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const dt = new Date();
 
     // Today's date at 8:00 AM local time
-    const year = dt.getFullYear();
-    const month = String(dt.getMonth() + 1).padStart(2, "0");
-    const day = String(dt.getDate()).padStart(2, "0");
+    // const year = dt.getFullYear();
+    // const month = String(dt.getMonth() + 1).padStart(2, "0");
+    // const day = String(dt.getDate()).padStart(2, "0");
 
-    document.getElementById("startTime").value =
-        `${year}-${month}-${day}T08:00`;
+	const work_start_str = "{{time_entry_obj.work_start}}";
+	const work_end_str = "{{time_entry_obj.work_end}}";
 
-    document.getElementById("endTime").value =
-        `${year}-${month}-${day}`;
+    document.getElementById("startTime").value = work_start_str;
+
+    document.getElementById("endTime").value = work_end_str;
 });
-
-function convertToDatetime(input) {
-    if (input.type === 'date') {
-      const existingDate = input.value; 
-      input.type = 'datetime-local';
-      input.value = `${existingDate}T16:00`; // Sets a baseline time, or leave as existingDate
-    }
-  }
-
-
 
 
 function handleButtonUrl(action, open_new_window) {
@@ -270,37 +267,59 @@ function display_generic_success(success_text) {
   
   hide_all_errors();
 }
-		
-async function submitReceive() {
-console.log("Attempting to edit catalogue item.");
-	// const item_obj_id = "{item_obj.id}";
-	// console.log(shorthand_elem.value);
+	
+async function submitFinalize() {
+	const time_entry_id = "{{time_entry_obj.id}}";
+	const data = {
+		"time_entry_id": time_entry_id
+	};
+	console.log("Sending request");
+	let ret = await patch_request("/api/finalizeTimeEntry", data);
+	let response_data = await ret.json();
+	console.log("Request received");
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Submission successful!");
+	}
+	
+	console.log(response_data);
+}
+
+async function submitUpdate() {
+	const time_entry_id = "{{time_entry_obj.id}}";
+	// const project_elem = document.getElementById("possible_projects_input");
+	// const target_name_elem = document.getElementById("possible_targets_input");
+	const status_elem = document.getElementById("status_input");
+	const work_start_elem = document.getElementById("startTime");
+	const work_end_elem = document.getElementById("endTime");
+	const notes_elem = document.getElementById("notes_input");
 	
 	const data = {
-	"item_id": item_obj_id,
-	"item_type": item_type_elem.value,
-	"supplier": supplier_elem.value,
-	"provided_item_id": item_id_elem.value,
-	"mpn": mpn_elem.value,
-	"description": description_elem.value,
-	"shorthand": shorthand_elem.value
+	"time_entry_id": time_entry_id,
+	"project_id": possible_projects_hiddenInput.value,
+	"target_id": possible_targets_hiddenInput.value,
+	"work_start": work_start_elem.value,
+	"work_end": work_end_elem.value,
+	"notes": notes_elem.value
 	};
-	let ret = await patch_request("/api/editCatalogueItem", data);
+	let ret = await patch_request("/api/editTimeEntry", data);
 	let response_data = await ret.json();
 	
 	if (!ret.ok) {
 		console.log("Displaying error " + response_data['error']);
 		display_generic_error(response_data['error']);
 	} else {
-		display_generic_success("Creation successful!");
-		//history.back();
-		window.location.replace(document.referrer);
+		display_generic_success("Update successful!");
 	}
 	
 	console.log(response_data);
-}
+}	
 
 {% include "Request.js" %}
+
   
 function hide_all_errors() {
 error_elems = document.getElementsByClassName("error-message");

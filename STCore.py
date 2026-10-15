@@ -88,11 +88,6 @@ class TimeEntry(CoreObj):
             'work_end': {'title': "Work End Datetime", 'permission': 'edit_time_entry', 'type': 'str'}
         }
         self.protected_values += [
-            'status',
-            'asset_cost',
-            'vehicle_cost',
-            'hourly_rate',
-            'project'
         ]
 
         if save_data is not None:

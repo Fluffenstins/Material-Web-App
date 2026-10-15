@@ -666,10 +666,14 @@ class MSDrive:
         if attachments is not None:
             if type(attachments) is str or type(attachments) is dict:
                 attachments = [attachments]
+            for attachment in attachments:
+                if 'isInline' not in attachment:
+                    attachment['isInline'] = False
             print(attachments)
             body['message']['attachments'] = [
                 {"@odata.type": "#microsoft.graph.fileAttachment", "name": attachment['name'],
-                 "contentType": "text/plain", "contentBytes": self.getBytes(attachment['path']), "contentId": attachment['name']} for attachment in attachments]
+                 "contentType": "text/plain", "contentBytes": self.getBytes(attachment['path']),
+                 "contentId": attachment['name'], 'isInline': attachment['isInline']} for attachment in attachments]
 
         ret = self.post(f"{sender}/sendMail", json.dumps(body))
         self.settings.revert()

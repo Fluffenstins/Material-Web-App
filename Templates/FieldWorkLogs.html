@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NuBuild Log Work</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+
+
+
+.site-header {
+            color: #000;
+            padding: 20px 15px;
+			font-size: 20px;
+        }
+		
+
+.submit-btn {
+  background: #51F59F;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.label {
+  font-size: 14px;
+  color: #666;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.long-input {
+	width: 50vw;
+	height: 50px;
+	margin-bottom: 20px;
+	text-wrap: wrap;
+	  flex: 1;
+	  padding: 10px;
+	  border-radius: 8px;
+	  border: 1px solid #ddd;
+	  font-size: 16px;
+	  margin-bottom: 20px;
+}
+
+.fake-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  background-color: #bbbbbb;
+  margin-bottom: 20px;
+}
+
+.container {
+  padding: 16px;
+  flex: 1;
+  margin-bottom: 50px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+
+.flex-container {
+  display: flex;
+  /*gap: 20px;  Optional: adds space between the columns */
+}
+
+.column {
+  flex: 1; /* Makes both columns take up equal width */
+}
+
+@media (max-width: 767px) {
+	.flex-container {
+	  flex-direction: column;
+	}
+}
+		
+</style>
+</head>
+
+<body>
+{% include "Header.html" %}
+
+<div class="container">
+
+  <div class="card">
+	<div class="flex-container">
+		<div class="column">
+			<div class="label">Choose Service</div>
+			{% with search_list_id="possible_services", item_type="Service", material_children=possible_services%}
+			{% include "SearchableDropdown2.0.html" %}
+			{% endwith %}
+		</div>
+		<div class="column">
+		
+			<div class="label">Remaining Allocation</div>
+			<div class="fake-input" id="remaining_input">N/A</div>
+		
+		</div>
+	</div>
+	
+		
+	<div class="label">Qty</div>
+	<input id="qty-input" type="number">
+	
+		
+	<div class="label">Comments</div>
+	<textarea class="long-input" id="comments-input"></textarea>
+	
+	<div class="submit-btn" id="submit_button" onclick="submitLogin()">Submit</div>
+
+</div>
+
+
+<script>
+
+const service_id_input = document.getElementById("possible_services_selectedEmployeeId");
+const remaining_input = document.getElementById("remaining_input");
+const service_dict = {{service_dict | safe}};
+
+
+service_id_input.addEventListener('input', function(event) {
+    // Both of these lines do the same thing: get the current value
+	let item_id = event.target.value;
+	let remaining_qty = service_dict[item_id]['remaining'];
+	
+	if (remaining_qty == null) {
+		remaining_input.textContent = "N/A";
+	} else {
+		remaining_input.textContent = service_dict[item_id]['remaining'];
+	}
+});
+
+</script>
+
+</body>
+</html>

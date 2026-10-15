@@ -60,6 +60,7 @@
             margin-top: 10px;
             text-decoration: none;
             color: #0078d7;
+			cursor: pointer;
         }
 
         .forgot:hover {
@@ -81,9 +82,6 @@
 			font-size: 14px;
 			color: #ff0000;
 		}
-		.forgot-password-button {
-			cursor: pointer;
-		}
     </style>
 </head>
 <body>
@@ -94,7 +92,7 @@
         <input type="password" name="password" id="password" placeholder="Password" required>
 		<div class="error-message" id="login_error">Please make sure all inputs are filled.</div>
         <button type="submit" onclick="login();">Sign In</button>
-	<div class="forgot-password-button", onclick="reset_password()">Forgot Password?</div>
+	<div class="forgot", onclick="reset_password()">Forgot Password?</div>
     <a href="/register" class="forgot">Register</a>
 	
 

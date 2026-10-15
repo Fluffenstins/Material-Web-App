@@ -7,31 +7,24 @@ from MaterialContainer import ContinuousMaterialManager
 from LabelGen import CustomLabel
 from MaterialCore import Site, Material, CataloguedItem
 from AppCore import Action, User, Role
+from STCore import TimeEntry
 from functools import wraps
 import bcrypt
 
-from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData, ProjectTableData, TimeEntryTableData, FileTableData
+from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData, ProjectTableData, TimeEntryTableData, FileTableData, STFileTableData
 
 from SiteTracker import SiteTrackerExplorer
 from GraphAPI import MSDrive
 import json
 from datetime import datetime
 
+from GalaApp import GALA_SAVE_NAME, load_gala_data, download_gala_data, generate_gala_qr_code, upload_gala_data, async_upload_gala_data, smart_load_submissions
+
 GRAPH_DRIVE = MSDrive()
 GRAPH_DRIVE.batch_instructions = False
-GALA_SAVE_NAME = 'gala_save_data.json'
 
 SITETRACKER_EXPLORER = SiteTrackerExplorer()
 
-
-def download_gala_data():
-    existing_gala_data = GRAPH_DRIVE.get(f"01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4:/{GALA_SAVE_NAME}:/content")
-    if isinstance(existing_gala_data, dict) and 'error' not in existing_gala_data:
-        with open(f"{GALA_SAVE_NAME}", 'w') as file:
-            json.dump(existing_gala_data, file, indent=2)
-
-
-download_gala_data()
 
 
 UPLOAD_FOLDER = 'Uploads'
@@ -89,6 +82,7 @@ def create_verification_hash(example_user_obj):
     verification_bytes = bcrypt.hashpw(encoded_password, bcrypt.gensalt(12))
     verification_str = verification_bytes.decode('utf-8')
     return verification_str
+
 
 def check_verification_hash(example_user_obj, provided_hash):
     try:
@@ -148,7 +142,9 @@ def list_header_options(user_id):
         'Roles':        (['read_role', 'edit_role', 'read_all', 'edit_all'], "window.location.href='/roles'"),
         'Create Site':  (['create_site', 'edit_site', 'edit_all'], "window.location.href='/createSite'"),
         'Create Item':  (['create_item', 'edit_catalogue_item', 'edit_all'], "window.location.href='/createItem'"),
-        'Maintenance':  (['set_maintenance'], "window.location.href='/setMaintenance'")
+        'Login as User':(['login_as_other'], "window.location.href='/loginAsUser'"),
+        'Maintenance':  (['set_maintenance'], "window.location.href='/setMaintenance'"),
+        'Gala List':  (['edit_gala'], "window.location.href='/gala/list'")
     }
     header_permission_pairs = {
         key: val for key, val in header_permission_pairs.items()
@@ -1313,6 +1309,33 @@ def login():
     )
 
 
+@app.route('/loginAsUser', methods=['GET'])
+@permission_required(['login_as_other'])
+def login_as_other():
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    target_id = request.args.get('target_id', default="")
+
+    target_obj = MATERIAL_APP.find_user(target_id)
+
+    if target_obj is not None:
+        email = target_obj.email
+        user = user_loader(email)
+        user_obj = MATERIAL_APP.find_user(email)
+        flask_login.login_user(user)
+        USERS[user_obj.id] = user
+        return redirect('/')
+
+    possible_users = [{'id': i.id, 'text': i.email} for _, i in MATERIAL_APP.users.items()]
+
+    return render_template(
+        "LoginAsOtherUserPage.html",
+        possible_users=possible_users,
+        user_obj=user_obj,
+        current_tab="Login as User",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     flask_login.logout_user()
@@ -2063,6 +2086,106 @@ def api_edit_catalogue_item():
     }), 200
 
 
+@app.route('/api/editTimeEntry', methods=['PATCH'])
+@permission_required(['edit_time_entry', 'edit_all'])
+def api_edit_time_entry():
+    data = request.get_json()
+    time_entry_id = data.get('time_entry_id')
+    project_name = data.get('project_id')
+    target_name = data.get('target_id')
+    work_start = data.get('work_start')
+    work_end = data.get('work_end')
+    notes = data.get('notes')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    existing_time_entry = MATERIAL_APP.lookup(time_entry_id)
+    if existing_time_entry is None or not isinstance(existing_time_entry, TimeEntry):
+        return jsonify({
+            "error": f"Item {time_entry_id} could not be found."
+        }), 404
+
+    project_obj = MATERIAL_APP.find_project(project_name)
+    if project_obj is not None:
+        project_id = project_obj.id
+    else:
+        project_id = None
+
+    target_user_obj = MATERIAL_APP.find_user(target_name)
+    if target_user_obj is not None:
+        target_user_id = target_user_obj.id
+    else:
+        target_user_id = None
+
+    data = {}
+    for key, new_value, old_value in (
+            ('project', project_id, existing_time_entry.project),
+            ('target', target_user_id, existing_time_entry.target),
+            ('work_start', work_start, existing_time_entry.work_start),
+            ('work_end', work_end, existing_time_entry.work_end),
+            ('notes', notes, existing_time_entry.notes),
+    ):
+        if not new_value:
+            continue
+        if new_value == old_value:
+            continue
+        print(f"Updating {key} from \"{old_value}\" to \"{new_value}\"")
+        data[key] = new_value
+
+    if not data:
+        return jsonify({
+            "error": f"No values were changed."
+        }), 422
+
+    ret = MATERIAL_APP.patch_time_entry(
+        time_entry_id=time_entry_id,
+        user_id=user_obj.id,
+        data=data
+    )
+
+    return jsonify({
+        "message": "Time entry updated successfully!",
+        "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/finalizeTimeEntry', methods=['PATCH'])
+@permission_required(['edit_time_entry', 'edit_all'])
+def api_finalize_time_entry():
+
+    data = request.get_json()
+    time_entry_id = data.get('time_entry_id')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if user_obj is None:
+        return jsonify({
+            "error": f"User \"{user_obj}\" not found."
+        }), 404
+
+    data = {
+        'status': 'Submitted'
+    }
+    print(time_entry_id)
+    ret = MATERIAL_APP.patch_time_entry(
+        time_entry_id=time_entry_id,
+        user_id=user_obj.id,
+        data=data
+    )
+
+    print(ret)
+
+    return jsonify({
+        "message": "Time entry submitted!",
+        "data": {"id": ret.id}
+    }), 200
+
+
 @app.route('/api/inventoryReport', methods=['GET'])
 @permission_required(['read_all', 'edit_all'])
 def api_inventory_report():
@@ -2183,39 +2306,69 @@ def api_login():
     }), 200
 
 
+@app.route('/api/galaEntryUpdate', methods=['PATCH'])
+# @permission_required(['edit_gala'])
+def api_gala_entry_update():
+
+    data = request.get_json()
+    submission_id = data.get('submission_id')
+    patch_data = data.get('data')
+
+    # user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    #
+    # if user_obj is None:
+    #     return jsonify({
+    #         "error": f"User \"{user_obj}\" not found."
+    #     }), 404
+
+
+    # download_gala_data()
+    # gala_submissions = load_gala_data()
+    gala_submissions = smart_load_submissions()
+
+    submission_dict = None
+    for _, submissions in gala_submissions.items():
+        for name, submission in submissions.items():
+            if submission['submission_id'] != submission_id:
+                continue
+            submission_dict = submission
+            break
+
+    if submission_dict is None:
+        return jsonify({
+            "error": f"Submission \"{submission_id}\" not found."
+        }), 404
+
+    for key, val in patch_data.items():
+        submission_dict[key] = val
+
+    async_upload_gala_data(gala_submissions)
+
+    return jsonify({
+        "message": "Entry updated!",
+        "data": submission_dict
+    }), 200
+
+
 @app.route('/api/dbBackup', methods=['GET'])
 def api_db_backup():
-    save_name = MATERIAL_APP.make_backup()
-    path = f"{MATERIAL_APP.backup_manager.backup_path()}.zip"
+    path = MATERIAL_APP.make_backup()
+    save_name = path[:path.find('.zip')]
     return send_file(
-        save_name,
+        path,
         as_attachment=True,
-        download_name=path,
+        download_name=save_name,
     )
 
 
 @app.route('/api/setMaintenanceMode', methods=['POST'])
+@permission_required(['set_maintenance'])
 def api_set_maintenance_mode():
     """Sets entire app into Maintenance Mode.
 
     Restricts access to all endpoints except those pertaining to maintenance setting.
     Specifically to allow backups to have the most up to date data, and to make sure changes aren't made
     while the system is restarting.
-
-    Args:
-        table_handle: An open smalltable.Table instance.
-        keys: A sequence of strings representing the key of each table
-          row to fetch.  String keys will be UTF-8 encoded.
-        require_all_keys: If True only rows with values set for all keys will be
-          returned.
-
-    Returns:
-        {b'Serak': ('Rigel VII', 'Preparer'),
-         b'Zim': ('Irk', 'Invader'),
-         b'Lrrr': ('Omicron Persei 8', 'Emperor')}
-
-    Raises:
-        IOError: An error occurred accessing the smalltable.
     """
     data = request.get_json()
     state = data.get('state')
@@ -2256,22 +2409,6 @@ def download_params():
     return send_file('Parameters.json')
 
 
-def load_gala_data():
-    try:
-        with open(f"{GALA_SAVE_NAME}", 'r') as file:
-            truth_dict = json.load(file)
-    except FileNotFoundError:
-        truth_dict = {}
-    return truth_dict
-
-
-def generate_gala_qr_code(submission_id, provided_name):
-    link_url = f"nubuildapp.ca/gala/entry?id={submission_id}"
-    label = CustomLabel(provided_name, link_url)
-    label.save(path='label')
-    return 'label.png'
-
-
 @app.route('/gala/register', methods=['GET', 'POST'])
 def gala_register():
     # https://form.jotform.com/262393865563065?displayType=nubuild&tableNumber=Brass
@@ -2297,12 +2434,17 @@ def gala_register():
         email = form_data['email']
     except KeyError:
         email = None
+    try:
+        has_plus_one = form_data['wouldYou'] == 'Yes please!'
+    except KeyError:
+        has_plus_one = False
 
     package = {
         'table': table,
         'name': name,
         'email': email,
         'plus_one_name': plus_one_name,
+        'has_plus_one': has_plus_one,
         'paid': False,
         'submission_id': submission_id
     }
@@ -2315,14 +2457,16 @@ def gala_register():
 
     truth_dict[table][name] = package
 
-    with open(f"{GALA_SAVE_NAME}", 'w') as file:
-        json.dump(truth_dict, file, indent=2)
+    ret = upload_gala_data(truth_dict)
 
-    ret = GRAPH_DRIVE.upload(
-        pref='01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4',
-        name=GALA_SAVE_NAME,
-        path=f"{GALA_SAVE_NAME}"
-    )
+    # with open(f"{GALA_SAVE_NAME}", 'w') as file:
+    #     json.dump(truth_dict, file, indent=2)
+    #
+    # ret = GRAPH_DRIVE.upload(
+    #     pref='01ZWWTLPLOUELMUI5ETRHZCJROLL2W2OU4',
+    #     name=GALA_SAVE_NAME,
+    #     path=f"{GALA_SAVE_NAME}"
+    # )
 
     # send confirmation email
 
@@ -2375,30 +2519,83 @@ def gala_entry():
     entry_id = request.args.get('id', default="")
     entry_name = None
 
+    submission = None
+    submission_status = None
     truth_dict = load_gala_data()
     for table_id, name_dict in truth_dict.items():
         for name, submission_data in name_dict.items():
             if submission_data['submission_id'] != entry_id:
                 continue
             entry_name = name
+            submission = submission_data
             break
-    return render_template(
-        "GalaEntryPage.html",
-        name=entry_name
-    )
+
+    edit_permission_status = False
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+        edit_permission_status = MATERIAL_APP.check_permission(user_id=user_obj.id, permission_ids=['edit_gala'])
+    except AttributeError:
+        user_obj = None
+
+    if edit_permission_status:
+        return render_template(
+            "GalaSignInPage.html",
+            name=entry_name,
+            submission=submission,
+            submission_status=submission_status,
+            user_obj=user_obj,
+            current_tab="Gala Entry",
+            header_options=list_header_options(user_obj.id)
+        )
+    else:
+        return render_template(
+            "GalaEntryPage.html",
+            name=entry_name,
+            current_tab="Gala Entry",
+        )
 
 
 @app.route('/gala/list', methods=['GET'])
+@permission_required(['read_gala', 'edit_gala'])
+@flask_login.login_required
 def gala_list():
     download_gala_data()
     truth_dict = load_gala_data()
-    ret = []
+    # ret = []
+    # for _, table_group in truth_dict.items():
+    #     for _, submission in table_group.items():
+    #         ret.append(submission)
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    columns = ('Name', 'Email', 'Plus One', 'Has a Plus One', 'Table', 'Status')
+    table = AppTableData('Gala Submissions', columns=columns)
     for _, table_group in truth_dict.items():
         for _, submission in table_group.items():
-            ret.append(submission)
+            name = submission['name']
+            email = submission['email']
+            plus_one_name = submission['plus_one_name']
+            table_name = submission['table']
+            try:
+                status = submission['status']
+            except KeyError:
+                status = 'Unknown'
+            try:
+                has_plus_one = submission['has_plus_one']
+            except KeyError:
+                has_plus_one = False
+
+            row = [name, email, plus_one_name, has_plus_one, table_name, status]
+            table.add_row(row, row_link=f"/gala/entry?id={submission['submission_id']}")
+
     return render_template(
-        "GalaRegisterList.html",
-        tickets=ret
+        "GalaList.html",
+        user_obj=user_obj,
+        tickets=table,
+        current_tab="Gala List",
+        header_options=list_header_options(user_obj.id)
     )
 
 
@@ -2518,29 +2715,27 @@ def field_time_entry_url():
 
     time_entry_obj = MATERIAL_APP.lookup(time_entry_id)
 
-    possible_projects = [
-        {'id': '1', 'text': 'Misc'},
-        {'id': '2', 'text': 'Consumables'},
-        {'id': '3', 'text': 'Duct'},
-        {'id': '4', 'text': 'Vaults'},
-        {'id': '5', 'text': 'Endcaps'},
-        {'id': '6', 'text': 'Connectors'},
-        {'id': '7', 'text': 'Buried Microcable'},
-        {'id': '8', 'text': 'Aerial Microcable'},
-        {'id': '9', 'text': 'Drop Cable'},
-        {'id': '10', 'text': 'Splicing Tray'},
-        {'id': '11', 'text': 'Splitters'},
-        {'id': '12', 'text': 'Tie wraps'},
-        {'id': '13', 'text': 'Tape'},
-        {'id': '14', 'text': 'OLT'}
-    ]
-
     sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
     sitetracker_resource_id = sitetracker_resource['Id']
-    possible_targets = SITETRACKER_EXPLORER.list_possible_crew_mates(sitetracker_resource_id)
-    possible_targets = sorted(list(set([i['sitetracker__Resource__r']['Name'] for i in possible_targets])))
-    possible_targets = [{'id': str(n), 'text': i} for n, i in enumerate(possible_targets)]
 
+    my_projects = SITETRACKER_EXPLORER.list_my_projects(
+        user_resource_record_id=sitetracker_resource_id
+    )
+    possible_projects = []
+    for project_name in sorted(my_projects):
+        project_obj = MATERIAL_APP.find_project(project_name)
+        if project_obj is None:
+            continue
+        possible_projects.append({'id': project_obj.id, 'text': project_obj.display_name})
+
+    st_targets = SITETRACKER_EXPLORER.list_possible_crew_mates(sitetracker_resource_id)
+    st_targets = sorted(list(set([i['sitetracker__Resource__r']['Name'] for i in st_targets])))
+    possible_targets = []
+    for target_name in st_targets:
+        target_obj = MATERIAL_APP.find_user(target_name)
+        if target_obj is None:
+            continue
+        possible_targets.append({'id': target_obj.id, 'text': target_obj.display_name})
 
     return render_template(
         "TimeEntryPage.html",
@@ -2564,9 +2759,34 @@ def field_work_logs_url():
 
     project_obj = MATERIAL_APP.lookup(project_id)
 
+    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    sitetracker_resource_id = sitetracker_resource['Id']
+
+    allocation_records = SITETRACKER_EXPLORER.list_my_allocations(
+        user_resource_record_id=sitetracker_resource_id,
+        project_record_id=project_obj.st_id
+    )
+
+    item_ids = [i['sitetracker__Item__c'] for i in allocation_records]
+
+    item_records = SITETRACKER_EXPLORER.get_item_info(item_ids)
+
+    service_dict = {i['Id']: {'name': i['Name']} for i in item_records}
+
+    for allocation in allocation_records:
+        item_id = allocation['sitetracker__Item__c']
+        try:
+            service_dict[item_id]['remaining'] += allocation['NB_Non_Rejected_Work_Log_Qty__c']
+        except KeyError:
+            service_dict[item_id]['remaining'] = allocation['NB_Non_Rejected_Work_Log_Qty__c']
+
+    possible_services = sorted([{'id': key, 'text': val['name']} for key, val in service_dict.items()], key=lambda x: x['text'])
+
     return render_template(
         "FieldWorkLogs.html",
-        current_tab="Work Logs",
+        service_dict=json.dumps(service_dict),
+        possible_services=possible_services,
+        current_tab="Log Work",
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
@@ -2598,11 +2818,25 @@ def field_material_url():
     except AttributeError:
         user_obj = None
 
+    # note that this needs to be changed to a grid update instead
+
     project_obj = MATERIAL_APP.lookup(project_id)
 
+    parent_site_id = 'IYNYJhZiMhrc'
+
+    parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
+    if parent_site_obj is not None:
+        site_material = [MATERIAL_APP.lookup(i) for i in parent_site_obj.material_children]
+        possible_material = [{'id': i.id, 'text': i.display_name} for i in site_material]
+    else:
+        return redirect('/fieldhome')
+
+    allocations = []
+
     return render_template(
-        "FieldMaterial.html",
-        current_tab="Material",
+        "SubMaterial.html",
+        possible_material=possible_material,
+        current_tab="Log Material",
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
@@ -2619,9 +2853,15 @@ def field_project_files_url():
 
     project_obj = MATERIAL_APP.lookup(project_id)
 
-    files = [file for _, file in MATERIAL_APP.files.items()]  #  if file.parent == project_obj.id
+    st_files = SITETRACKER_EXPLORER.list_project_files(project_obj.st_id)
 
-    file_table = FileTableData(files)
+    print(st_files)
+
+    # files = [file for _, file in MATERIAL_APP.files.items()]  #  if file.parent == project_obj.id
+
+    file_table = STFileTableData(st_files)
+
+
     return render_template(
         "ProjectFiles.html",
         current_tab="Files",
@@ -2638,6 +2878,24 @@ def file_download_url():
         'label.png',
         as_attachment=True,
         download_name="Example.png"
+    )
+
+
+@app.route('/stfile', methods=['GET'])
+@flask_login.login_required
+def st_file_download_url():
+    content_document_id = request.args.get('document_id', default="")
+
+    save_path = "st_download"
+
+    file = SITETRACKER_EXPLORER.download_content_document(
+        content_document_id=content_document_id,
+        save_path=save_path
+    )
+    return send_file(
+        save_path,
+        as_attachment=True,
+        download_name=file
     )
 
 

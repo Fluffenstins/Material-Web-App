@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+    .{{search_list_id}}_dropdown-container {
+        width: 350px;
+        position: relative;
+    }
+
+    .{{search_list_id}}_dropdown-list {
+        position: absolute;
+        width: 100%;
+        max-height: 250px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #d0d7de;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 6px 16px rgba(0,0,0,.12);
+    }
+
+    .{{search_list_id}}_dropdown-item {
+        padding: 10px 12px;
+        cursor: pointer;
+    }
+
+    .{{search_list_id}}_dropdown-item:hover {
+        background: #f3f8ff;
+    }
+
+    .{{search_list_id}}_selected-value {
+        margin-top: 12px;
+        color: #444;
+    }
+</style>
+</head>
+<body>
+
+<div class="{{search_list_id}}_dropdown-container">
+    <input
+        type="text"
+        class="{{search_list_id}}_search-input"
+        placeholder="Search {{item_type}}..."
+        autocomplete="off"
+		value="{{default_text|d('')}}"
+    >
+
+    <div class="{{search_list_id}}_dropdown-list" id="{{search_list_id}}_dropdown">
+		{% for option in material_children %}
+        <div class="{{search_list_id}}_dropdown-item" data-value="{{option["id"]}}">{{option["text"]}}</div>
+		{% endfor %}
+    </div>
+</div>
+
+<input type="hidden" id="{{search_list_id}}_selectedEmployeeId" name="{{search_list_id}}_employee_id">
+
+<script>
+const {{search_list_id}}_input = document.querySelector(".{{search_list_id}}_search-input");
+const {{search_list_id}}_dropdown = document.getElementById("{{search_list_id}}_dropdown");
+const {{search_list_id}}_items = document.querySelectorAll(".{{search_list_id}}_dropdown-item");
+const {{search_list_id}}_hiddenInput = document.getElementById("{{search_list_id}}_selectedEmployeeId");
+
+
+if ({{search_list_id}}_input.value != "") {
+{{search_list_id}}_items.forEach(item => {
+        const match = item.textContent.includes({{search_list_id}}_input.value);
+		
+		if (match) {
+			{{search_list_id}}_select_item(item);
+		}
+    });
+}
+
+{{search_list_id}}_input.addEventListener("focus", () => {
+    {{search_list_id}}_dropdown.style.display = "block";
+});
+
+{{search_list_id}}_input.addEventListener("input", () => {
+    const value = {{search_list_id}}_input.value.toLowerCase();
+
+    {{search_list_id}}_items.forEach(item => {
+        const match = item.textContent
+            .toLowerCase()
+            .includes(value);
+
+        item.style.display = match ? "block" : "none";
+    });
+
+    {{search_list_id}}_dropdown.style.display = "block";
+});
+
+{{search_list_id}}_input.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+	{{search_list_id}}_input.blur();
+  }
+});
+
+
+{{search_list_id}}_items.forEach(item => {
+    item.addEventListener("mousedown", () => {
+		{{search_list_id}}_select_item(item);
+    });
+});
+
+{{search_list_id}}_input.addEventListener("focusout", () => {
+	if ({{search_list_id}}_dropdown.style.display == "none") {
+		return;
+	}
+	{{search_list_id}}_select_top_option();
+	{{search_list_id}}_dropdown.style.display = "none";
+});
+
+function {{search_list_id}}_select_top_option() {
+	if (!{{search_list_id}}_input.value) {
+		set_unknown();
+		return;
+	}
+	let chosen = null;
+	for (const item of {{search_list_id}}_items) {
+		if (chosen == null && item.style.display != "none") {
+			chosen = item;
+		}
+	}
+	if (chosen == null) {
+		set_unknown();
+	} else {
+		{{search_list_id}}_select_item(chosen);
+	}
+	
+}
+
+
+function {{search_list_id}}_select_item(item) {
+	{{search_list_id}}_input.value = item.textContent;
+	{{search_list_id}}_hiddenInput.value = item.dataset.value;
+	{{search_list_id}}_hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+	// debugging feature
+	// {{search_list_id}}_selectedText.textContent = `Selected ID: ${item.dataset.value}`;
+	{{search_list_id}}_dropdown.style.display = "none";
+}
+
+function set_unknown() {
+	{{search_list_id}}_hiddenInput.value = null;
+	{{search_list_id}}_hiddenInput.value = null;
+	{{search_list_id}}_hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+
+</script>
+
+</body>
+</html>

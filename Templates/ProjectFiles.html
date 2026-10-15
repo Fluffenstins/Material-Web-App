@@ -23,7 +23,7 @@ body {
   align-items: center;
   padding: 12px;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  /* box-shadow: 0 2px 6px rgba(0,0,0,0.1); */
 }
 
 .container {
@@ -36,6 +36,14 @@ body {
   margin-bottom: 12px;
 }
 
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
 </style>
 </head>
 
@@ -44,14 +52,16 @@ body {
 
 <div class="container">
 
+	<div class="card">
 
-    <div class="field">
-      <div class="header">Files</div>
-	{% set table_id, table_data = "table_1", file_table %}
-	{% include "SearchableSubitemsTable.html" %}
-	
-    </div>
+		<div class="field">
+		  <div class="header">Files</div>
+		{% set table_id, table_data = "table_1", file_table %}
+		{% include "SearchableSubitemsTable.html" %}
+		
+		</div>
 
+	</div>
 </div>
 
 

@@ -1,10 +1,13 @@
 import json
-from MaterialCore import Material, Site, CataloguedItem
+import os
+
+from MaterialCore import Material, Site, CataloguedItem, MaterialAllocation
 from STCore import TimeEntry, Project
 from AppCore import Action, User, Role, Comment, File, ITEM_SPACE
 from copy import deepcopy
 import threading
-from datetime import datetime
+from datetime import datetime, date, time
+import zipfile
 
 
 class CoreMaterialManager:
@@ -19,6 +22,7 @@ class CoreMaterialManager:
         self.files = {}
         self.time_entries = {}
         self.projects = {}
+        self.material_allocations = {}
         self.action_history = []
         self.last_action_date = datetime.now()
 
@@ -53,6 +57,16 @@ class CoreMaterialManager:
 
         self.save_after_action = True
 
+    def make_backup(self):
+        save_path = "savedata_backup.zip"
+        files_to_zip = os.listdir('SaveData')
+        paths_to_zip = [f"SaveData/{i}" for i in files_to_zip if i[:-5].lower() == '.json']
+        with zipfile.ZipFile(save_path, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
+            for file in paths_to_zip:
+                zipf.write(file)
+        print(save_path)
+        return save_path
+
     def save_json(self):
         self._save_core_dict_json(self.sites, "sites")
         self._save_core_dict_json(self.material, "material")
@@ -63,6 +77,7 @@ class CoreMaterialManager:
         self._save_core_dict_json(self.files, "files")
         self._save_core_dict_json(self.time_entries, "time_entries")
         self._save_core_dict_json(self.projects, "projects")
+        self._save_core_dict_json(self.material_allocations, "material_allocations")
 
         self._save_core_list_json(self.action_history, "action_history")
 
@@ -76,6 +91,7 @@ class CoreMaterialManager:
         self.files = self._load_core_dict_json('files', File)
         self.time_entries = self._load_core_dict_json('time_entries', TimeEntry)
         self.projects = self._load_core_dict_json('projects', Project)
+        self.material_allocations = self._load_core_dict_json('material_allocations', MaterialAllocation)
 
         self.action_history = self._load_core_list_json('action_history', Action)
 
@@ -109,6 +125,10 @@ class CoreMaterialManager:
 
         new_item_id = create_item_id()
         return new_item_id
+
+    def _format_iso_date(self, date_obj):
+        date_str = date_obj.strftime("%Y-%m-%dT%H:%M")
+        return date_str
 
     def _save_core_dict_json(self, core_dict, save_name):
         save_data = {obj_id: obj.json() for obj_id, obj in core_dict.items()}
@@ -226,16 +246,25 @@ class CoreMaterialManager:
             if item_id == item.item_id.strip().lower() or (item.nubuild_id is not None and item_id == item.nubuild_id.lower()):
                 return item.get_item()
 
-    def find_user(self, email):
-        if email is None:
+    def find_user(self, user_str):
+        if user_str is None:
             return None
         try:
-            return self.users[email]
+            return self.users[user_str]
         except KeyError:
             pass
-        email = email.lower()
+
+        def simplify_str(text):
+            text = text.lower()
+            for i, j in [['ñ', 'n']]:
+                text = text.replace(i, j)
+            return text
+
+        user_str = simplify_str(user_str)
         for obj_id, user in self.users.items():
-            if user.email.lower() == email:
+            if simplify_str(user.email) == user_str:
+                return user
+            if simplify_str(user.display_name) == user_str:
                 return user
         return None
 
@@ -312,6 +341,17 @@ class CoreMaterialManager:
         project_obj = self.enact_action(action)
         return project_obj
 
+    def create_material_allocation(self, parent_material_id, target_site_id, qty=None, user_id=None):
+        action = Action(
+            'create_material_allocation',
+            parent_material_id=parent_material_id,
+            target_site_id=target_site_id,
+            qty=qty,
+            user=user_id
+        )
+        material_allocation_obj = self.enact_action(action)
+        return material_allocation_obj
+
     def create_time_entry(self, project, status=None, target=None, work_start=None, work_end=None, notes=None, user_id=None):
         action = Action(
             'create_time_entry',
@@ -325,6 +365,16 @@ class CoreMaterialManager:
         )
         project_obj = self.enact_action(action)
         return project_obj
+
+    def fulfill_material_allocation(self, material_allocation_id, qty, user_id=None):
+        action = Action(
+            'fulfill_material_allocation',
+            material_allocation_id=material_allocation_id,
+            qty=qty,
+            user=user_id
+        )
+        ret = self.enact_action(action)
+        return ret
 
     def add_user_role(self, target_user_id, role_id, user_id=None):
         action = Action('add_user_role', target_user_id=target_user_id, role_id=role_id, user=user_id)
@@ -486,6 +536,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def patch_time_entry(self, user_id, time_entry_id, data):
+        action = Action(
+            action_type='patch_time_entry',
+            user=user_id,
+            time_entry_id=time_entry_id,
+            data=data
+        )
+        action.description = "Time entry settings changed."
+        ret = self.enact_action(action)
+        return ret
+
     def deprecate_item(self, user_id, item_id, correct_item_id):
         action = Action(
             action_type='deprecate_item',
@@ -526,6 +587,7 @@ class CoreMaterialManager:
             'patch_site': self._patch_site,
             'deprecate_item': self._deprecate_item,
             'patch_item': self._patch_item,
+            'patch_time_entry': self._patch_time_entry,
             'remove_site_parent': self._remove_site_parent,
             'create_role': self._create_role,
             'add_role_permission': self._add_role_permission,
@@ -535,7 +597,9 @@ class CoreMaterialManager:
             'create_comment': self._create_comment,
             'create_file': self._create_file,
             'create_project': self._create_project,
-            'create_time_entry': self._create_time_entry
+            'create_time_entry': self._create_time_entry,
+            'create_material_allocation': self._create_material_allocation,
+            'fulfill_material_allocation': self._fulfill_material_allocation
         }
         ret = None
         try:
@@ -909,6 +973,58 @@ class CoreMaterialManager:
 
         return project_obj
 
+    def _create_material_allocation(self, action):
+        parent_material_id = action.data['parent_material_id']
+        target_site_id = action.data['target_site_id']
+        qty = action.data['qty']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+        target_site_obj = self.lookup(target_site_id)
+        parent_material_obj = self.lookup(parent_material_id)
+
+        if target_site_obj is None or not isinstance(target_site_obj, Site):
+            raise KeyError(f"Unable to create material allocation, the assigned target site \"{target_site_obj}\" could not be found.")
+        if parent_material_obj is None or not isinstance(parent_material_obj, Material):
+            raise KeyError(f"Unable to create material allocation, the assigned parent material \"{parent_material_id}\" could not be found.")
+
+        material_allocation_obj = None
+
+        # check if there is an existing allocation
+        for allocation_id in parent_material_obj.material_allocations:
+            try:
+                existing_allocation_obj = self.lookup(allocation_id)
+            except KeyError:
+                print(f"Allocation {allocation_id} does not exist.")
+                continue
+            if existing_allocation_obj.target_site == target_site_id:
+                material_allocation_obj = existing_allocation_obj
+
+        if material_allocation_obj is None:
+            material_allocation_obj = MaterialAllocation(
+                parent_material=parent_material_id,
+                target_site=target_site_id,
+                qty_allocated=qty
+            )
+            material_allocation_obj.set_parent_material(parent_material_obj.id)
+            material_allocation_obj.set_target_site(target_site_obj.id)
+
+        self.material_allocations[material_allocation_obj.id] = material_allocation_obj
+
+        target_site_obj.add_action(action)
+        parent_material_obj.add_action(action)
+
+        material_allocation_obj.add_action(action)
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('parent_material_id', parent_material_obj.id)
+        action.add_output('target_site_id', target_site_obj.id)
+        action.add_output('material_allocation_id', material_allocation_obj.id)
+
+        return material_allocation_obj
+
     def _create_time_entry(self, action):
         project = action.data['project']
         status = action.data['status']
@@ -942,6 +1058,29 @@ class CoreMaterialManager:
         action.add_output('time_entry_id', time_entry_obj.id)
 
         return time_entry_obj
+
+    def _fulfill_material_allocation(self, action):
+        material_allocation_id = action.data['material_allocation_id']
+        qty = action.data['qty']
+        user_id = action.data['user']
+
+        user_obj = self.find_user(user_id)
+
+        material_allocation_obj = self.lookup(material_allocation_id)
+        if not isinstance(material_allocation_obj, MaterialAllocation):
+            raise TypeError(f"Provided material allocation ID is of type {type(material_allocation_obj)}")
+
+        material_allocation_obj.qty_fulfilled += qty
+
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        material_allocation_obj.add_action(action)
+
+        action.add_output('material_allocation_id', material_allocation_obj.id)
+
+        return material_allocation_obj
 
     def _receive(self, action):
         user_name = action.data['user']
@@ -1331,6 +1470,39 @@ class CoreMaterialManager:
         action.add_output('item_id', item_obj.id)
 
         return item_obj
+
+    def _patch_time_entry(self, action):
+        user_id = action.data['user']
+        time_entry_id = action.data['time_entry_id']
+        data = action.data['data']
+
+        user_obj = self.find_user(user_id)
+        try:
+            time_entry_obj = self.lookup(time_entry_id)
+        except KeyError:
+            raise KeyError(f'Time entry {time_entry_id} not found.')
+        if not isinstance(time_entry_obj, TimeEntry):
+            raise KeyError(f'ID provided is not a time entry, it is of the class {type(time_entry_obj)}.')
+
+        for key, value in data.items():
+            if key in time_entry_obj.accessible_attributes(user_obj.id):
+                if value == deepcopy(time_entry_obj.__getattribute__(key)):
+                    raise AttributeError(f"Value {key} does not differ from existing value")
+                action.add_output(f'prev_{key}', deepcopy(time_entry_obj.__getattribute__(key)))
+                time_entry_obj.__setattr__(key, value)
+            else:
+                raise PermissionError(f"Invalid attribute {key}")
+                # action.add_output(f'error_{key}', value)
+
+        time_entry_obj.add_action(action)
+
+        if user_obj is not None:
+            user_obj.add_action(action)
+            action.add_output('user_id', user_obj.id)
+
+        action.add_output('time_entry_id', time_entry_obj.id)
+
+        return time_entry_obj
 
     def _deprecate_item(self, action):
         user_id = action.data['user']

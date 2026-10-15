@@ -95,11 +95,11 @@ class TimeEntryTableData(AppTableData):
         columns = ('Project', 'Name', 'Start', 'End', 'Notes')
         super().__init__(table_name=table_name, columns=columns)
         for time_entry in time_entry_list:
-            project = time_entry.lookup(time_entry.project).nb_id
-            name = time_entry.name
-            start = time_entry.work_start
-            end = time_entry.work_end
-            notes = time_entry.notes
+            project = time_entry.display_attr('project')  # time_entry.lookup(time_entry.project).nb_id
+            name = time_entry.display_attr('target')
+            start = time_entry.display_attr('work_start')  # time_entry.format_date_str(time_entry.work_start)
+            end = time_entry.display_attr('work_end')  # time_entry.format_date_str(time_entry.work_end)
+            notes = time_entry.display_attr('notes')  # time_entry.notes
             row = [project, name, start, end, notes]
             self.add_row(row, row_link=f'/timeEntry?entry_id={time_entry.id}')
 
@@ -115,6 +115,19 @@ class FileTableData(AppTableData):
             ext_type = file.extension_type
             row = [file_name, file_type, ext_type]
             self.add_row(row, row_link=f'/file?file_id={file.id}')
+
+
+class STFileTableData(AppTableData):
+    def __init__(self, file_list):
+        table_name = 'File'
+        columns = ('File Name', 'File Type')
+        super().__init__(table_name=table_name, columns=columns)
+        for file in file_list:
+            document_content_id = file['sitetracker__ContentDocumentRecord__c']
+            file_name = file['Name']
+            file_type = file['sitetracker__Content_Type__c']
+            row = [file_name, file_type]
+            self.add_row(row, row_link=f'/stfile?document_id={document_content_id}')
 
 
 if __name__ == '__main__':

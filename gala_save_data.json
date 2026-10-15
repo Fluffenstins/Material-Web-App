@@ -6,7 +6,9 @@
       "email": "gseaward@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6647926422842720960"
+      "submission_id": "6647926422842720960",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Alexander Russo": {
       "table": "tableless",
@@ -14,7 +16,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": "Victoria Ruccella",
       "paid": false,
-      "submission_id": "6649420232845101766"
+      "submission_id": "6649420232845101766",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Marianne Iozzo": {
       "table": "tableless",
@@ -22,7 +26,9 @@
       "email": "Marianneiozzo@hotmail.com",
       "plus_one_name": "Ava Cirillo",
       "paid": false,
-      "submission_id": "6655621872848294567"
+      "submission_id": "6655621872848294567",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Michael Guerriero": {
       "table": "tableless",
@@ -30,7 +36,9 @@
       "email": "mguerriero@nubuildinc.ca",
       "plus_one_name": "Olivia Guerriero",
       "paid": false,
-      "submission_id": "6654701259124171582"
+      "submission_id": "6654701259124171582",
+      "status": "Submitted",
+      "has_plus_one": true
     },
     "Nicola Pileggi": {
       "table": "tableless",
@@ -38,7 +46,9 @@
       "email": "npileggi@nubuildinc.ca",
       "plus_one_name": "Jessica Pileggi",
       "paid": false,
-      "submission_id": "6652241238433061712"
+      "submission_id": "6652241238433061712",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Jack Wong": {
       "table": "tableless",
@@ -46,7 +56,9 @@
       "email": "jackwong16@msn.com",
       "plus_one_name": "Sabrina Yhap",
       "paid": false,
-      "submission_id": "6654612063397723420"
+      "submission_id": "6654612063397723420",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "James Atkinson": {
       "table": "tableless",
@@ -54,7 +66,9 @@
       "email": "Jatkinson@nubuildinc.ca",
       "plus_one_name": "Ashley Freel",
       "paid": false,
-      "submission_id": "6652241620122808805"
+      "submission_id": "6652241620122808805",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Antony Fanioudakis": {
       "table": "tableless",
@@ -62,7 +76,9 @@
       "email": "afanioudakis@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6652241696234742428"
+      "submission_id": "6652241696234742428",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Kyle Walls": {
       "table": "tableless",
@@ -70,7 +86,9 @@
       "email": "kwalls@nubuildinc.ca",
       "plus_one_name": "Rachel Walls",
       "paid": false,
-      "submission_id": "6652242086918365402"
+      "submission_id": "6652242086918365402",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Mitchell Baker-Bell": {
       "table": "tableless",
@@ -78,7 +96,9 @@
       "email": "mbakerbell@gmail.com",
       "plus_one_name": "Samantha Baker-Bell",
       "paid": false,
-      "submission_id": "6652248044561044830"
+      "submission_id": "6652248044561044830",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Blake Cunningham": {
       "table": "tableless",
@@ -86,7 +106,9 @@
       "email": "bcunningham@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654621704222412612"
+      "submission_id": "6654621704222412612",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Christopher Morrison": {
       "table": "tableless",
@@ -94,7 +116,9 @@
       "email": "cmorrison@nubuildinc.ca",
       "plus_one_name": "Mandy Weagant",
       "paid": false,
-      "submission_id": "6652345779428291928"
+      "submission_id": "6652345779428291928",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Gary Wilson": {
       "table": "tableless",
@@ -102,7 +126,9 @@
       "email": "garytwilson10@gmail.com",
       "plus_one_name": "Anne Marie Boothman",
       "paid": false,
-      "submission_id": "6652385543028727120"
+      "submission_id": "6652385543028727120",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Renzo Barros Milesi ": {
       "table": "tableless",
@@ -110,7 +136,9 @@
       "email": "renzobarros98@gmail.com",
       "plus_one_name": "Marcia Goncalves ",
       "paid": false,
-      "submission_id": "6652396420221335020"
+      "submission_id": "6652396420221335020",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Chris Caruso": {
       "table": "tableless",
@@ -118,7 +146,9 @@
       "email": "CCaruso@nubuildinc.ca",
       "plus_one_name": "Erin Caruso",
       "paid": false,
-      "submission_id": "6652405289015409512"
+      "submission_id": "6652405289015409512",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Anthony Di Lorito": {
       "table": "tableless",
@@ -126,7 +156,9 @@
       "email": "adiloritto@nubuildinc.ca",
       "plus_one_name": "Chantal Chiasson",
       "paid": false,
-      "submission_id": "6652477754217896250"
+      "submission_id": "6652477754217896250",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Anna Prezio": {
       "table": "tableless",
@@ -134,7 +166,9 @@
       "email": "aprezio@nubuildinc.ca",
       "plus_one_name": "Mark Stables",
       "paid": false,
-      "submission_id": "6652797016232478312"
+      "submission_id": "6652797016232478312",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Nunzio Di Lecce": {
       "table": "tableless",
@@ -142,7 +176,9 @@
       "email": "ndilecce@nubuildinc.ca",
       "plus_one_name": "Sandra Di Lecce",
       "paid": false,
-      "submission_id": "6652848332847418176"
+      "submission_id": "6652848332847418176",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Jessica Lau": {
       "table": "tableless",
@@ -150,7 +186,9 @@
       "email": "jlau@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6652885122845360914"
+      "submission_id": "6652885122845360914",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     " Carolyne McMahon": {
       "table": "tableless",
@@ -158,7 +196,9 @@
       "email": "cmcmahon@nubuildinc.ca",
       "plus_one_name": "Quinn McMahon",
       "paid": false,
-      "submission_id": "6654610782848561157"
+      "submission_id": "6654610782848561157",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Azam Mahjoob": {
       "table": "tableless",
@@ -166,7 +206,9 @@
       "email": "Mahjoob.azam74@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6652942682844934112"
+      "submission_id": "6652942682844934112",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Daniel Cain": {
       "table": "tableless",
@@ -174,7 +216,9 @@
       "email": "dcainnubuild@gmail.com",
       "plus_one_name": "Shyanne Cain",
       "paid": false,
-      "submission_id": "6652983842842655314"
+      "submission_id": "6652983842842655314",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Kelly Sewak": {
       "table": "tableless",
@@ -182,7 +226,9 @@
       "email": "ksewak@nubuildinc.ca",
       "plus_one_name": "Ann Sewak",
       "paid": false,
-      "submission_id": "6654361375526617885"
+      "submission_id": "6654361375526617885",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "David Swan": {
       "table": "tableless",
@@ -190,7 +236,9 @@
       "email": "Daveswan1980@gmail.com",
       "plus_one_name": "Alicia Swan",
       "paid": false,
-      "submission_id": "6654619511667330477"
+      "submission_id": "6654619511667330477",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Ben Skelton": {
       "table": "tableless",
@@ -198,7 +246,9 @@
       "email": "skelly_04@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654633061634234937"
+      "submission_id": "6654633061634234937",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jordyn Boivin": {
       "table": "tableless",
@@ -206,7 +256,9 @@
       "email": "jordynboivin@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654634258811007140"
+      "submission_id": "6654634258811007140",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jake Matthews": {
       "table": "tableless",
@@ -214,7 +266,9 @@
       "email": "jmatthews@nubuildinc.ca",
       "plus_one_name": "Breanna Matthews",
       "paid": false,
-      "submission_id": "6659907885627448310"
+      "submission_id": "6659907885627448310",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Antonio Fanioudakis": {
       "table": "tableless",
@@ -222,7 +276,9 @@
       "email": "AFanioudakis@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654676435611678051"
+      "submission_id": "6654676435611678051",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Ricky Bijai": {
       "table": "tableless",
@@ -230,7 +286,9 @@
       "email": "rbijai@nubuildinc.ca",
       "plus_one_name": "Shari Sebastian",
       "paid": false,
-      "submission_id": "6654685585341031224"
+      "submission_id": "6654685585341031224",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Lukas Zimmerman": {
       "table": "tableless",
@@ -238,7 +296,9 @@
       "email": "lukaszimm@hotmail.com",
       "plus_one_name": "Jazmyn Gardiner",
       "paid": false,
-      "submission_id": "6654731909511518812"
+      "submission_id": "6654731909511518812",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Fabio Campanella": {
       "table": "tableless",
@@ -246,7 +306,9 @@
       "email": "fabio@campanellagroup.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654737414123180576"
+      "submission_id": "6654737414123180576",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jeremy Burden": {
       "table": "tableless",
@@ -254,7 +316,9 @@
       "email": "jburden@nubuildinc.ca",
       "plus_one_name": "Kathryn Pratt",
       "paid": false,
-      "submission_id": "6654800962842840309"
+      "submission_id": "6654800962842840309",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "PAUL SINGH": {
       "table": "tableless",
@@ -262,7 +326,9 @@
       "email": "Paul.singh.ca@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654756897515216302"
+      "submission_id": "6654756897515216302",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Umberto Guerriero": {
       "table": "tableless",
@@ -270,7 +336,9 @@
       "email": "umberto@nubuildinc.ca",
       "plus_one_name": "Kayla Guerriero",
       "paid": false,
-      "submission_id": "6654791482841690561"
+      "submission_id": "6654791482841690561",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Lisamarie Campanella": {
       "table": "tableless",
@@ -278,7 +346,9 @@
       "email": "lisamarie@campanellagroup.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6654792694121684685"
+      "submission_id": "6654792694121684685",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Shane Crossan": {
       "table": "tableless",
@@ -286,7 +356,9 @@
       "email": "scrossan@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6655601139617551308"
+      "submission_id": "6655601139617551308",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Scott Drysdale": {
       "table": "tableless",
@@ -294,7 +366,9 @@
       "email": "drysdale1111@outlook.com",
       "plus_one_name": "Emma Hutchinson",
       "paid": false,
-      "submission_id": "6655748132516114653"
+      "submission_id": "6655748132516114653",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Mark Kulchyski": {
       "table": "tableless",
@@ -302,7 +376,9 @@
       "email": "KULCHYSKIMA@GMAIL.COM",
       "plus_one_name": "Thania Mendez",
       "paid": false,
-      "submission_id": "6655788956011267811"
+      "submission_id": "6655788956011267811",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Gus Reppas": {
       "table": "tableless",
@@ -310,7 +386,9 @@
       "email": "greppas@nubuildinc.ca",
       "plus_one_name": "Margo Reppas",
       "paid": false,
-      "submission_id": "6655795338452544068"
+      "submission_id": "6655795338452544068",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "James Wright": {
       "table": "tableless",
@@ -318,7 +396,9 @@
       "email": "jtwright@nubuildinc.ca",
       "plus_one_name": "Donna Shemmans",
       "paid": false,
-      "submission_id": "6656690072315024710"
+      "submission_id": "6656690072315024710",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Brandon Jessup": {
       "table": "tableless",
@@ -326,7 +406,9 @@
       "email": "brandonjessup12@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6657976244921176814"
+      "submission_id": "6657976244921176814",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Lynetricia Jessup": {
       "table": "tableless",
@@ -334,7 +416,9 @@
       "email": "lynetriciaderrett@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6657976403716509455"
+      "submission_id": "6657976403716509455",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Reid Halstead": {
       "table": "tableless",
@@ -342,7 +426,9 @@
       "email": "reiderh97@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6658027530268762905"
+      "submission_id": "6658027530268762905",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jazmine Kreische": {
       "table": "tableless",
@@ -350,7 +436,9 @@
       "email": "xmasbaby1997@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6658031430264205925"
+      "submission_id": "6658031430264205925",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jasper Penaflor": {
       "table": "tableless",
@@ -358,7 +446,9 @@
       "email": "jjasper@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6658031542844686067"
+      "submission_id": "6658031542844686067",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Cameron Ross": {
       "table": "tableless",
@@ -366,7 +456,9 @@
       "email": "cameronross907@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6658167797896474188"
+      "submission_id": "6658167797896474188",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Mike Lyons": {
       "table": "tableless",
@@ -374,7 +466,9 @@
       "email": "mlyons@nubuildinc.ca",
       "plus_one_name": "Michelle Lyons",
       "paid": false,
-      "submission_id": "6658218689612806248"
+      "submission_id": "6658218689612806248",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Dario Capirchio": {
       "table": "tableless",
@@ -382,7 +476,9 @@
       "email": "dcapirchio@nubuildinc.ca",
       "plus_one_name": "Paula  Capirchio",
       "paid": false,
-      "submission_id": "6658371692633187311"
+      "submission_id": "6658371692633187311",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Janet Johnson": {
       "table": "tableless",
@@ -390,7 +486,9 @@
       "email": "jjohnson@nubuildinc.ca",
       "plus_one_name": "Suneel  Warrican",
       "paid": false,
-      "submission_id": "6658925042841537843"
+      "submission_id": "6658925042841537843",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Gavin Cooper": {
       "table": "tableless",
@@ -398,7 +496,9 @@
       "email": "gavincooper@live.com",
       "plus_one_name": "Kathleen Cooper",
       "paid": false,
-      "submission_id": "6659178001329512775"
+      "submission_id": "6659178001329512775",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "tanya miller": {
       "table": "tableless",
@@ -406,7 +506,9 @@
       "email": "tmiller@nubuildinc.ca",
       "plus_one_name": "Maguire  Miller",
       "paid": false,
-      "submission_id": "6659813922847401301"
+      "submission_id": "6659813922847401301",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Jake Palanio ": {
       "table": "tableless",
@@ -414,7 +516,9 @@
       "email": "jakepalanio9@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659826778221832929"
+      "submission_id": "6659826778221832929",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Andrew Whiting": {
       "table": "tableless",
@@ -422,7 +526,9 @@
       "email": "Andrew.cable13@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659826787832554591"
+      "submission_id": "6659826787832554591",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "MATTHEW ALEXANDER": {
       "table": "tableless",
@@ -430,7 +536,9 @@
       "email": "Mat_alexander@outlook.com",
       "plus_one_name": "Kira Alexander",
       "paid": false,
-      "submission_id": "6659829215673449854"
+      "submission_id": "6659829215673449854",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Surujnarine &quot;Harry&quot; Harrilall": {
       "table": "tableless",
@@ -438,7 +546,9 @@
       "email": "surujharrilall@yahoo.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659834502843731691"
+      "submission_id": "6659834502843731691",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Sandy Martin": {
       "table": "tableless",
@@ -446,7 +556,9 @@
       "email": "sandy.martin@summitbodies.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659838902849404306"
+      "submission_id": "6659838902849404306",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Bradley Hodgson": {
       "table": "tableless",
@@ -454,7 +566,9 @@
       "email": "bhodgson@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659847797426121798"
+      "submission_id": "6659847797426121798",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jon Shear": {
       "table": "tableless",
@@ -462,7 +576,9 @@
       "email": "jshear@nubuildinc.ca",
       "plus_one_name": "Sharice Shear",
       "paid": false,
-      "submission_id": "6659849842846769301"
+      "submission_id": "6659849842846769301",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Hernandez  Sheridan": {
       "table": "tableless",
@@ -470,7 +586,9 @@
       "email": "Sheridan.hernandez.362@gmail.com",
       "plus_one_name": "Hernandez  Sheridan",
       "paid": false,
-      "submission_id": "6659858376372457008"
+      "submission_id": "6659858376372457008",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Matthew Treleven": {
       "table": "tableless",
@@ -478,7 +596,9 @@
       "email": "daintegra007@gmail.com",
       "plus_one_name": "Nikki Treleven",
       "paid": false,
-      "submission_id": "6659860885818499794"
+      "submission_id": "6659860885818499794",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Neel Mistry": {
       "table": "tableless",
@@ -486,7 +606,9 @@
       "email": "nmistry@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659866341321641591"
+      "submission_id": "6659866341321641591",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Harjot Singh": {
       "table": "tableless",
@@ -494,7 +616,9 @@
       "email": "harjot.s.singh77@gmail.com",
       "plus_one_name": "Harpreet Kaur",
       "paid": false,
-      "submission_id": "6659894866022596914"
+      "submission_id": "6659894866022596914",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Megan Williams": {
       "table": "tableless",
@@ -502,7 +626,9 @@
       "email": "mwilliams@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659961842845032418"
+      "submission_id": "6659961842845032418",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Freddie Cheng": {
       "table": "tableless",
@@ -510,7 +636,9 @@
       "email": "f.cheng@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659962142844681202"
+      "submission_id": "6659962142844681202",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Sonia Isliva": {
       "table": "tableless",
@@ -518,7 +646,9 @@
       "email": "sisliva@gtamaple.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659962452842108665"
+      "submission_id": "6659962452842108665",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Rachelle Cooper": {
       "table": "tableless",
@@ -526,7 +656,9 @@
       "email": "rcooper@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659962722849006594"
+      "submission_id": "6659962722849006594",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Lisa York": {
       "table": "tableless",
@@ -534,7 +666,9 @@
       "email": "lyork@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659962952848758942"
+      "submission_id": "6659962952848758942",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Alex Giambattista": {
       "table": "tableless",
@@ -542,7 +676,9 @@
       "email": "agiambattista@gtamaple.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659963172847921017"
+      "submission_id": "6659963172847921017",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Marc Esteves": {
       "table": "tableless",
@@ -550,7 +686,9 @@
       "email": "mesteves@gtamaple.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659963582843047701"
+      "submission_id": "6659963582843047701",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Leannie Singh": {
       "table": "tableless",
@@ -558,7 +696,9 @@
       "email": "lsingh@gtamaple.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659963822842141843"
+      "submission_id": "6659963822842141843",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Vincent Ho": {
       "table": "tableless",
@@ -566,7 +706,9 @@
       "email": "vho@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659964022848510989"
+      "submission_id": "6659964022848510989",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Sarah Trevisan": {
       "table": "tableless",
@@ -574,7 +716,9 @@
       "email": "strevisan@grandtouringautos.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659964222847352825"
+      "submission_id": "6659964222847352825",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Michael  Dodson ": {
       "table": "tableless",
@@ -582,7 +726,9 @@
       "email": "Miked10075@outlook.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659977935318073628"
+      "submission_id": "6659977935318073628",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Paul Porter": {
       "table": "tableless",
@@ -590,7 +736,9 @@
       "email": "pporter@nubuildinc.ca",
       "plus_one_name": "Cindy Shapcott",
       "paid": false,
-      "submission_id": "6660070621822675794"
+      "submission_id": "6660070621822675794",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "SEAR QAHER": {
       "table": "tableless",
@@ -598,7 +746,9 @@
       "email": "sqaher@nubuildinc.ca",
       "plus_one_name": "MALIHA AMIRI",
       "paid": false,
-      "submission_id": "6660219175706946673"
+      "submission_id": "6660219175706946673",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Deborah  Bianchi ": {
       "table": "tableless",
@@ -606,7 +756,9 @@
       "email": "dbianchi@nubuildinc.ca",
       "plus_one_name": "Rob  Bianchi",
       "paid": false,
-      "submission_id": "6660720472511791676"
+      "submission_id": "6660720472511791676",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Damon Lyons": {
       "table": "tableless",
@@ -614,7 +766,9 @@
       "email": "lyonsdamon85@gmail.com",
       "plus_one_name": "Megan Lyons",
       "paid": false,
-      "submission_id": "6660804581913791032"
+      "submission_id": "6660804581913791032",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Liam  Govier ": {
       "table": "tableless",
@@ -622,7 +776,9 @@
       "email": "govier_drummer@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661004316678306844"
+      "submission_id": "6661004316678306844",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Natalie Collier ": {
       "table": "tableless",
@@ -630,7 +786,9 @@
       "email": "nataliereneecollier@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661004746672190522"
+      "submission_id": "6661004746672190522",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Josh Hatton": {
       "table": "tableless",
@@ -638,7 +796,9 @@
       "email": "hatrackhatton@gmail.com",
       "plus_one_name": "Kaitlyn  Bannerman",
       "paid": false,
-      "submission_id": "6661106655747481524"
+      "submission_id": "6661106655747481524",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Alessandro Colelli": {
       "table": "tableless",
@@ -646,7 +806,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661593684111103156"
+      "submission_id": "6661593684111103156",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Ryan  Linde": {
       "table": "tableless",
@@ -654,7 +816,9 @@
       "email": "Ryan.linde@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661639323978885736"
+      "submission_id": "6661639323978885736",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "ANNA MARCHESE": {
       "table": "tableless",
@@ -662,7 +826,9 @@
       "email": "a.avidinvestments@gmail.com",
       "plus_one_name": "ANGELO GUERRIERO",
       "paid": false,
-      "submission_id": "6661667752842695326"
+      "submission_id": "6661667752842695326",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Stefan Hansen": {
       "table": "tableless",
@@ -670,7 +836,9 @@
       "email": "stefan.hansen@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661668912218330065"
+      "submission_id": "6661668912218330065",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Fallon Rice ": {
       "table": "tableless",
@@ -678,7 +846,9 @@
       "email": "fallon.rice@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661673172216478881"
+      "submission_id": "6661673172216478881",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "ANTHONY  DAURIZIO": {
       "table": "tableless",
@@ -686,7 +856,9 @@
       "email": "anthony.daurizio@hotmail.ca",
       "plus_one_name": "AZARIA SAMAROO",
       "paid": false,
-      "submission_id": "6661679692841067723"
+      "submission_id": "6661679692841067723",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Barry Carnes": {
       "table": "tableless",
@@ -694,7 +866,9 @@
       "email": "bcarnes78@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661800974407335048"
+      "submission_id": "6661800974407335048",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Barbora Kapralikova": {
       "table": "tableless",
@@ -702,7 +876,9 @@
       "email": "barbora.kapralikova@vacheron-constantin.com",
       "plus_one_name": "Kevin Saccucci",
       "paid": false,
-      "submission_id": "6661819250898589595"
+      "submission_id": "6661819250898589595",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Jack Masters": {
       "table": "tableless",
@@ -710,7 +886,9 @@
       "email": "jack.masters@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661874584612457579"
+      "submission_id": "6661874584612457579",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Jenna McLarnon": {
       "table": "tableless",
@@ -718,7 +896,9 @@
       "email": "Jenna.McLarnon@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661875374613068444"
+      "submission_id": "6661875374613068444",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "DOMINIC M PIERRE": {
       "table": "tableless",
@@ -726,7 +906,149 @@
       "email": "mpierre@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6665277349223190637"
+      "submission_id": "6665277349223190637",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 1": {
+      "table": "tableless",
+      "name": "GUEST 1",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672832172451069048",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 2": {
+      "table": "tableless",
+      "name": "GUEST 2",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672832462456166589",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 3": {
+      "table": "tableless",
+      "name": "GUEST 3",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672832612455935546",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 4": {
+      "table": "tableless",
+      "name": "GUEST 4",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672832742456116547",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 5": {
+      "table": "tableless",
+      "name": "GUEST 5",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672832872453683324",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 6": {
+      "table": "tableless",
+      "name": "GUEST 6",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672833012457660821",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 7": {
+      "table": "tableless",
+      "name": "GUEST 7",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672833252457667606",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 8": {
+      "table": "tableless",
+      "name": "GUEST 8",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672833372453468702",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 9": {
+      "table": "tableless",
+      "name": "GUEST 9",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672833512459454014",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 10": {
+      "table": "tableless",
+      "name": "GUEST 10",
+      "email": "rtamburini@liunaopdc.org",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672833652451358880",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Jacob Abraham": {
+      "table": "tableless",
+      "name": "Jacob Abraham",
+      "email": "bocaj1105@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6675326614416243636",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Mike Walsh": {
+      "table": "tableless",
+      "name": "Mike Walsh",
+      "email": "walshy071470@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677142154515291064",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Murphy Sewak": {
+      "table": "tableless",
+      "name": "Murphy Sewak",
+      "email": "kelly_sewak@hotmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677145134516132064",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Ian MacRae": {
+      "table": "tableless",
+      "name": "Ian MacRae",
+      "email": "ianmacrae@live.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677164395026290940",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "FERRARI INSURANCE": {
@@ -736,7 +1058,9 @@
       "email": "dmorra@ferrariinsurance.ca",
       "plus_one_name": "Valentina Bozzetto",
       "paid": false,
-      "submission_id": "6661593822842309989"
+      "submission_id": "6661593822842309989",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Valentina Bozzetto": {
       "table": "FERRARI INSURANCE",
@@ -744,7 +1068,9 @@
       "email": "dmorra@ferrariinsurance.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6653953284315289824"
+      "submission_id": "6653953284315289824",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Enzo Ferrari": {
       "table": "FERRARI INSURANCE",
@@ -752,7 +1078,9 @@
       "email": "eferrari@ferrarigroup.ca",
       "plus_one_name": "Kelly Ferrari",
       "paid": false,
-      "submission_id": "6661594672848409636"
+      "submission_id": "6661594672848409636",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Michael Di Pinto": {
       "table": "FERRARI INSURANCE",
@@ -760,7 +1088,9 @@
       "email": "mdipinto@ferrariinsurance.ca",
       "plus_one_name": "Amanda  Di Pinto",
       "paid": false,
-      "submission_id": "6661597682846656938"
+      "submission_id": "6661597682846656938",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Che Guerrera": {
       "table": "FERRARI INSURANCE",
@@ -768,7 +1098,9 @@
       "email": "cguerrera@ferrariinsurance.ca",
       "plus_one_name": "Inida Konomi",
       "paid": false,
-      "submission_id": "6661598112843940887"
+      "submission_id": "6661598112843940887",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   },
   "BORING SOLUTIONS": {
@@ -778,7 +1110,9 @@
       "email": "russell@boringsolutions.ca",
       "plus_one_name": "Nicole Black",
       "paid": false,
-      "submission_id": "6655501142849461452"
+      "submission_id": "6655501142849461452",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Jeremy Snow": {
       "table": "BORING SOLUTIONS",
@@ -786,7 +1120,9 @@
       "email": "jeremy@boringsolutions.ca",
       "plus_one_name": "Amie Snow",
       "paid": false,
-      "submission_id": "6655501842847658946"
+      "submission_id": "6655501842847658946",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Robert Dalgleish": {
       "table": "BORING SOLUTIONS",
@@ -794,7 +1130,9 @@
       "email": "robert@boringsolutions.ca",
       "plus_one_name": "Heather Dalgleish",
       "paid": false,
-      "submission_id": "6655502472849304151"
+      "submission_id": "6655502472849304151",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Robert Ludwik": {
       "table": "BORING SOLUTIONS",
@@ -802,7 +1140,9 @@
       "email": "Robert.ludwik@boringsolutions.ca",
       "plus_one_name": "Rachel Ludwik",
       "paid": false,
-      "submission_id": "6655502942847700505"
+      "submission_id": "6655502942847700505",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Tony Sero": {
       "table": "BORING SOLUTIONS",
@@ -810,7 +1150,9 @@
       "email": "Tony.sero@hunting-intl.com",
       "plus_one_name": "Rochelle Sero",
       "paid": false,
-      "submission_id": "6655503462842348807"
+      "submission_id": "6655503462842348807",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   },
   "SUMMIT": {
@@ -820,7 +1162,9 @@
       "email": "sandy.martin@summitbodies.com",
       "plus_one_name": "Katherine Martin",
       "paid": false,
-      "submission_id": "6659840042849845627"
+      "submission_id": "6659840042849845627",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Samantha Revell": {
       "table": "SUMMIT",
@@ -828,7 +1172,9 @@
       "email": "revellsamantha@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659840712841610465"
+      "submission_id": "6659840712841610465",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Kevin Parmentier": {
       "table": "SUMMIT",
@@ -836,7 +1182,9 @@
       "email": "parmentier1983@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659841202841794788"
+      "submission_id": "6659841202841794788",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "David Graham": {
       "table": "SUMMIT",
@@ -844,7 +1192,9 @@
       "email": "grahamcrackers34@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659841802841455781"
+      "submission_id": "6659841802841455781",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Laura Graham": {
       "table": "SUMMIT",
@@ -852,7 +1202,9 @@
       "email": "aseler@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659842322846765077"
+      "submission_id": "6659842322846765077",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Tara Stone": {
       "table": "SUMMIT",
@@ -860,7 +1212,9 @@
       "email": "tarastonee@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659842672847006618"
+      "submission_id": "6659842672847006618",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Michelle Wynne": {
       "table": "SUMMIT",
@@ -868,7 +1222,9 @@
       "email": "michelle.wynne@summitbodies.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659843022843799669"
+      "submission_id": "6659843022843799669",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Fred Campbell": {
       "table": "SUMMIT",
@@ -876,7 +1232,9 @@
       "email": "eyewonder101@gmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659843382846287466"
+      "submission_id": "6659843382846287466",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Christopher Neil": {
       "table": "SUMMIT",
@@ -884,7 +1242,9 @@
       "email": "red_101_@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6659844152845510777"
+      "submission_id": "6659844152845510777",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "NuBuild": {
@@ -894,7 +1254,9 @@
       "email": "Mat_alexander@outlook.com",
       "plus_one_name": "Kira Alexander",
       "paid": false,
-      "submission_id": "6661632084173171676"
+      "submission_id": "6661632084173171676",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Peter Schwarzinger": {
       "table": "NuBuild",
@@ -902,7 +1264,9 @@
       "email": "pschwarzinger@nubuildinc.ca",
       "plus_one_name": "Linda  Lock",
       "paid": false,
-      "submission_id": "6661646715645815027"
+      "submission_id": "6661646715645815027",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Adam  Conroy ": {
       "table": "NuBuild",
@@ -910,7 +1274,9 @@
       "email": "aconroy006@gmail.com",
       "plus_one_name": "Renee  Meyer ",
       "paid": false,
-      "submission_id": "6661651457027040378"
+      "submission_id": "6661651457027040378",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Michael  Dodson ": {
       "table": "NuBuild",
@@ -918,7 +1284,9 @@
       "email": "Miked10075@outlook.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661701935318909913"
+      "submission_id": "6661701935318909913",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Tai Fernandez-Sardina ": {
       "table": "NuBuild",
@@ -926,7 +1294,9 @@
       "email": "tfernandez-sardina@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661832665413689943"
+      "submission_id": "6661832665413689943",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Alexander Homen": {
       "table": "NuBuild",
@@ -934,7 +1304,9 @@
       "email": "alex.homen@hotmail.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664252593225657019"
+      "submission_id": "6664252593225657019",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "ALESSANDRO MALTESE": {
       "table": "NuBuild",
@@ -942,7 +1314,9 @@
       "email": "ale_17@live.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664258111515689220"
+      "submission_id": "6664258111515689220",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Angelo  Ayvazian ": {
       "table": "NuBuild",
@@ -950,7 +1324,9 @@
       "email": "ayvazian@live.ca",
       "plus_one_name": "Francesca  Ayvazian",
       "paid": false,
-      "submission_id": "6664266864111364487"
+      "submission_id": "6664266864111364487",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Adam Tortorici": {
       "table": "NuBuild",
@@ -958,7 +1334,9 @@
       "email": "adam@torchelectric.ca",
       "plus_one_name": "Michelle Tortorici",
       "paid": false,
-      "submission_id": "6664323024014796916"
+      "submission_id": "6664323024014796916",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Vic Vetro": {
       "table": "NuBuild",
@@ -966,7 +1344,9 @@
       "email": "vic@mimicogroup.com",
       "plus_one_name": "Brenda Bradley",
       "paid": false,
-      "submission_id": "6665143863122543612"
+      "submission_id": "6665143863122543612",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Mike Pothier": {
       "table": "NuBuild",
@@ -974,7 +1354,9 @@
       "email": "mpothier@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6666818662848762211"
+      "submission_id": "6666818662848762211",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Philip Russo": {
       "table": "NuBuild",
@@ -982,7 +1364,59 @@
       "email": "heavy@heavydutyhomes.com",
       "plus_one_name": "Ximena DePablo ",
       "paid": false,
-      "submission_id": "6669655000912103161"
+      "submission_id": "6669655000912103161",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Robert Campbell": {
+      "table": "NuBuild",
+      "name": "Robert Campbell",
+      "email": "robert.campbell@rbc.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672796042453365456",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Giorgio Grillo": {
+      "table": "NuBuild",
+      "name": "Giorgio Grillo",
+      "email": "gjgrillo18@gmail.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672812532511171097",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Nicholas Volpe": {
+      "table": "NuBuild",
+      "name": "Nicholas Volpe",
+      "email": "nvolpe@digitaldivision.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672813442905764204",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "Joanne Ruccella": {
+      "table": "NuBuild",
+      "name": "Joanne Ruccella",
+      "email": "ruccellaj@hotmail.com",
+      "plus_one_name": "Domenic Ruccella",
+      "paid": false,
+      "submission_id": "6672861906312094237",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Mike Taylor": {
+      "table": "NuBuild",
+      "name": "Mike Taylor",
+      "email": "itsmemikey1@rogers.com",
+      "plus_one_name": "Caroline Sutton",
+      "paid": false,
+      "submission_id": "6672919014911900811",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   },
   "SPRUCEWOOD": {
@@ -992,7 +1426,9 @@
       "email": "david@sprucewoodleasing.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661751637315414037"
+      "submission_id": "6661751637315414037",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Bud McLean": {
       "table": "SPRUCEWOOD",
@@ -1000,7 +1436,9 @@
       "email": "bud@sprucewoodleasing.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661752177312948276"
+      "submission_id": "6661752177312948276",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Morgan McLean": {
       "table": "SPRUCEWOOD",
@@ -1008,7 +1446,9 @@
       "email": "morgan@sprucewoodleasing.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661752417319559356"
+      "submission_id": "6661752417319559356",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Mario Solis": {
       "table": "SPRUCEWOOD",
@@ -1016,7 +1456,9 @@
       "email": "msolis@barriechrysler.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6661752907319506448"
+      "submission_id": "6661752907319506448",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   },
   "HMB REPAIR": {
@@ -1026,7 +1468,89 @@
       "email": "haven@hmbrepair.com",
       "plus_one_name": "Eve Okane ",
       "paid": false,
-      "submission_id": "6661861306139215475"
+      "submission_id": "6661861306139215475",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "GUEST 3": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 3",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673643882846906037",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 4": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 4",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644132841349830",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 5": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 5",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644252844131399",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 6": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 6",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644412844802721",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 7": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 7",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644552844654399",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 8": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 8",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644672849960272",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 9": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 9",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644792846261484",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 10": {
+      "table": "HMB REPAIR",
+      "name": "GUEST 10",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673644922844028282",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "VERMEER": {
@@ -1036,7 +1560,9 @@
       "email": "Tyler.skrinek@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664279142848933013"
+      "submission_id": "6664279142848933013",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Chris Bonneville": {
       "table": "VERMEER",
@@ -1044,7 +1570,49 @@
       "email": "Christopher.bonneville@vermeercanada.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664279432847775797"
+      "submission_id": "6664279432847775797",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 7": {
+      "table": "VERMEER",
+      "name": "GUEST 7",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677129692849521150",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 8": {
+      "table": "VERMEER",
+      "name": "GUEST 8",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677129912841287645",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 9": {
+      "table": "VERMEER",
+      "name": "GUEST 9",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677130102847363392",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 10": {
+      "table": "VERMEER",
+      "name": "GUEST 10",
+      "email": "arusso@nubuildinc.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6677130232848005098",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "BB BLANC": {
@@ -1054,7 +1622,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664282782849405096"
+      "submission_id": "6664282782849405096",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Lucia Colelli": {
       "table": "BB BLANC",
@@ -1062,7 +1632,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664282992845708114"
+      "submission_id": "6664282992845708114",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Renee Da Silva": {
       "table": "BB BLANC",
@@ -1070,7 +1642,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": "Andre Da Silva",
       "paid": false,
-      "submission_id": "6664283522849741915"
+      "submission_id": "6664283522849741915",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Matthew Sicilia": {
       "table": "BB BLANC",
@@ -1078,7 +1652,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": "Marissa Sicilia",
       "paid": false,
-      "submission_id": "6664283862848905263"
+      "submission_id": "6664283862848905263",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Claudia Iannetta": {
       "table": "BB BLANC",
@@ -1086,7 +1662,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": "Daniel Iannetta",
       "paid": false,
-      "submission_id": "6664284242842656429"
+      "submission_id": "6664284242842656429",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "BB Blanc Guest": {
       "table": "BB BLANC",
@@ -1094,7 +1672,9 @@
       "email": "acolelli@bbblanc.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664284582847127914"
+      "submission_id": "6664284582847127914",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "LiUNA 183": {
@@ -1104,7 +1684,9 @@
       "email": "noreply@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664336392849816150"
+      "submission_id": "6664336392849816150",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Joel Filipe Jr.": {
       "table": "LiUNA 183",
@@ -1112,7 +1694,9 @@
       "email": "noreply@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664336842846799545"
+      "submission_id": "6664336842846799545",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Julian Tamburini": {
       "table": "LiUNA 183",
@@ -1120,7 +1704,9 @@
       "email": "noreply@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664337192846530803"
+      "submission_id": "6664337192846530803",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Francesco Paonesa": {
       "table": "LiUNA 183",
@@ -1128,7 +1714,9 @@
       "email": "noreply@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664337642846917765"
+      "submission_id": "6664337642846917765",
+      "has_plus_one": true,
+      "status": "Submitted"
     },
     "Denis Padinha": {
       "table": "LiUNA 183",
@@ -1136,7 +1724,9 @@
       "email": "noreply@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6664338022842497395"
+      "submission_id": "6664338022842497395",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   },
   "NITRO": {
@@ -1146,7 +1736,9 @@
       "email": "daves@nitroindustrial.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6665081417319206961"
+      "submission_id": "6665081417319206961",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Danny ": {
       "table": "NITRO",
@@ -1154,7 +1746,9 @@
       "email": "daves@nitroindustrial.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6665083317311467338"
+      "submission_id": "6665083317311467338",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "Lauren ": {
       "table": "NITRO",
@@ -1162,7 +1756,79 @@
       "email": "daves@nitroindustrial.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6665083517316857971"
+      "submission_id": "6665083517316857971",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 4": {
+      "table": "NITRO",
+      "name": "GUEST 4",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672837162453466400",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 5": {
+      "table": "NITRO",
+      "name": "GUEST 5",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672837292454835372",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 6": {
+      "table": "NITRO",
+      "name": "GUEST 6",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672837412456290164",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 7": {
+      "table": "NITRO",
+      "name": "GUEST 7",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672837562451978417",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 8": {
+      "table": "NITRO",
+      "name": "GUEST 8",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672837722459537559",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 9": {
+      "table": "NITRO",
+      "name": "GUEST 9",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672838412457943614",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 10": {
+      "table": "NITRO",
+      "name": "GUEST 10",
+      "email": "daves@nitroindustrial.com",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672838542453179871",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "COMFORT AIR": {
@@ -1172,7 +1838,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671246312845846384"
+      "submission_id": "6671246312845846384",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 2": {
       "table": "COMFORT AIR",
@@ -1180,7 +1848,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671246542842563990"
+      "submission_id": "6671246542842563990",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 3": {
       "table": "COMFORT AIR",
@@ -1188,7 +1858,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671246782841007878"
+      "submission_id": "6671246782841007878",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 4": {
       "table": "COMFORT AIR",
@@ -1196,7 +1868,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671247232844822875"
+      "submission_id": "6671247232844822875",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 5": {
       "table": "COMFORT AIR",
@@ -1204,7 +1878,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671247422844870915"
+      "submission_id": "6671247422844870915",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 6": {
       "table": "COMFORT AIR",
@@ -1212,7 +1888,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671247732849096520"
+      "submission_id": "6671247732849096520",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 7": {
       "table": "COMFORT AIR",
@@ -1220,7 +1898,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671248142841511830"
+      "submission_id": "6671248142841511830",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 8": {
       "table": "COMFORT AIR",
@@ -1228,7 +1908,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671248442846778147"
+      "submission_id": "6671248442846778147",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 9": {
       "table": "COMFORT AIR",
@@ -1236,7 +1918,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671248632846879683"
+      "submission_id": "6671248632846879683",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 10": {
       "table": "COMFORT AIR",
@@ -1244,7 +1928,9 @@
       "email": "jim.tanner@canadacleanfuels.com",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671248812844032455"
+      "submission_id": "6671248812844032455",
+      "status": "Submitted",
+      "has_plus_ones": false
     }
   },
   "CAMPANELLA GROUP": {
@@ -1254,7 +1940,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671257112844494581"
+      "submission_id": "6671257112844494581",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 2": {
       "table": "CAMPANELLA GROUP",
@@ -1262,7 +1950,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671257382847296822"
+      "submission_id": "6671257382847296822",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 3": {
       "table": "CAMPANELLA GROUP",
@@ -1270,7 +1960,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671257642846602727"
+      "submission_id": "6671257642846602727",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 4": {
       "table": "CAMPANELLA GROUP",
@@ -1278,7 +1970,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671257772842887122"
+      "submission_id": "6671257772842887122",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 5": {
       "table": "CAMPANELLA GROUP",
@@ -1286,7 +1980,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671257912841172855"
+      "submission_id": "6671257912841172855",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 6": {
       "table": "CAMPANELLA GROUP",
@@ -1294,7 +1990,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671258112843191697"
+      "submission_id": "6671258112843191697",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 7": {
       "table": "CAMPANELLA GROUP",
@@ -1302,7 +2000,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671258262848368649"
+      "submission_id": "6671258262848368649",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 8": {
       "table": "CAMPANELLA GROUP",
@@ -1310,7 +2010,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671258462844328426"
+      "submission_id": "6671258462844328426",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 9": {
       "table": "CAMPANELLA GROUP",
@@ -1318,7 +2020,9 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671258612844054219"
+      "submission_id": "6671258612844054219",
+      "status": "Submitted",
+      "has_plus_ones": false
     },
     "GUEST 10": {
       "table": "CAMPANELLA GROUP",
@@ -1326,7 +2030,247 @@
       "email": "arusso@nubuildinc.ca",
       "plus_one_name": null,
       "paid": false,
-      "submission_id": "6671258812848244610"
+      "submission_id": "6671258812848244610",
+      "status": "Submitted",
+      "has_plus_ones": false
+    }
+  },
+  "Windsor Private Capital": {
+    "Ray Lahoud": {
+      "table": "Windsor Private Capital",
+      "name": "Ray Lahoud",
+      "email": "ray.lahoud@corp.ehtel.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672848552457166715",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Tara Tabot": {
+      "table": "Windsor Private Capital",
+      "name": "Tara Tabot",
+      "email": "tara.talbot@corp.ehtel.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672848852459426067",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Jeff Edward": {
+      "table": "Windsor Private Capital",
+      "name": "Jeff Edward",
+      "email": "jeff.edward@axletelecom.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6672849302459871345",
+      "has_plus_one": true,
+      "status": "Submitted"
+    }
+  },
+  "CANADA CLEAN FUELS": {
+    "GUEST 1": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 1",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673639552843404073",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 2": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 2",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673639782848387868",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 3": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 3",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673639932842607086",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 4": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 4",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640052847477281",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 5": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 5",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640272849661864",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 6": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 6",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640402848490145",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 7": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 7",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640522842726647",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 8": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 8",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640652849311606",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 9": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 9",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640772842580409",
+      "status": "Submitted",
+      "has_plus_ones": false
+    },
+    "GUEST 10": {
+      "table": "CANADA CLEAN FUELS",
+      "name": "GUEST 10",
+      "email": "admin@comfortairsolutions.ca",
+      "plus_one_name": null,
+      "paid": false,
+      "submission_id": "6673640932848420794",
+      "status": "Submitted",
+      "has_plus_ones": false
+    }
+  },
+  "TAMBURO": {
+    "Marc Tamburro": {
+      "table": "TAMBURO",
+      "name": "Marc Tamburro",
+      "email": "mctamburro@gmail.com",
+      "plus_one_name": "Claudia Tamburro",
+      "paid": false,
+      "submission_id": "6677112912847297213",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Sid Tamburro": {
+      "table": "TAMBURO",
+      "name": "Sid Tamburro",
+      "email": "tamburrosid@gmail.com",
+      "plus_one_name": "Alice Tamburro",
+      "paid": false,
+      "submission_id": "6677113462843176648",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Conrad Tamburro": {
+      "table": "TAMBURO",
+      "name": "Conrad Tamburro",
+      "email": "conrad.tamburro@outlook.com",
+      "plus_one_name": "Antonina Tamburro",
+      "paid": false,
+      "submission_id": "6677113972845560620",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Maurizio Conte": {
+      "table": "TAMBURO",
+      "name": "Maurizio Conte",
+      "email": "info@rollinghillscontracting.com",
+      "plus_one_name": "Rosalia Conte",
+      "paid": false,
+      "submission_id": "6677114512849454105",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Frank Giralico": {
+      "table": "TAMBURO",
+      "name": "Frank Giralico",
+      "email": "fgiralico@rogers.com",
+      "plus_one_name": "Carol Giralico",
+      "paid": false,
+      "submission_id": "6677114902844083242",
+      "has_plus_one": true,
+      "status": "Submitted"
+    }
+  },
+  "VILLA": {
+    "Gus Berdeklis": {
+      "table": "VILLA",
+      "name": "Gus Berdeklis",
+      "email": "nadia@villakitchens.ca",
+      "plus_one_name": "Nadia Berdeklis",
+      "paid": false,
+      "submission_id": "6677160702844143391",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Maria Colalillo": {
+      "table": "VILLA",
+      "name": "Maria Colalillo",
+      "email": "nadia@villakitchens.ca",
+      "plus_one_name": "Marcello Colalillo",
+      "paid": false,
+      "submission_id": "6677161112845522406",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Ben Hayhoe": {
+      "table": "VILLA",
+      "name": "Ben Hayhoe",
+      "email": "nadia@villakitchens.ca",
+      "plus_one_name": "Tiziana Hayhoe",
+      "paid": false,
+      "submission_id": "6677161462844477066",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Gina Bahou": {
+      "table": "VILLA",
+      "name": "Gina Bahou",
+      "email": "nadia@villakitchens.ca",
+      "plus_one_name": "Gabe Bahou",
+      "paid": false,
+      "submission_id": "6677161712846447207",
+      "has_plus_one": true,
+      "status": "Submitted"
+    },
+    "Jason Coreau": {
+      "table": "VILLA",
+      "name": "Jason Coreau",
+      "email": "nadia@villakitchens.ca",
+      "plus_one_name": "Diana Coreau",
+      "paid": false,
+      "submission_id": "6677162052846340849",
+      "has_plus_one": true,
+      "status": "Submitted"
     }
   }
 }

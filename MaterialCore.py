@@ -78,6 +78,7 @@ class Material(CoreObj):
         self.qty_received = 0
         self.unique_id = None
         self.borrows = []
+        self.material_allocations = []  # allocations where this object is the parent_material of the allocation
 
         self.indexed_values = self.indexed_values | {
             'item_id': {'title': "Item ID", 'permission': 'edit_material', 'type': 'str'},
@@ -86,9 +87,11 @@ class Material(CoreObj):
             'qty_received': {'title': "Quantity Received", 'permission': 'edit_material', 'type': 'str'},
             'borrows': {'title': "Borrows", 'permission': 'edit_material', 'type': 'list'},
             'unique_id': {'title': "Unique ID", 'permission': 'edit_material', 'type': 'str'},
+            'material_allocations': {'title': "Allocations", 'permission': 'edit_material', 'type': 'list'},
         }
         self.protected_values += [
             'borrows',
+            'allocations',
             'unique_id',
             'qty',
             'qty_received',
@@ -162,6 +165,7 @@ class Site(CoreObj):
         else:
             self.material_counted_in_inventory = True
         self.material_children = []
+        self.material_allocations = []  # allocations where this object is the target of the allocation
         self.site_children = []
 
         self.indexed_values = self.indexed_values | {
@@ -174,12 +178,14 @@ class Site(CoreObj):
             'material_counted_in_inventory': {'title': "Counted In Inventory", 'permission': 'edit_site', 'type': 'str'},
             'material_children': {'title': "Material Children", 'permission': 'edit_site', 'type': 'list'},
             'site_children': {'title': "Site Children", 'permission': 'edit_site', 'type': 'list'},
+            'material_allocations': {'title': "Material Allocations", 'permission': 'edit_site', 'type': 'list'},
             'status': {'title': "Status", 'permission': 'edit_site', 'type': 'str'},
             'destination_site': {'title': "Destination Site", 'permission': 'edit_site', 'type': 'str'},
         }
         self.protected_values += [
             'material_children',
             'site_children',
+            'material_allocations',
             'parent_site_ids'
         ]
 
@@ -312,4 +318,59 @@ class Site(CoreObj):
             except KeyError:
                 return None
         return None
+
+
+class MaterialAllocation(CoreObj):
+    def __init__(self, parent_material=None, target_site=None, qty_allocated=0, save_data=None, **kwargs):
+        super().__init__(save_data=save_data, **kwargs)
+        self.type = 'allocation'
+        self.parent_material = parent_material
+        self.target_site = target_site
+        self.qty_allocated = qty_allocated
+        self.qty_fulfilled = 0
+
+        self.indexed_values = self.indexed_values | {
+            'parent_material': {'title': "Parent Material", 'permission': 'edit_material', 'type': 'str'},
+            'target_site': {'title': "Target Site", 'permission': 'edit_material', 'type': 'str'},
+            'qty_allocated': {'title': "QTY Allocated", 'permission': 'edit_material', 'type': 'str'},
+            'qty_fulfilled': {'title': "QTY Fulfilled", 'permission': 'edit_material', 'type': 'str'},
+        }
+
+        self.protected_values += [
+            'parent_material',
+            'target_site',
+            'qty_allocated',
+            'qty_fulfilled'
+        ]
+
+        if save_data is not None:
+            self.load_from_json(save_data)
+
+    @property
+    def qty_remaining(self):
+        return self.qty_allocated - self.qty_fulfilled
+
+    def set_parent_material(self, material_id):
+        material_obj = self.lookup(material_id)
+        if not isinstance(material_obj, Material):
+            raise TypeError(f"Unable to set allocation parent, provided ID is not a Material object: {material_id}")
+        try:
+            material_obj.material_allocations.index(self.id)
+            raise IndexError("Targeted material object already has this allocation listed.")
+        except TypeError:
+            pass
+        material_obj.material_allocations.append(self.id)
+        self.parent_material = material_obj.id
+
+    def set_target_site(self, site_id):
+        site_obj = self.lookup(site_id)
+        if not isinstance(site_obj, Site):
+            raise TypeError(f"Unable to set allocation parent, provided ID is not a Site object: {site_id}")
+        try:
+            site_obj.material_allocations.index(self.id)
+            raise IndexError("Targeted site object already has this allocation listed.")
+        except TypeError:
+            pass
+        site_obj.material_allocations.append(self.id)
+        self.target_site = site_obj.id
 

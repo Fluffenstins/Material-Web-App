@@ -81,6 +81,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+	cursor: pointer;
 }
 
 /* Logout button */
@@ -121,7 +122,7 @@ body {
     <!-- Right -->
     <div class="topbar-right">
         <div class="user">
-            <div class="user-icon"  onclick="handleButtonUrl('/?obj_id={{user_obj.id}}')">{{user_obj.first_name[0].upper()}}</div>
+            <div class="user-icon" onclick="handleButtonUrl('/?obj_id={{user_obj.id}}')">{{user_obj.first_name[0].upper()}}</div>
             
         </div>
     </div>
@@ -129,4 +130,18 @@ body {
 </div>
 
 </body>
+
+<script>
+
+function handleButtonUrl(action, open_new_window) {
+			if (open_new_window) {
+				window.open(action, '_blank');
+			} else {
+				window.location.href = action
+			}
+        }
+		
+</script>
+
+
 </html>

@@ -109,8 +109,6 @@ class CoreObj:
     def display_attr(self, attr):
         if attr not in self.indexed_values:
             raise KeyError(f"{attr} not listed as an indexed value.")
-        # if attr in self.protected_values:
-        #     raise KeyError(f"{attr} is a protected value.")
         ret = self.__getattribute__(attr)
         try:
             ret = self.lookup(ret).display_name
@@ -118,7 +116,18 @@ class CoreObj:
             pass
         if ret is None:
             ret = ""
+        try:
+            return self.format_date_str(ret)
+        except:
+            pass
         return ret
+
+    def format_date_str(self, date_str):
+        if date_str is None:
+            return
+        date_obj = parser.parse(date_str)
+        date_str = date_obj.strftime(self.date_format)
+        return date_str
 
 
 class Comment(CoreObj):
