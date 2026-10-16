@@ -35,6 +35,7 @@ body {
   font-weight: bold;
   cursor: pointer;
   text-align: center;
+  margin-top: 20px;
 }
 
 .label {
@@ -160,7 +161,9 @@ input {
 		
 	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
 	<div class="success-message" id="receive_success">Edit successful.</div>
+	<div class="submit-btn" id="submit_button" onclick="submitSingleCheckin()">Check In Only 1</div>
 	<div class="submit-btn" id="submit_button" onclick="submitUpdate()">Check In</div>
+	<div class="submit-btn" id="submit_button" onclick="submitCheckout()">Check Out</div>
     </div>
 
 </div>
@@ -174,6 +177,46 @@ async function submitUpdate() {
 	const data = {
 		'submission_id': "{{submission['submission_id']}}",
 		'data': {'status': 'Checked In'}
+	};
+	let ret = await patch_request("/api/galaEntryUpdate", data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Update successful!");
+	}
+	
+	console.log(response_data);
+}	
+
+
+async function submitSingleCheckin() {
+	
+	const data = {
+		'submission_id': "{{submission['submission_id']}}",
+		'data': {'status': 'Partially Checked In'}
+	};
+	let ret = await patch_request("/api/galaEntryUpdate", data);
+	let response_data = await ret.json();
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Update successful!");
+	}
+	
+	console.log(response_data);
+}	
+
+
+async function submitCheckout() {
+	
+	const data = {
+		'submission_id': "{{submission['submission_id']}}",
+		'data': {'status': 'Checked Out'}
 	};
 	let ret = await patch_request("/api/galaEntryUpdate", data);
 	let response_data = await ret.json();

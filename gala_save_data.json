@@ -7,7 +7,7 @@
       "plus_one_name": null,
       "paid": false,
       "submission_id": "6647926422842720960",
-      "status": "Submitted",
+      "status": "Checked Out",
       "has_plus_ones": false
     },
     "Alexander Russo": {
@@ -18,7 +18,7 @@
       "paid": false,
       "submission_id": "6649420232845101766",
       "has_plus_one": true,
-      "status": "Submitted"
+      "status": "Checked Out"
     },
     "Marianne Iozzo": {
       "table": "tableless",

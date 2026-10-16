@@ -103,16 +103,6 @@ input {
 	  flex-direction: column;
 	}
 }
-
-.field {
-  margin-bottom: 12px;
-}
-
-.value {
-  font-size: 18px;
-  font-weight: bold;
-}
-
 	
 .page-header {
     text-align: center;
@@ -131,6 +121,20 @@ input {
     font-size: 1.1rem;
     color: #64748b;
 }
+
+.field {
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 14px;
+  color: #666;
+}
+
+.value {
+  font-size: 18px;
+  font-weight: bold;
+}
 		
 </style>
 </head>
@@ -144,6 +148,35 @@ input {
 </div>
 <div class="container">
 
+	<div class="card">
+	
+		<div class="flex-container">
+		<div class="column">
+		  
+			<div class="field">
+				<div class="label">Checked In</div>
+				<div class="value">{{checked_in_total}}</div>
+			</div>
+		  
+			<div class="field">
+				<div class="label">Remaining</div>
+				<div class="value">{{remaining_total}}</div>
+			</div>
+		</div>
+		<div class="column">
+		  
+			<div class="field">
+				<div class="label">Partially Checked In</div>
+				<div class="value">{{partially_checked_in_total}}</div>
+			</div>
+		  
+			<div class="field">
+				<div class="label">Checked Out</div>
+				<div class="value">{{checked_out_total}}</div>
+			</div>
+		</div>
+		</div>
+	</div>
 	<div class="card">
 		{% set table_id, table_data = "table_1", tickets %}
 		{% include "SearchableSubitemsTable.html" %}

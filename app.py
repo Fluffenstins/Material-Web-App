@@ -2570,6 +2570,11 @@ def gala_list():
     except AttributeError:
         user_obj = None
 
+    checked_in_total = 0
+    remaining_total = 0
+    partially_checked_in_total = 0
+    checked_out_total = 0
+
     columns = ('Name', 'Email', 'Plus One', 'Has a Plus One', 'Table', 'Status')
     table = AppTableData('Gala Submissions', columns=columns)
     for _, table_group in truth_dict.items():
@@ -2587,6 +2592,22 @@ def gala_list():
             except KeyError:
                 has_plus_one = False
 
+            attendees = 1
+            if has_plus_one:
+                attendees += 1
+            total_checked_in = 0
+            match status:
+                case 'Checked In':
+                    total_checked_in += attendees
+                case 'Partially Checked In':
+                    total_checked_in += 1
+                    partially_checked_in_total += 1
+                case 'Checked Out':
+                    checked_out_total += attendees
+
+            checked_in_total += total_checked_in
+            remaining_total += attendees - total_checked_in
+
             row = [name, email, plus_one_name, has_plus_one, table_name, status]
             table.add_row(row, row_link=f"/gala/entry?id={submission['submission_id']}")
 
@@ -2595,7 +2616,11 @@ def gala_list():
         user_obj=user_obj,
         tickets=table,
         current_tab="Gala List",
-        header_options=list_header_options(user_obj.id)
+        header_options=list_header_options(user_obj.id),
+        checked_in_total=checked_in_total,
+        remaining_total=remaining_total,
+        partially_checked_in_total=partially_checked_in_total,
+        checked_out_total=checked_out_total,
     )
 
 

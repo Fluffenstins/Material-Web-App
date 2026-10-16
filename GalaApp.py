@@ -358,9 +358,15 @@ def set_all_statuses():
             data = {'status': 'Submitted'}
             if 'has_plus_one' not in submission:
                 data['has_plus_ones'] = False
-            ret = requests.patch('http://192.168.2.71:5000/api/galaEntryUpdate',
+            ret = requests.patch('https://nubuildapp.ca/api/galaEntryUpdate',
                                  json={'submission_id': submission['submission_id'], 'data': data})
             print(ret.content)
+
+def set_one_statuses():
+    data = {'status': 'Submitted'}
+    ret = requests.patch('https://nubuildapp.ca/api/galaEntryUpdate',
+                         json={'submission_id': '6647926422842720960', 'data': data})
+    print(ret.content)
 
 
 if __name__ == '__main__':
