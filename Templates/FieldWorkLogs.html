@@ -103,6 +103,16 @@ input {
 	  flex-direction: column;
 	}
 }
+
+.error-message {
+  font-size: 14px;
+  color: #ff0000;
+}
+
+.success-message {
+  font-size: 14px;
+  color: #00ff00;
+}
 		
 </style>
 </head>
@@ -136,7 +146,9 @@ input {
 	<div class="label">Comments</div>
 	<textarea class="long-input" id="comments-input"></textarea>
 	
-	<div class="submit-btn" id="submit_button" onclick="submitLogin()">Submit</div>
+	<div class="error-message" id="receive_error">Please make sure all inputs are filled.</div>
+	<div class="success-message" id="receive_success">Edit successful.</div>
+	<div class="submit-btn" id="submit_button" onclick="submitWorkLog()">Submit</div>
 
 </div>
 
@@ -147,11 +159,15 @@ const service_id_input = document.getElementById("possible_services_selectedEmpl
 const remaining_input = document.getElementById("remaining_input");
 const service_dict = {{service_dict | safe}};
 
+let selected_service_id = null;
+
 
 service_id_input.addEventListener('input', function(event) {
     // Both of these lines do the same thing: get the current value
 	let item_id = event.target.value;
 	let remaining_qty = service_dict[item_id]['remaining'];
+	
+	selected_service_id = item_id;
 	
 	if (remaining_qty == null) {
 		remaining_input.textContent = "N/A";
@@ -159,6 +175,72 @@ service_id_input.addEventListener('input', function(event) {
 		remaining_input.textContent = service_dict[item_id]['remaining'];
 	}
 });
+
+
+function display_generic_error(error_text) {
+  const error_elem = document.getElementById("receive_error");
+  error_elem.textContent = error_text;
+  error_elem.style.display = "";
+  
+  hide_all_successes();
+}
+
+function display_generic_success(success_text) {
+  const success_elem = document.getElementById("receive_success");
+  success_elem.textContent = success_text;
+  success_elem.style.display = "";
+  
+  hide_all_errors();
+}
+	
+async function submitWorkLog() {
+	const qty_input = document.getElementById("qty-input");
+	const comments_input = document.getElementById("comments-input");
+
+	const qty = qty_input.value;
+	const comments = comments_input.value;
+	const data = {
+		"project_id": "{{project_obj.st_id}}",
+		"service_id": selected_service_id,
+		"qty": qty,
+		"comments": comments
+	};
+	console.log("Sending request");
+	let ret = await patch_request("/api/submitWorkLog", data);
+	let response_data = await ret.json();
+	console.log("Request received");
+	
+	if (!ret.ok) {
+		console.log("Displaying error " + response_data['error']);
+		display_generic_error(response_data['error']);
+	} else {
+		display_generic_success("Submission successful!");
+	}
+	
+	console.log(response_data);
+}
+
+{% include "Request.js" %}
+
+  
+function hide_all_errors() {
+error_elems = document.getElementsByClassName("error-message");
+for (i = 0; i < error_elems.length; i++) {
+	a = error_elems[i];
+	a.style.display = "none";
+}
+}
+  
+function hide_all_successes() {
+error_elems = document.getElementsByClassName("success-message");
+for (i = 0; i < error_elems.length; i++) {
+	a = error_elems[i];
+	a.style.display = "none";
+}
+}
+
+hide_all_errors();
+hide_all_successes();
 
 </script>
 

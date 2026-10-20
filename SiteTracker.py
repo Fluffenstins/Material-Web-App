@@ -1,6 +1,8 @@
 import json
 import requests
 from datetime import datetime, timedelta, timezone
+import threading
+from functools import partial
 
 
 class SiteTrackerDrive:
@@ -23,7 +25,7 @@ class SiteTrackerDrive:
     @staticmethod
     def time_to_str(datetime_obj, include_time=True):
         if include_time:
-            return datetime_obj.isoformat()
+            return datetime_obj.isoformat()[:19]  # gets rid of time zone changes and decimal seconds
         else:
             return datetime_obj.strftime('%Y-%m-%d')
 
@@ -191,6 +193,10 @@ class SiteTrackerDrive:
         ret = self.post(f'sobjects/{object_id}', data=data_dict)
         return ret.json()
 
+    def async_create_record(self, object_id, data_dict):
+        thread = threading.Thread(target=partial(self.create_record, object_id=object_id, data_dict=data_dict))
+        thread.start()
+
     def download_content_document(self, content_document_id, save_path=None):
         """
         :param content_document_id:
@@ -301,6 +307,9 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         for allocation in allocations:
             ret[allocation['Project__r']['NuBuild_Project_ID__c']] = allocation['Project__r']
 
+        print(json.dumps(ret, indent=1))
+
+        print(f"Allocations: {len(ret)}")
         return ret
 
     def list_my_resource_ids(self, user_resource_record_id):
@@ -324,12 +333,15 @@ class SiteTrackerExplorer(SiteTrackerDrive):
 
         keys = [
             'Project__c',
+            'Project__r.Id',
             'Project__r.NuBuild_Project_ID__c',
             'sitetracker__Item__c',
             # 'sitetracker__Item__r.sitetracker__Description__c',
             'sitetracker__Total_Planned_Amount__c',
             'Mobile_Allocation_Summary__c',
-            'NB_Non_Rejected_Work_Log_Qty__c'
+            'NB_Non_Rejected_Work_Log_Qty__c',
+            'sitetracker__Planned_Resource__c',
+            'sitetracker__Production_Plan_Line__c'
         ]
 
         allocations = self.list_records(
@@ -375,7 +387,58 @@ class SiteTrackerExplorer(SiteTrackerDrive):
             }
         )
 
+        return ret
+
+    def create_work_log(self, project_id, service_id, resource_id, qty, comments):
+        project_id = project_id
+        item_id = service_id
+        resource_id = resource_id
+        qty = qty
+        comments = comments
+
+        start_date = self.now(return_string=True)
+        end_date = self.now(return_string=True)
+        print(start_date)
+        print(end_date)
+
+        # get the resource_id for the allocated resource
+        my_allocations = self.list_my_allocations(resource_id)
+        potential_allocations = [i for i in my_allocations if i['Project__c'] == project_id and i['sitetracker__Item__c'] == item_id]
+
+        if len(potential_allocations) == 0:
+            raise IndexError(f"Unable to find an allocation for the given person ({resource_id}), project ({project_id}), and item ({item_id}).")
+
+        # if there are multiple allocation matches, default to the user, if not, pick the first matching crew
+        try:
+            selected_allocation_record = [i for i in potential_allocations if i['sitetracker__Planned_Resource__c'] == resource_id][0]
+        except IndexError:
+            selected_allocation_record = potential_allocations[0]
+
+        selected_resource_id = selected_allocation_record['sitetracker__Planned_Resource__c']
+
+        print(f"Allocation: {json.dumps(selected_allocation_record, indent=1)}")
+
+        data_dict = {
+                'sitetracker__Actual_Resource__c': selected_resource_id,
+                'sitetracker__Item__c': item_id,
+                'sitetracker__Project__c': project_id,
+                'sitetracker__Comments__c': comments,
+                'sitetracker__Quantity__c': qty,
+                'sitetracker__Production_Line_Allocation__c': selected_allocation_record['Id'],
+                'sitetracker__st_Production_Plan_Line__c': selected_allocation_record['sitetracker__Production_Plan_Line__c'],
+                'sitetracker__Start_Date__c': start_date,
+                'sitetracker__End_Date__c': end_date,
+                'sitetracker__Status__c': 'Submitted'
+            }
+        print(json.dumps(data_dict, indent=1))
+        ret = self.async_create_record(
+            object_id='sitetracker__Production_Work_Log__c',
+            data_dict=data_dict
+        )
+
+        print(f"create_work_log output:")
         print(ret)
+        return ret
 
 
 if __name__ == '__main__':

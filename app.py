@@ -156,6 +156,11 @@ def list_header_options(user_id):
     return header_permission_pairs
 
 
+def find_user_sitetracker_record(user_obj):
+    ret = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    return ret
+
+
 @app.before_request
 def check_maintenance_mode():
 
@@ -2210,7 +2215,7 @@ def api_finalize_time_entry():
             "error": f"Couldn't find targeted user."
         }), 400
     try:
-        sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(target_obj.display_name)
+        sitetracker_resource = find_user_sitetracker_record(target_obj)
     except KeyError:
         return redirect(f"/user?user_id={user_obj.id}")
     resource_st_id = sitetracker_resource['Id']
@@ -2220,8 +2225,8 @@ def api_finalize_time_entry():
     SITETRACKER_EXPLORER.create_time_entry(
         project_id=project_st_id,
         resource_id=resource_st_id,
-        time_start=time_start,
-        time_end=time_end
+        work_start=time_start,
+        work_end=time_end
     )
 
     ret = MATERIAL_APP.patch_time_entry(
@@ -2233,6 +2238,38 @@ def api_finalize_time_entry():
     return jsonify({
         "message": "Time entry submitted!",
         "data": {"id": ret.id}
+    }), 200
+
+
+@app.route('/api/submitWorkLog', methods=['PATCH'])
+@permission_required(['edit_work_log', 'edit_all', 'submit_work_log'])
+def api_submit_work_log():
+    data = request.get_json()
+    project_id = data.get('project_id')
+    service_id = data.get('service_id')
+    qty = data.get('qty')
+    comments = data.get('comments')
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    resource_id = find_user_sitetracker_record(user_obj)['Id']
+
+    try:
+        ret = SITETRACKER_EXPLORER.create_work_log(
+            project_id=project_id,
+            resource_id=resource_id,
+            service_id=service_id,
+            qty=qty,
+            comments=comments
+        )
+    except Exception as e:
+        return jsonify({
+            "message": "Work log entry unable to be created.",
+            "data": {"id": None, "response": str(e)}
+        }), 400
+
+    return jsonify({
+        "message": "Work log submitted!",
+        "data": {}
     }), 200
 
 
@@ -2694,7 +2731,7 @@ def field_home_url():
         user_obj = None
 
     try:
-        sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+        sitetracker_resource = find_user_sitetracker_record(user_obj)
     except KeyError:
         return redirect(f"/user?user_id={user_obj.id}")
     sitetracker_resource_id = sitetracker_resource['Id']
@@ -2703,8 +2740,10 @@ def field_home_url():
         user_resource_record_id=sitetracker_resource_id
     )
     nb_ids = [nb for nb, project in sitetracker_projects.items()]
-    projects = [MATERIAL_APP.find_project(nb) for nb in nb_ids]
+    projects = [MATERIAL_APP.find_project(project['Id']) for nb, project in sitetracker_projects.items()]
     projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
+
+    print(f"these are my projects: {projects}")
 
     my_projects = ProjectTableData(projects)
 
@@ -2794,7 +2833,7 @@ def field_time_entry_url():
 
     time_entry_obj = MATERIAL_APP.lookup(time_entry_id)
 
-    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    sitetracker_resource = find_user_sitetracker_record(user_obj)
     sitetracker_resource_id = sitetracker_resource['Id']
 
     my_projects = SITETRACKER_EXPLORER.list_my_projects(
@@ -2863,6 +2902,7 @@ def field_work_logs_url():
 
     return render_template(
         "FieldWorkLogs.html",
+        project_obj=project_obj,
         service_dict=json.dumps(service_dict),
         possible_services=possible_services,
         current_tab="Log Work",

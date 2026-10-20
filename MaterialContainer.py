@@ -248,14 +248,13 @@ class CoreMaterialManager:
                 return item.get_item()
 
     def find_user(self, user_str):
-        user_str = user_str.replace(" - Training", "")
-
         if user_str is None:
             return None
         try:
             return self.users[user_str]
         except KeyError:
             pass
+        user_str = user_str.replace(" - Training", "")
 
         def simplify_str(text):
             text = text.lower()
