@@ -899,18 +899,21 @@ def locations_directory_url():
 @permission_required(['read_contractor', 'read_site', 'edit_site', 'read_all', 'edit_all'])
 def contractor_sites_directory_url():
 
-    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'contractor' and len(val.parent_site_ids) == 0]
-    site_objs = sorted(site_objs, key=lambda x: x['text'])
+    # site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items()]
+    # site_objs = sorted(site_objs, key=lambda x: x['text'])
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
         user_obj = None
 
+    site_objs = [i for _, i in MATERIAL_APP.sites.items() if i.site_type == 'contractor' and len(i.parent_site_ids) == 0]
+    site_table = SiteTableData(site_objs)
+
     return render_template(
         "SitesDirectory.html",
         current_tab="Contractors",
-        site_objs=site_objs,
+        site_table=site_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
