@@ -2183,13 +2183,46 @@ def api_finalize_time_entry():
             "error": f"User \"{user_obj}\" not found."
         }), 404
 
+    try:
+        time_entry_obj = MATERIAL_APP.lookup(time_entry_id)
+    except KeyError:
+        return jsonify({
+            "error": f"Time Entry \"{time_entry_id}\" not found."
+        }), 404
+
+    if not isinstance(time_entry_obj, TimeEntry):
+        return jsonify({
+            "error": f"Object found is not a TimeEntry, it is a \"{type(time_entry_obj)}\"."
+        }), 400
+
     data = {
         'status': 'Submitted'
     }
 
     # create a time entry in SiteTracker
+    # SITETRACKER_EXPLORER.create_record()
+    project_st_id = MATERIAL_APP.lookup(time_entry_obj.project).st_id
 
+    try:
+        target_obj = MATERIAL_APP.lookup(time_entry_obj.target)
+    except KeyError:
+        return jsonify({
+            "error": f"Couldn't find targeted user."
+        }), 400
+    try:
+        sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(target_obj.display_name)
+    except KeyError:
+        return redirect(f"/user?user_id={user_obj.id}")
+    resource_st_id = sitetracker_resource['Id']
 
+    time_start = time_entry_obj.work_start
+    time_end = time_entry_obj.work_end
+    SITETRACKER_EXPLORER.create_time_entry(
+        project_id=project_st_id,
+        resource_id=resource_st_id,
+        time_start=time_start,
+        time_end=time_end
+    )
 
     ret = MATERIAL_APP.patch_time_entry(
         time_entry_id=time_entry_id,

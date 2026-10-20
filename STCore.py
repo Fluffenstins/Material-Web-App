@@ -75,7 +75,7 @@ class TimeEntry(CoreObj):
         self.project = project
         self.work_start = work_start
         self.work_end = work_end
-        self.
+        self.st_id = None
 
         self.indexed_values = self.indexed_values | {
             'status': {'title': "Status", 'permission': 'edit_time_entry', 'type': 'str'},
@@ -86,7 +86,8 @@ class TimeEntry(CoreObj):
             'notes': {'title': "Notes", 'permission': 'edit_time_entry', 'type': 'str'},
             'project': {'title': "Project", 'permission': 'edit_time_entry', 'type': 'str'},
             'work_start': {'title': "Work Start Datetime", 'permission': 'edit_time_entry', 'type': 'str'},
-            'work_end': {'title': "Work End Datetime", 'permission': 'edit_time_entry', 'type': 'str'}
+            'work_end': {'title': "Work End Datetime", 'permission': 'edit_time_entry', 'type': 'str'},
+            'st_id': {'title': "Site Tracker Record ID", 'permission': 'edit_time_entry', 'type': 'str'}
         }
         self.protected_values += [
         ]

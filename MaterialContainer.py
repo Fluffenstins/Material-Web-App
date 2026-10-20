@@ -248,6 +248,8 @@ class CoreMaterialManager:
                 return item.get_item()
 
     def find_user(self, user_str):
+        user_str = user_str.replace(" - Training", "")
+
         if user_str is None:
             return None
         try:

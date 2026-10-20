@@ -363,6 +363,34 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         )
         return items
 
+    def create_time_entry(self, project_id, resource_id, work_start, work_end):
+        ret = self.create_record(
+            object_id='NuBuild_Time_Entry__c',
+            data_dict={
+                'Resource__c': resource_id,
+                'Project__c': project_id,
+                'Work_Start__c': work_start,
+                'Work_End__c': work_end,
+                'Status__c': "Submitted"
+            }
+        )
+
+        print(ret)
+
 
 if __name__ == '__main__':
-    pass
+    print("Testing creating a time entry")
+    project_id_test = 'a21OH000000erYfYAI'
+    resource_id_test = 'a2lOH000000Bj6fYAC'
+    # a21OH000000dfg1YAA
+    # a2lOH000000Bj6fYAC
+    # 2026-10-20T10:23
+    # 2026-10-20T02:23
+
+    explorer = SiteTrackerExplorer()
+    explorer.create_time_entry(
+        project_id=project_id_test,
+        resource_id=resource_id_test,
+        work_start='2026-10-20T10:23',
+        work_end='2026-10-20T02:23'
+    )
