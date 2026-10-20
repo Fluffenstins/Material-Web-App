@@ -309,6 +309,7 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         # include any resources that are crews that the user is a part of
         crew_resources = self.list_my_crew_resources(user_resource_record_id)
         possible_resources += [i['sitetracker__Crew__c'] for i in crew_resources]
+        print(f"My resources: {possible_resources}")
         return possible_resources
 
     def list_my_allocations(self, user_resource_record_id, project_record_id=None):

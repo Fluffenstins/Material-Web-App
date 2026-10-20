@@ -59,8 +59,8 @@ class CoreMaterialManager:
 
     def make_backup(self):
         save_path = "savedata_backup.zip"
-        files_to_zip = os.listdir('SaveData')
-        paths_to_zip = [f"SaveData/{i}" for i in files_to_zip if i[:-5].lower() == '.json']
+        files_to_zip = os.listdir("SaveData")
+        paths_to_zip = [f"SaveData/{i}" for i in files_to_zip if i[-5:].lower() == '.json']
         with zipfile.ZipFile(save_path, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
             for file in paths_to_zip:
                 zipf.write(file)

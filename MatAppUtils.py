@@ -52,13 +52,13 @@ class ItemTableData(AppTableData):
 
 
 class SiteTableData(AppTableData):
-    def __init__(self, catalogue_item_list):
-        table_name = 'Item'
-        columns = ('Item ID', 'Shorthand', 'MPN', 'Description')
+    def __init__(self, site_list):
+        table_name = 'Site'
+        columns = ("ID", "Address", "Path")
         super().__init__(table_name=table_name, columns=columns)
-        for catalogue_item in catalogue_item_list:
-            row = [catalogue_item.item_id, catalogue_item.shorthand, catalogue_item.mpn, catalogue_item.description]
-            self.add_row(row, row_link=f'/?obj_id={catalogue_item.id}')
+        for site in site_list:
+            row = [site.site_id, site.address, site.path]
+            self.add_row(row, row_link=f'/?obj_id={site.id}')
 
 
 class ActionTableData(AppTableData):

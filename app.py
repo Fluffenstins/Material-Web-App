@@ -11,7 +11,10 @@ from STCore import TimeEntry
 from functools import wraps
 import bcrypt
 
-from MatAppUtils import AppTableData, MaterialTableData, ItemTableData, ActionTableData, ProjectTableData, TimeEntryTableData, FileTableData, STFileTableData
+from MatAppUtils import AppTableData, MaterialTableData, \
+    ItemTableData, ActionTableData, ProjectTableData, \
+    TimeEntryTableData, FileTableData, STFileTableData, \
+    SiteTableData
 
 from SiteTracker import SiteTrackerExplorer
 from GraphAPI import MSDrive
@@ -846,18 +849,21 @@ def transfer_material_page():
 @permission_required(['read_site', 'read_all', 'edit_site', 'edit_all'])
 def sites_directory_url():
 
-    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items()]
-    site_objs = sorted(site_objs, key=lambda x: x['text'])
+    # site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items()]
+    # site_objs = sorted(site_objs, key=lambda x: x['text'])
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
         user_obj = None
 
+    site_objs = [i for _, i in MATERIAL_APP.sites.items()]
+    site_table = SiteTableData(site_objs)
+
     return render_template(
         "SitesDirectory.html",
         current_tab="Sites",
-        site_objs=site_objs,
+        site_table=site_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
@@ -868,18 +874,21 @@ def sites_directory_url():
 @permission_required(['read_location', 'read_site', 'edit_site', 'read_all', 'edit_all'])
 def locations_directory_url():
 
-    site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location' and len(val.parent_site_ids) == 0]
-    site_objs = sorted(site_objs, key=lambda x: x['text'])
+    # site_objs = [{'id': key, 'text': val.path} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'location' and len(val.parent_site_ids) == 0]
+    # site_objs = sorted(site_objs, key=lambda x: x['text'])
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
         user_obj = None
 
+    site_objs = [i for _, i in MATERIAL_APP.sites.items() if i.site_type == 'location' and len(i.parent_site_ids) == 0]
+    site_table = SiteTableData(site_objs)
+
     return render_template(
         "SitesDirectory.html",
         current_tab="Locations",
-        site_objs=site_objs,
+        site_table=site_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
@@ -956,18 +965,21 @@ def fleet_sites_directory_url():
 @permission_required(['read_project', 'read_site', 'edit_site', 'read_all', 'edit_all'])
 def projects_directory_url():
 
-    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'project']
-    site_objs = sorted(site_objs, key=lambda x: x['text'])
+    # site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'project']
+    # site_objs = sorted(site_objs, key=lambda x: x['text'])
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
         user_obj = None
 
+    site_objs = [i for _, i in MATERIAL_APP.sites.items() if i.site_type == 'project']
+    site_table = SiteTableData(site_objs)
+
     return render_template(
         "SitesDirectory.html",
         current_tab="Projects",
-        site_objs=site_objs,
+        site_table=site_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
@@ -2353,11 +2365,12 @@ def api_gala_entry_update():
 @app.route('/api/dbBackup', methods=['GET'])
 def api_db_backup():
     path = MATERIAL_APP.make_backup()
-    save_name = path[:path.find('.zip')]
+    # print(path)
+    # save_name = path[:path.find('.zip')]
     return send_file(
         path,
         as_attachment=True,
-        download_name=save_name,
+        download_name=path,
     )
 
 
