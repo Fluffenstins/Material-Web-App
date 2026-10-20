@@ -262,7 +262,7 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         possible_resources = self.list_records(
             object_id='sitetracker__Timesheet_User__c',
             keys=['name'],
-            filters=[f'Name = \'{name}\'']
+            filters=[f'Name = \'{name}\' OR Name = \'{name} - Training\'']
         )
         if len(possible_resources) == 1:
             return possible_resources[0]

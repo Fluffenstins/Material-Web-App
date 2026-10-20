@@ -1105,18 +1105,18 @@ def set_maintenance_url():
 @permission_required(['read_stage', 'read_site', 'edit_site', 'edit_all', 'read_all'])
 def stages_directory_url():
 
-    site_objs = [{'id': key, 'text': val.site_id} for key, val in MATERIAL_APP.sites.items() if val.site_type == 'intermediate']
-    site_objs = sorted(site_objs, key=lambda x: x['text'])
-
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
     except AttributeError:
         user_obj = None
 
+    site_objs = [i for _, i in MATERIAL_APP.sites.items() if i.site_type == 'intermediate']
+    site_table = SiteTableData(site_objs)
+
     return render_template(
         "SitesDirectory.html",
         current_tab="Stages",
-        site_objs=site_objs,
+        site_table=site_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
