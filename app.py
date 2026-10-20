@@ -2186,14 +2186,16 @@ def api_finalize_time_entry():
     data = {
         'status': 'Submitted'
     }
-    print(time_entry_id)
+
+    # create a time entry in SiteTracker
+
+
+
     ret = MATERIAL_APP.patch_time_entry(
         time_entry_id=time_entry_id,
         user_id=user_obj.id,
         data=data
     )
-
-    print(ret)
 
     return jsonify({
         "message": "Time entry submitted!",

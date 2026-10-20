@@ -68,20 +68,21 @@ class TimeEntry(CoreObj):
         super().__init__(save_data=save_data, **kwargs)
         self.status = status
         self.target = target
-        self.asset_cost = asset_cost
-        self.vehicle_cost = vehicle_cost
-        self.hourly_rate = hourly_rate
+        # self.asset_cost = asset_cost
+        # self.vehicle_cost = vehicle_cost
+        # self.hourly_rate = hourly_rate
         self.notes = notes
         self.project = project
         self.work_start = work_start
         self.work_end = work_end
+        self.
 
         self.indexed_values = self.indexed_values | {
             'status': {'title': "Status", 'permission': 'edit_time_entry', 'type': 'str'},
             'target': {'title': "Target User", 'permission': 'edit_time_entry', 'type': 'str'},
-            'asset_cost': {'title': "Associated Asset Cost", 'permission': 'edit_time_entry', 'type': 'int'},
-            'vehicle_cost': {'title': "Associated Vehicle Cost", 'permission': 'edit_time_entry', 'type': 'int'},
-            'hourly_rate': {'title': "User Hourly Rate", 'permission': 'edit_time_entry', 'type': 'int'},
+            # 'asset_cost': {'title': "Associated Asset Cost", 'permission': 'edit_time_entry', 'type': 'int'},
+            # 'vehicle_cost': {'title': "Associated Vehicle Cost", 'permission': 'edit_time_entry', 'type': 'int'},
+            # 'hourly_rate': {'title': "User Hourly Rate", 'permission': 'edit_time_entry', 'type': 'int'},
             'notes': {'title': "Notes", 'permission': 'edit_time_entry', 'type': 'str'},
             'project': {'title': "Project", 'permission': 'edit_time_entry', 'type': 'str'},
             'work_start': {'title': "Work Start Datetime", 'permission': 'edit_time_entry', 'type': 'str'},
