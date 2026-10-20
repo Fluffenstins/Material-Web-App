@@ -2658,7 +2658,10 @@ def field_home_url():
     except AttributeError:
         user_obj = None
 
-    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    try:
+        sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    except KeyError:
+        return redirect(f"/user?user_id={user_obj.id}")
     sitetracker_resource_id = sitetracker_resource['Id']
 
     sitetracker_projects = SITETRACKER_EXPLORER.list_my_projects(
