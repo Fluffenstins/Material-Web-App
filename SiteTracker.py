@@ -379,18 +379,4 @@ class SiteTrackerExplorer(SiteTrackerDrive):
 
 
 if __name__ == '__main__':
-    print("Testing creating a time entry")
-    project_id_test = 'a21OH000000erYfYAI'
-    resource_id_test = 'a2lOH000000Bj6fYAC'
-    # a21OH000000dfg1YAA
-    # a2lOH000000Bj6fYAC
-    # 2026-10-20T10:23
-    # 2026-10-20T02:23
-
-    explorer = SiteTrackerExplorer()
-    explorer.create_time_entry(
-        project_id=project_id_test,
-        resource_id=resource_id_test,
-        work_start='2026-10-20T10:23',
-        work_end='2026-10-20T02:23'
-    )
+    pass

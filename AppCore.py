@@ -233,6 +233,22 @@ class Action(CoreObj):
                 except:
                     pass
                 return f"Site value {attr_str} updated to {val}"
+            case "patch_time_entry":
+                max_word_count = 2
+                patched_attributes = [f"{i[5:]}" for i in output if i[:5] == 'prev_']
+                if len(patched_attributes) == 0:
+                    return f"Time Entry values update attempt"
+                if len(patched_attributes) > max_word_count:
+                    patched_attributes = patched_attributes[:2]
+                    attr_str = ', '.join(patched_attributes)
+                    return f"Time Entry values {attr_str}, updated"
+                attr_str = patched_attributes[0]
+                val = data['data'][attr_str]
+                try:
+                    val = self.lookup(val).display_name
+                except:
+                    pass
+                return f"Time Entry value {attr_str} updated to {val}"
             case "patch_item":
                 max_word_count = 2
                 patched_attributes = [f"{i[5:]}" for i in output if i[:5] == 'prev_']
@@ -258,12 +274,13 @@ class Action(CoreObj):
             case "add_user_role":
                 return f"Added role \"{output['role_id']}\" to user \"{output['target_user_id']}\""
             case "add_role_permission":
-                print(output)
                 return f"Added permission \"{data['permission']}\" to role \"{output['role_id']}\""
             case "remove_role_permission":
                 return f"Removed permission \"{data['permission']}\" from role \"{output['role_id']}\""
             case "remove_site_parent":
                 return f"Removed parent site \"{output['parent_site_id']}\""
+            case "remove_user_role":
+                return f"Removed role \"{output['role_id']}\" from \"{output['user_id']}\""
             case _:
                 print(f"no procedure for {self.action_type}")
                 print(self.data)

@@ -723,7 +723,7 @@ class CoreMaterialManager:
 
         role_obj.add_action(action)
         target_user_obj.add_action(action)
-        if user_obj is not None:
+        if user_obj is not None and user_obj.id != target_user_obj.id:
             user_obj.add_action(action)
 
         action.add_output('target_user_id', target_user_obj.id)
@@ -749,7 +749,8 @@ class CoreMaterialManager:
 
         role_obj.add_action(action)
         target_user_obj.add_action(action)
-        user_obj.add_action(action)
+        if user_obj.id != target_user_obj.id:
+            user_obj.add_action(action)
 
         action.add_output('target_user_id', target_user_obj.id)
         action.add_output('role_id', role_obj.id)
