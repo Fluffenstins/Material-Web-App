@@ -213,7 +213,7 @@ class CoreMaterialManager:
                 return obj
         except KeyError:
             pass
-
+        print(f"Finding project {project_id}")
         def simplify_str(text):
             text = text.lower()
             for i in ' \t\n\xa0':

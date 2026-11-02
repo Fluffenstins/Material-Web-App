@@ -2,13 +2,16 @@ from SiteTracker import SiteTrackerExplorer
 from MaterialContainer import CoreMaterialManager
 
 
-def ensure_st_projects():
+def ensure_st_projects(mt_container=None):
     st_explorer = SiteTrackerExplorer()
-    mt_container = CoreMaterialManager()
-    mt_container.save_after_action = False
-    mt_container.load_json()
 
-    projects = st_explorer.list_records(
+    if mt_container is None:
+        mt_container = CoreMaterialManager()
+        mt_container.load_json()
+    save_after_action = mt_container.save_after_action
+    mt_container.save_after_action = False
+
+    st_explorer.list_records(
         'sitetracker__Project__c',
         keys=[
             'sitetracker__Project_Status__c',
@@ -19,6 +22,8 @@ def ensure_st_projects():
             'Project_Name__c'
         ]
     )
+
+    projects = st_explorer.values
 
     for project in projects:
         nb_id = project['NuBuild_Project_ID__c']
@@ -32,6 +37,7 @@ def ensure_st_projects():
             customer_id = project['Project_Name__c']
 
         existing_project = mt_container.find_project(nb_id)
+        print(nb_id, st_id, location)
         if existing_project is None:
             mt_container.create_project(
                 status=status,
@@ -45,6 +51,7 @@ def ensure_st_projects():
             pass
 
     mt_container.save_json()
+    mt_container.save_after_action = save_after_action
 
 
 if __name__ == '__main__':

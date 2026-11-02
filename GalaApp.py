@@ -7,6 +7,7 @@ import requests
 import threading
 from functools import partial
 from datetime import datetime, timedelta
+import time
 
 
 GRAPH_DRIVE = MSDrive()
@@ -134,31 +135,71 @@ class GalaEmailer:
     #     ret = sorted(ret)
     #     return ret
 
-    def send_email(self, attendee, subject, pdf_path=None):
+#     def send_email(self, attendee, subject, pdf_path=None):
+#
+#         # generate_gala_qr_code(provided_name=attendee['name'], submission_id=attendee['submission_id'])
+#         attachments = [
+#             # {'name': 'Reminder.png', 'path': pdf_path},
+#             # {'name': 'QRCode.png', 'path': 'label.png'}
+#             {'name': 'QRCode.png', 'path': 'image (9).png', 'isInline': True}
+#         ]
+#         body = '''<p><strong>NuBuild 10th Anniversary Gala and Silent Auction</strong><br /> In support of ALS Society of Canada</p>
+# <p>Bidding is open as of today. Every bid helps support ALS Society of Canada.</p>
+# <p><strong>Bidding opens:</strong> Today, Wednesday, October 14<br /><strong>Bidding closes:</strong> Friday, October 16 at 10:00 PM (at the Gala)</p>
+# <hr />
+# <h3>How to Bid (3 Easy Steps)</h3>
+# <p>&nbsp;</p>
+# <p><strong>1. Open the auction</strong><br /><a title="https://mobilbid.co/o/1242/user/magic_links/new" href="https://mobilbid.co/o/1242/user/magic_links/new" target="_blank" rel="noreferrer noopener"><strong>Click Here to Access the Silent Auction</strong></a><br /> or scan the QR code below with your phone&rsquo;s camera</p>
+# <img src='cid:QRCode.png' alt='Reminder Image'/>
+# <p><strong>2. Register</strong><br /> Enter your first name, last name, cell number and email.<br /><strong>Use your personal cell and personal email</strong>, not your work email. Company firewalls can block access.</p>
+# <p><strong>3. Bid!</strong><br /> Browse the items and place your bids anytime until Friday at 10:00 PM.</p>
+# <hr />
+# <h3>Good to Know</h3>
+# <p><strong>Closed the page?</strong> No problem. Click the link in this email again to get back in.</p>
+# <p><strong>Having trouble getting in?</strong> Save <strong>833-442-1402</strong> to your phone contacts. This is our bidding platform&rsquo;s number, and saving it helps get around phone or security settings that may be blocking you.</p>
+# <p><strong>Won an item?</strong> Pick it up from the silent auction table at the Gala. Please show your invoice at pickup. All sales are final.</p>
+# <p><strong>Can&rsquo;t pick up at the Gala?</strong> Contact Alex Russo at <strong>647-802-0330</strong> or <a title="mailto:arusso@nubuildinc.ca" href="mailto:arusso@nubuildinc.ca" target="_blank" rel="noreferrer noopener">arusso@nubuildinc.ca</a> to arrange another pickup.</p>
+# <p>Thank you for your support, and happy bidding!</p>'''
+#         # body = '''<img src='cid:Reminder.png' alt='Reminder Image'/>'''
+#         # body = body.replace('\n', '<br>')
+#         ret = self.drive.sendMail(
+#             sender='88b94196-dabe-4d8b-b2f7-d23686f7c95c',  # Alex Russo
+#             subject=subject,
+#             recipients=[attendee['email']],
+#             body=body,
+#             attachments=attachments
+#         )
+#         return ret
 
+    def send_email(self, attendee, subject, pdf_path=None):
         # generate_gala_qr_code(provided_name=attendee['name'], submission_id=attendee['submission_id'])
         attachments = [
             # {'name': 'Reminder.png', 'path': pdf_path},
             # {'name': 'QRCode.png', 'path': 'label.png'}
-            {'name': 'QRCode.png', 'path': 'image (9).png', 'isInline': True}
+            {'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True},
+            {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}
         ]
-        body = '''<p><strong>NuBuild 10th Anniversary Gala and Silent Auction</strong><br /> In support of ALS Society of Canada</p>
-<p>Bidding is open as of today. Every bid helps support ALS Society of Canada.</p>
-<p><strong>Bidding opens:</strong> Today, Wednesday, October 14<br /><strong>Bidding closes:</strong> Friday, October 16 at 10:00 PM (at the Gala)</p>
-<hr />
-<h3>How to Bid (3 Easy Steps)</h3>
-<p>&nbsp;</p>
-<p><strong>1. Open the auction</strong><br /><a title="https://mobilbid.co/o/1242/user/magic_links/new" href="https://mobilbid.co/o/1242/user/magic_links/new" target="_blank" rel="noreferrer noopener"><strong>Click Here to Access the Silent Auction</strong></a><br /> or scan the QR code below with your phone&rsquo;s camera</p>
-<img src='cid:QRCode.png' alt='Reminder Image'/>
-<p><strong>2. Register</strong><br /> Enter your first name, last name, cell number and email.<br /><strong>Use your personal cell and personal email</strong>, not your work email. Company firewalls can block access.</p>
-<p><strong>3. Bid!</strong><br /> Browse the items and place your bids anytime until Friday at 10:00 PM.</p>
-<hr />
-<h3>Good to Know</h3>
-<p><strong>Closed the page?</strong> No problem. Click the link in this email again to get back in.</p>
-<p><strong>Having trouble getting in?</strong> Save <strong>833-442-1402</strong> to your phone contacts. This is our bidding platform&rsquo;s number, and saving it helps get around phone or security settings that may be blocking you.</p>
-<p><strong>Won an item?</strong> Pick it up from the silent auction table at the Gala. Please show your invoice at pickup. All sales are final.</p>
-<p><strong>Can&rsquo;t pick up at the Gala?</strong> Contact Alex Russo at <strong>647-802-0330</strong> or <a title="mailto:arusso@nubuildinc.ca" href="mailto:arusso@nubuildinc.ca" target="_blank" rel="noreferrer noopener">arusso@nubuildinc.ca</a> to arrange another pickup.</p>
-<p>Thank you for your support, and happy bidding!</p>'''
+        body = '''<div data-ogsc="black" data-olk-copy-source="MessageBody">To all of our sponsors &amp; to everyone who joined us at the NuBuild 10th Anniversary Gala, THANK YOU!</div>
+<br>
+<div data-ogsc="black">The night was a massive success &amp; we could not have done it without you; the impact of all of your contributions will be felt well beyond the night itself.</div>
+<br>
+<div data-ogsc="black">The NuBuild 10th Anniversary Gala was a true reflection of what can happen when community comes together to support a cause bigger than itself. We are privileged to have filled a room with our team, clients, suppliers &amp; more; it is a mark of the connections we have bult over our 10 years in business.</div>
+<br>
+<div data-ogsc="black">On behalf of Angelo, Umberto &amp; Michael &ndash; Thank you.</div>
+<br>
+<div data-ogsc="black">We are grateful for your support and look forward to another 10 years!</div>
+<div>
+<br>
+<img src='cid:ThankYou.png' alt='Thank You'/>
+<p data-ogsb="white"><span style="color: #0000ff;" data-ogsc="rgb(0, 112, 192)"><strong data-ogsc=""><span data-markjs="true" data-ogac="" data-ogab="" data-ogsc="" data-ogsb="" data-ogsbtc="" data-ogsbrc="" data-ogsbbc="" data-ogsblc="">Alexander <span data-markjs="true" data-ogac="" data-ogab="" data-ogsc="" data-ogsb="" data-ogsbtc="" data-ogsbrc="" data-ogsbbc="" data-ogsblc="">Russo</span></span></strong></span><br><span data-ogsc="black">Director of Marketing</span></p>
+<div data-ogsb="white"><span style="color: #0000ff;" data-ogsc="black"><strong data-ogsc="">Phone:</strong></span><span data-ogsc="black">905-760-8600 ext. 330</span></div>
+<span style="color: #0000ff;" data-ogsc="black"><strong data-ogsc="">Mobile:</strong></span><span data-ogsc="black">647-802-0330</span><br>
+<span data-ogsc="rgb(12, 100, 192)"><strong data-ogsc="">Nu</strong></span><span data-ogsc="black"><strong data-ogsc="">Build </strong></span><span data-ogsc="black"><strong data-ogsc="">Contracting Inc.</strong></span><br>
+<span data-ogsc="black">8800 Dufferin St, Suite 304,</span>
+<div data-ogsc="black" data-ogsb="white">Concord, ON L4K 0C5</div>
+<span data-ogsc="black"><a title="http://www.nubuildcontracting.ca/" href="http://www.nubuildcontracting.ca/" target="_blank" rel="noopener noreferrer" data-auth="NotApplicable" data-linkindex="0" data-ogsc="black">www.nubuildcontracting.ca</a></span>
+</div>
+<img src='cid:NuBuildLogo.png' alt='Logo' width="150" height="65" />'''
         # body = '''<img src='cid:Reminder.png' alt='Reminder Image'/>'''
         # body = body.replace('\n', '<br>')
         ret = self.drive.sendMail(
@@ -176,6 +217,15 @@ class GalaEmailer:
                 attendee=attendee,
                 subject="The Silent Auction Is Now Live!"
             )
+
+    def send_thank_yous(self):
+        for attendee in self.list_attendees()[59:]:
+            print(attendee)
+            self.send_email(
+                attendee=attendee,
+                subject="Thank You! | The NuBuild 10th Anniversary Gala"
+            )
+            time.sleep(15)
 
     def send_3_week_reminder(self):
         gala_data = self.ensure_gala_data()
@@ -230,8 +280,9 @@ def export_gala_as_xlsx():
 def test_email():
     emailer = GalaEmailer()
     emailer.send_email(
-        attendee={'email': 'arusso@nubuildinc.ca'},
-        subject="The Silent Auction Is Now Live!"
+        # attendee={'email': 'arusso@nubuildinc.ca'},
+        attendee={'email': 'gseaward@nubuildinc.ca'},
+        subject="Thank You! | The NuBuild 10th Anniversary Gala"
     )
 
 
@@ -362,6 +413,7 @@ def set_all_statuses():
                                  json={'submission_id': submission['submission_id'], 'data': data})
             print(ret.content)
 
+
 def set_one_statuses():
     data = {'status': 'Submitted'}
     ret = requests.patch('https://nubuildapp.ca/api/galaEntryUpdate',
@@ -369,5 +421,63 @@ def set_one_statuses():
     print(ret.content)
 
 
+def count_sent():
+    text = """[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]
+[{'name': 'NuBuildLogo.png', 'path': 'image001.png', 'isInline': True}, {'name': 'ThankYou.png', 'path': 'image (11).png', 'isInline': True}]"""
+    print(text.count('['))
+
+
 if __name__ == '__main__':
-    set_all_statuses()
+    emailer = GalaEmailer()
+    emailer.send_thank_yous()
+    # count_sent()
+    # test_email()

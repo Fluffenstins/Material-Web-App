@@ -14,6 +14,8 @@ class SiteTrackerDrive:
         self.consumer_key = None
         self.consumer_secret = None
 
+        self.values = []
+
         self.load_params()
 
     def now(self, return_string=True):
@@ -83,8 +85,10 @@ class SiteTrackerDrive:
             full_request = f"{self.instance_url}/services/data/v{self.api_version}/{query}"
         return full_request
 
-    def request(self, query, request_type, data=None, base_url=False):
+    def request(self, query, request_type, data=None, base_url=False, is_continuation=False):
         full_request = self.full_request(query, base_url=base_url)
+
+        # print(F"full request: {full_request}")
         response = None
 
         if request_type == 'get':
@@ -96,7 +100,6 @@ class SiteTrackerDrive:
 
         if response.status_code // 100 != 2:
             try:
-                print(response.status_code)
                 if response.json()[0]['errorCode'] == 'INVALID_SESSION_ID':
                     self.request_access_token()
                     response = self.request(
@@ -111,6 +114,21 @@ class SiteTrackerDrive:
             except Exception as e:
                 print(response.content)
                 raise e
+
+        if is_continuation:
+            # handles pagination
+            self.values += response.json()['records']
+        else:
+            self.values = []
+            try:
+                self.values = response.json()['records']
+            except TypeError:
+                pass
+            except KeyError:
+                pass
+
+        if 'nextRecordsUrl' in response.json():
+            self.get(response.json()['nextRecordsUrl'], base_url=True)
 
         return response
 
@@ -143,8 +161,9 @@ class SiteTrackerDrive:
 
         column_string = ",".join(keys)
 
-        ret = self.execute_sql_query(f"select {column_string} from {object_id} {filter_string}")
-        ret = ret.json()['records']
+        self.execute_sql_query(f"select {column_string} from {object_id} {filter_string}")
+        # ret = ret.json()['records']
+        ret = self.values
         return ret
 
     def get_record(self, object_id, record_id, keys: list = None):
@@ -176,6 +195,7 @@ class SiteTrackerDrive:
         """
         sql_string = sql_string.replace(" ", "+")
         query = f"query?q={sql_string}"
+
         return self.get(query)
 
     def update_record_values(self, object_id, record_id, data_dict):
@@ -268,7 +288,7 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         possible_resources = self.list_records(
             object_id='sitetracker__Timesheet_User__c',
             keys=['name'],
-            filters=[f'Name = \'{name}\' OR Name = \'{name} - Training\'']
+            filters=[f'Name = \'{name}\'']
         )
         if len(possible_resources) == 1:
             return possible_resources[0]
@@ -307,9 +327,6 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         for allocation in allocations:
             ret[allocation['Project__r']['NuBuild_Project_ID__c']] = allocation['Project__r']
 
-        print(json.dumps(ret, indent=1))
-
-        print(f"Allocations: {len(ret)}")
         return ret
 
     def list_my_resource_ids(self, user_resource_record_id):
@@ -318,7 +335,6 @@ class SiteTrackerExplorer(SiteTrackerDrive):
         # include any resources that are crews that the user is a part of
         crew_resources = self.list_my_crew_resources(user_resource_record_id)
         possible_resources += [i['sitetracker__Crew__c'] for i in crew_resources]
-        print(f"My resources: {possible_resources}")
         return possible_resources
 
     def list_my_allocations(self, user_resource_record_id, project_record_id=None):
@@ -398,8 +414,6 @@ class SiteTrackerExplorer(SiteTrackerDrive):
 
         start_date = self.now(return_string=True)
         end_date = self.now(return_string=True)
-        print(start_date)
-        print(end_date)
 
         # get the resource_id for the allocated resource
         my_allocations = self.list_my_allocations(resource_id)
@@ -416,8 +430,6 @@ class SiteTrackerExplorer(SiteTrackerDrive):
 
         selected_resource_id = selected_allocation_record['sitetracker__Planned_Resource__c']
 
-        print(f"Allocation: {json.dumps(selected_allocation_record, indent=1)}")
-
         data_dict = {
                 'sitetracker__Actual_Resource__c': selected_resource_id,
                 'sitetracker__Item__c': item_id,
@@ -430,14 +442,12 @@ class SiteTrackerExplorer(SiteTrackerDrive):
                 'sitetracker__End_Date__c': end_date,
                 'sitetracker__Status__c': 'Submitted'
             }
-        print(json.dumps(data_dict, indent=1))
+
         ret = self.async_create_record(
             object_id='sitetracker__Production_Work_Log__c',
             data_dict=data_dict
         )
 
-        print(f"create_work_log output:")
-        print(ret)
         return ret
 
 

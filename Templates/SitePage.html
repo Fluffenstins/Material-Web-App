@@ -135,6 +135,7 @@ border-bottom: none;
 }
 
 .receive { background: #28a745; }
+.dispense { background: #c2cc31; }
 .transfer { background: #D96125; }
 .set_parent { background: #E36D7D; }
 .qr { background: #17a2b8; }
@@ -239,6 +240,7 @@ border-bottom: none;
 {% endwith %}
 <div class="bottom-bar">
   <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{site_obj.id}}";'>Receive</button>
+  <button class="action-btn dispense" onclick='window.location.href = "/dispense?source_id={{site_obj.id}}";'>Move Out</button>
   <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{site_obj.id}}";'>Transfer</button>
   {% if site_obj.is_intermediate %}
   <button class="action-btn set_parent" onclick='window.location.href = "/setSiteDestination?site_id={{site_obj.id}}";'>Set Destination</button>

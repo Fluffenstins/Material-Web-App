@@ -313,6 +313,7 @@ async function submitUpdate() {
 		display_generic_error(response_data['error']);
 	} else {
 		display_generic_success("Update successful!");
+		history.back();
 	}
 	
 	console.log(response_data);

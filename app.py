@@ -104,11 +104,23 @@ def list_all_sites():
     return site_objs
 
 
+def list_all_people():
+    user_objs = [{'id': key, 'text': val.display_name} for key, val in MATERIAL_APP.users.items()]
+    user_objs = sorted(user_objs, key=lambda x: x['text'])
+    return user_objs
+
+
 def list_all_catalogue_items():
     valid_ids = {val.get_item().id for key, val in MATERIAL_APP.items.items()}
     catalogue_objs = [{'id': key, 'text': MATERIAL_APP.items[key].item_id} for key in valid_ids]
     catalogue_objs = sorted(catalogue_objs, key=lambda x: x['text'])
     return catalogue_objs
+
+
+def list_all_projects():
+    project_objs = [{'id': key, 'text': project.display_name} for key, project in MATERIAL_APP.projects.items()]
+    project_objs = sorted(project_objs, key=lambda x: x['text'])
+    return project_objs
 
 
 def deprecated_list_action_history_breakdown(obj):
@@ -157,7 +169,14 @@ def list_header_options(user_id):
 
 
 def find_user_sitetracker_record(user_obj):
-    ret = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    name = user_obj.display_name
+    for old, new in [['ñ', 'n']]:
+        name = name.replace(old, new)
+    try:
+        ret = SITETRACKER_EXPLORER.find_user_resource(name)
+    except KeyError:
+        name += " - Training"
+        ret = SITETRACKER_EXPLORER.find_user_resource(name)
     return ret
 
 
@@ -182,7 +201,7 @@ def permission_required(permission_ids):
             user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
             user_id = user_obj.id
             if not MATERIAL_APP.check_permission(user_id, permission_ids=permission_ids):
-                return jsonify({"error": "Permission denied"}), 403
+                return redirect('/permissionDenied')
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -226,6 +245,21 @@ def home_page():
             return redirect(redirect_link)
 
     return default_redirect()
+
+
+@app.route("/permissionDenied")
+def permission_denied_url():
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    return render_template(
+        "PermissionDeniedPage.html",
+        user_obj=user_obj,
+        current_tab="Permission Denied",
+        header_options=list_header_options(user_obj.id)
+    )
 
 
 @app.route("/material")
@@ -845,6 +879,45 @@ def transfer_material_page():
         site_objs=site_objs,
         catalogue_objs=catalogue_objs,
         current_tab="Transfer Material",
+        header_options=list_header_options(user_obj.id)
+    )
+
+
+@app.route("/dispense", methods=['GET'])
+@flask_login.login_required
+@permission_required(['edit_material', 'edit_all'])
+def dispense_material_page():
+    source_site_id = request.args.get('source_id', default="")
+    target_site_id = request.args.get('target_id', default="")
+    catalogue_id = request.args.get('item_id', default="")
+
+    try:
+        user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+    except AttributeError:
+        user_obj = None
+
+    source_obj = MATERIAL_APP.find_site(source_site_id)
+    target_obj = MATERIAL_APP.find_site(target_site_id)
+    catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
+
+    print(source_obj, target_obj, catalogue_obj)
+
+    site_objs = list_all_sites()
+    person_objs = list_all_people()
+    catalogue_objs = list_all_catalogue_items()
+    project_objs = list_all_projects()
+
+    return render_template(
+        "DispenseMaterialPage.html",
+        source_obj=source_obj,
+        target_obj=target_obj,
+        catalogue_obj=catalogue_obj,
+        user_obj=user_obj,
+        site_objs=site_objs,
+        person_objs=person_objs,
+        project_objs=project_objs,
+        catalogue_objs=catalogue_objs,
+        current_tab="Dispense Material",
         header_options=list_header_options(user_obj.id)
     )
 
@@ -2200,6 +2273,11 @@ def api_finalize_time_entry():
             "error": f"Object found is not a TimeEntry, it is a \"{type(time_entry_obj)}\"."
         }), 400
 
+    if time_entry_obj.status == 'Submitted':
+        return jsonify({
+            "error": f"Time Entry is already submitted."
+        }), 400
+
     data = {
         'status': 'Submitted'
     }
@@ -2213,11 +2291,13 @@ def api_finalize_time_entry():
     except KeyError:
         return jsonify({
             "error": f"Couldn't find targeted user."
-        }), 400
+        }), 404
     try:
         sitetracker_resource = find_user_sitetracker_record(target_obj)
-    except KeyError:
-        return redirect(f"/user?user_id={user_obj.id}")
+    except KeyError as e:
+        return jsonify({
+            "error": f"Too many matches found. {e}"
+        }), 404
     resource_st_id = sitetracker_resource['Id']
 
     time_start = time_entry_obj.work_start
@@ -2242,7 +2322,7 @@ def api_finalize_time_entry():
 
 
 @app.route('/api/submitWorkLog', methods=['PATCH'])
-@permission_required(['edit_work_log', 'edit_all', 'submit_work_log'])
+@permission_required(['edit_work_log', 'edit_all', 'submit_work_log', 'edit_test'])
 def api_submit_work_log():
     data = request.get_json()
     project_id = data.get('project_id')
@@ -2739,11 +2819,10 @@ def field_home_url():
     sitetracker_projects = SITETRACKER_EXPLORER.list_my_projects(
         user_resource_record_id=sitetracker_resource_id
     )
+
     nb_ids = [nb for nb, project in sitetracker_projects.items()]
     projects = [MATERIAL_APP.find_project(project['Id']) for nb, project in sitetracker_projects.items()]
     projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
-
-    print(f"these are my projects: {projects}")
 
     my_projects = ProjectTableData(projects)
 
@@ -2877,7 +2956,7 @@ def field_work_logs_url():
 
     project_obj = MATERIAL_APP.lookup(project_id)
 
-    sitetracker_resource = SITETRACKER_EXPLORER.find_user_resource(user_obj.display_name)
+    sitetracker_resource = find_user_sitetracker_record(user_obj)
     sitetracker_resource_id = sitetracker_resource['Id']
 
     allocation_records = SITETRACKER_EXPLORER.list_my_allocations(
@@ -2894,9 +2973,10 @@ def field_work_logs_url():
     for allocation in allocation_records:
         item_id = allocation['sitetracker__Item__c']
         try:
-            service_dict[item_id]['remaining'] += allocation['NB_Non_Rejected_Work_Log_Qty__c']
+            service_dict[item_id]['remaining'] += allocation['sitetracker__Total_Planned_Amount__c']
         except KeyError:
-            service_dict[item_id]['remaining'] = allocation['NB_Non_Rejected_Work_Log_Qty__c']
+            service_dict[item_id]['remaining'] = allocation['sitetracker__Total_Planned_Amount__c']
+        service_dict[item_id]['remaining'] -= allocation['NB_Non_Rejected_Work_Log_Qty__c']
 
     possible_services = sorted([{'id': key, 'text': val['name']} for key, val in service_dict.items()], key=lambda x: x['text'])
 
