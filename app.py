@@ -180,6 +180,43 @@ def find_user_sitetracker_record(user_obj):
     return ret
 
 
+def update_project(st_project):
+    """
+    Whenever a project's data is incidentally collected, it is good to update the project records internally.
+    :param st_project:
+    :return:
+    """
+    nb_id = st_project['NuBuild_Project_ID__c']
+    status = st_project['sitetracker__Project_Status__c']
+    customer_id = st_project['Customer_Project_ID__c']
+    location = st_project['Location__c']
+    parent_project_st_id = st_project['Parent_Project__c']
+    st_id = st_project['Id']
+
+    project = MATERIAL_APP.find_project(st_project['Id'])
+    if project is None:
+        MATERIAL_APP.create_project(
+            status=status,
+            customer_id=customer_id,
+            nb_id=nb_id,
+            st_id=st_id,
+            location=location
+        )
+        return
+
+    data_to_change = {}
+
+    if nb_id != project.nb_id: data_to_change['nb_id'] = nb_id
+    if status != project.status: data_to_change['status'] = status
+    if customer_id != project.customer_id: data_to_change['customer_id'] = customer_id
+    if location != project.location: data_to_change['location'] = location
+    if st_id != project.st_id: data_to_change['st_id'] = st_id
+
+    if data_to_change:
+        print(f"Changing : {data_to_change}")
+        MATERIAL_APP.patch_generic_obj(obj_id=project.id, data=data_to_change, user_id=None)
+
+
 @app.before_request
 def check_maintenance_mode():
 
@@ -2820,8 +2857,15 @@ def field_home_url():
         user_resource_record_id=sitetracker_resource_id
     )
 
-    nb_ids = [nb for nb, project in sitetracker_projects.items()]
+        # print(f"Some serious testing: {project}")
+
+    for nb, project in sitetracker_projects.items():
+        update_project(project)
+
     projects = [MATERIAL_APP.find_project(project['Id']) for nb, project in sitetracker_projects.items()]
+    print(f"These are my projects: {projects}")
+    print([i.nb_id if i else "" for i in projects])
+
     projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
 
     my_projects = ProjectTableData(projects)
@@ -2976,7 +3020,8 @@ def field_work_logs_url():
             service_dict[item_id]['remaining'] += allocation['sitetracker__Total_Planned_Amount__c']
         except KeyError:
             service_dict[item_id]['remaining'] = allocation['sitetracker__Total_Planned_Amount__c']
-        service_dict[item_id]['remaining'] -= allocation['NB_Non_Rejected_Work_Log_Qty__c']
+        if allocation['NB_Non_Rejected_Work_Log_Qty__c'] is not None:
+            service_dict[item_id]['remaining'] -= allocation['NB_Non_Rejected_Work_Log_Qty__c']
 
     possible_services = sorted([{'id': key, 'text': val['name']} for key, val in service_dict.items()], key=lambda x: x['text'])
 

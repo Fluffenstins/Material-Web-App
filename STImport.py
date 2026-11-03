@@ -25,6 +25,8 @@ def ensure_st_projects(mt_container=None):
 
     projects = st_explorer.values
 
+    print(len(projects))
+
     for project in projects:
         nb_id = project['NuBuild_Project_ID__c']
         status = project['sitetracker__Project_Status__c']
@@ -36,7 +38,7 @@ def ensure_st_projects(mt_container=None):
         if customer_id is None:
             customer_id = project['Project_Name__c']
 
-        existing_project = mt_container.find_project(nb_id)
+        existing_project = mt_container.find_project(st_id)
         print(nb_id, st_id, location)
         if existing_project is None:
             mt_container.create_project(

@@ -213,7 +213,6 @@ class CoreMaterialManager:
                 return obj
         except KeyError:
             pass
-        print(f"Finding project {project_id}")
         def simplify_str(text):
             text = text.lower()
             for i in ' \t\n\xa0':
@@ -549,6 +548,17 @@ class CoreMaterialManager:
         ret = self.enact_action(action)
         return ret
 
+    def patch_generic_obj(self, user_id, obj_id, data):
+        action = Action(
+            action_type='patch_object',
+            user=user_id,
+            obj_id=obj_id,
+            data=data
+        )
+        action.description = "Object data changed."
+        ret = self.enact_action(action)
+        return ret
+
     def deprecate_item(self, user_id, item_id, correct_item_id):
         action = Action(
             action_type='deprecate_item',
@@ -601,7 +611,8 @@ class CoreMaterialManager:
             'create_project': self._create_project,
             'create_time_entry': self._create_time_entry,
             'create_material_allocation': self._create_material_allocation,
-            'fulfill_material_allocation': self._fulfill_material_allocation
+            'fulfill_material_allocation': self._fulfill_material_allocation,
+            'patch_object': self._patch_generic_obj
         }
         ret = None
         try:
@@ -1380,7 +1391,6 @@ class CoreMaterialManager:
         return material_obj
 
     def _patch_generic_obj(self, action):
-        raise NotImplementedError("Editing generic objects is not yet implemented, and should be a last option anyways.")
         user_id = action.data['user']
         obj_id = action.data['obj_id']
         data = action.data['data']
@@ -1391,15 +1401,20 @@ class CoreMaterialManager:
         if core_obj is None:
             raise KeyError(f'Object {obj_id} not found.')
 
-        # for key, value in data.items():
-        #     if key in core_obj.accessible_attributes(user_obj.id):
-        #         if value == deepcopy(core_obj.__getattribute__(key)):
-        #             raise AttributeError(f"Value {key} does not differ from existing value")
-        #         action.add_output(f'prev_{key}', deepcopy(core_obj.__getattribute__(key)))
-        #         core_obj.__setattr__(key, value)
-        #     else:
-        #         raise PermissionError(f"Invalid attribute {key}")
-        #         # action.add_output(f'error_{key}', value)
+        try:
+            accessible_attributes = core_obj.accessible_attributes(user_obj.id)
+        except AttributeError:
+            accessible_attributes = core_obj.accessible_attributes()
+
+        for key, value in data.items():
+            if key in accessible_attributes:
+                if value == deepcopy(core_obj.__getattribute__(key)):
+                    raise AttributeError(f"Value {key} does not differ from existing value")
+                action.add_output(f'prev_{key}', deepcopy(core_obj.__getattribute__(key)))
+                core_obj.__setattr__(key, value)
+            else:
+                raise PermissionError(f"Invalid attribute {key}")
+                # action.add_output(f'error_{key}', value)
 
         core_obj.add_action(action)
 
@@ -1407,8 +1422,7 @@ class CoreMaterialManager:
             user_obj.add_action(action)
             action.add_output('user_id', user_obj.id)
 
-        action.add_output('item_id', core_obj.id)
-
+        action.add_output('obj_id', core_obj.id)
 
         return core_obj
 
