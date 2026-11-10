@@ -359,6 +359,8 @@ class MaterialAllocation(CoreObj):
             raise IndexError("Targeted material object already has this allocation listed.")
         except TypeError:
             pass
+        except ValueError:
+            pass
         material_obj.material_allocations.append(self.id)
         self.parent_material = material_obj.id
 
@@ -370,6 +372,8 @@ class MaterialAllocation(CoreObj):
             site_obj.material_allocations.index(self.id)
             raise IndexError("Targeted site object already has this allocation listed.")
         except TypeError:
+            pass
+        except ValueError:
             pass
         site_obj.material_allocations.append(self.id)
         self.target_site = site_obj.id

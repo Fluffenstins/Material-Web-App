@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Stacked Histogram</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 40px;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: linear-gradient(135deg, #f2f5fa, #e9eef6);
+    }
+
+    .card {
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08),
+            0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+        text-align: center;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #6b7280;
+        margin-top: 8px;
+        margin-bottom: 24px;
+    }
+
+    .chart-container {
+        height: 550px;
+    }
+
+    .details-panel {
+        margin-top: 25px;
+        padding: 20px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border-left: 5px solid #2563eb;
+        display: none;
+    }
+
+    .details-panel h3 {
+        margin-top: 0;
+        color: #2563eb;
+    }
+
+    .detail-row {
+        margin: 8px 0;
+        color: #374151;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        color: white;
+        font-size: 0.85rem;
+        margin-left: 8px;
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Employee Age Distribution</h1>
+    <div class="subtitle">
+        Click any colored section of a bar to view details
+    </div>
+
+    <div class="chart-container">
+        <canvas id="stackedHistogram"></canvas>
+    </div>
+
+    <div id="detailsPanel" class="details-panel">
+        <h3>Bar Details</h3>
+        <div id="detailsContent"></div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("stackedHistogram");
+const ctx = canvas.getContext("2d");
+
+// Gradients
+const blueGradient = ctx.createLinearGradient(0, 0, 0, 500);
+blueGradient.addColorStop(0, "#60A5FA");
+blueGradient.addColorStop(1, "#2563EB");
+
+const greenGradient = ctx.createLinearGradient(0, 0, 0, 500);
+greenGradient.addColorStop(0, "#34D399");
+greenGradient.addColorStop(1, "#059669");
+
+const orangeGradient = ctx.createLinearGradient(0, 0, 0, 500);
+orangeGradient.addColorStop(0, "#FBBF24");
+orangeGradient.addColorStop(1, "#D97706");
+
+// Create chart
+const chart = new Chart(canvas, {
+    type: "bar",
+
+    data: {
+        labels: [
+            "18-25",
+            "26-30",
+            "31-35",
+            "36-40",
+            "41-45",
+            "46-50",
+            "51-55",
+            "56+"
+        ],
+
+        datasets: [
+            {
+                label: "Engineering",
+                backgroundColor: blueGradient,
+                data: [22, 35, 48, 38, 28, 19, 10, 4],
+                borderRadius: 0,
+                borderSkipped: false
+            },
+            {
+                label: "Operations",
+                backgroundColor: greenGradient,
+                data: [12, 22, 32, 29, 21, 15, 8, 3],
+                borderRadius: 0,
+                borderSkipped: false
+            },
+            {
+                label: "Administration",
+                backgroundColor: orangeGradient,
+                data: [8, 14, 19, 15, 13, 12, 6, 2],
+                borderRadius: 0,
+                borderSkipped: false
+            }
+        ]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        interaction: {
+            mode: "nearest",
+            intersect: true
+        },
+
+        animation: {
+            duration: 1200,
+            easing: "easeOutQuart"
+        },
+
+        onClick: (event, elements, chart) => {
+
+            if (!elements.length) return;
+
+            const element = elements[0];
+
+            const datasetIndex = element.datasetIndex;
+            const binIndex = element.index;
+
+            const dataset = chart.data.datasets[datasetIndex];
+
+            const barInfo = {
+                department: dataset.label,
+                ageRange: chart.data.labels[binIndex],
+                value: dataset.data[binIndex],
+                datasetIndex,
+                binIndex
+            };
+
+            handleBarClick(barInfo);
+        },
+
+        plugins: {
+            legend: {
+                position: "top",
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: "circle",
+                    padding: 20
+                }
+            },
+
+            tooltip: {
+                backgroundColor: "#111827",
+                padding: 12,
+                cornerRadius: 10
+            }
+        },
+
+        scales: {
+            x: {
+                stacked: true,
+                grid: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: "Age Range"
+                }
+            },
+
+            y: {
+                stacked: true,
+                beginAtZero: true,
+                grid: {
+                    color: "rgba(0,0,0,0.08)"
+                },
+                title: {
+                    display: true,
+                    text: "Employee Count"
+                }
+            }
+        }
+    }
+});
+
+/*
+ * Replace this with your real application logic.
+ */
+function loadDepartmentData(barInfo) {
+
+    console.log(
+        `Loading details for ${barInfo.department} (${barInfo.ageRange})`
+    );
+
+    // Examples:
+    // fetch(`/api/employees?dept=${barInfo.department}&age=${barInfo.ageRange}`)
+    // openEmployeeList(barInfo)
+    // updateDashboard(barInfo)
+}
+/*
+ * This function is called whenever
+ * a stack segment is clicked.
+ */
+function handleBarClick(barInfo) {
+
+    console.log("Clicked Bar:", barInfo);
+
+    const panel = document.getElementById("detailsPanel");
+    const content = document.getElementById("detailsContent");
+
+    let badgeColor = "#2563EB";
+
+    if (barInfo.department === "Operations")
+        badgeColor = "#059669";
+
+    if (barInfo.department === "Administration")
+        badgeColor = "#D97706";
+
+    content.innerHTML = `
+        <div class="detail-row">
+            <strong>Department:</strong>
+            ${barInfo.department}
+            <span class="badge" style="background:${badgeColor}">
+                ${barInfo.department}
+            </span>
+        </div>
+
+        <div class="detail-row">
+            <strong>Age Range:</strong>
+            ${barInfo.ageRange}
+        </div>
+
+        <div class="detail-row">
+            <strong>Employee Count:</strong>
+            ${barInfo.value}
+        </div>
+
+        <div class="detail-row">
+            <strong>Dataset Index:</strong>
+            ${barInfo.datasetIndex}
+        </div>
+
+        <div class="detail-row">
+            <strong>Bin Index:</strong>
+            ${barInfo.binIndex}
+        </div>
+    `;
+
+    panel.style.display = "block";
+
+    // Example: perform custom action
+    loadDepartmentData(barInfo);
+}
+
+</script>
+
+</body>
+</html>

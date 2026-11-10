@@ -112,6 +112,7 @@ input {
 }
 
 .receive { background: #28a745; }
+.dispense { background: #c2cc31; }
 .transfer { background: #D96125; }
 .consume { background: #ED6492; }
 .stage { background: #ffc107; color: black; }
@@ -206,11 +207,12 @@ input {
   <button class="action-btn consume" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Consume</button>
   {% else %}
   <button class="action-btn receive" onclick='window.location.href = "/receive?site_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Receive</button>
-  <button class="action-btn transfer" onclick='window.location.href = "/dispense?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Move Out</button>
-  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer</button>
+  <button class="action-btn dispense" onclick='window.location.href = "/dispense?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Move Out</button>
   <button class="action-btn stage"onclick='window.location.href = "/stage?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Stage</button>
   {% endif %}
+  <button class="action-btn transfer" onclick='window.location.href = "/transfer?source_id={{material_obj.site.id}}&item_id={{material_obj.item.id}}";'>Transfer</button>
   <button class="action-btn qr"  onclick="handleButtonUrl('{{qr_code_url}}')">Get QR Code</button>
+  
 </div>
 
 <script>

@@ -347,6 +347,7 @@ class User(CoreObj):
         self.sitetracker_resource_id = None
         self.roles = None
         self.favourites = []
+        self.site = None
 
         self.indexed_values = self.indexed_values | {
             'password': {'title': "Password", 'permission': 'edit_user_password', 'type': 'str'},
@@ -356,6 +357,7 @@ class User(CoreObj):
             'favourites': {'title': "Favourites", 'permission': 'edit_user', 'type': 'list'},
             'roles': {'title': "Roles", 'permission': 'edit_user', 'type': 'list'},
             'sitetracker_resource_id': {'title': "SiteTracker Resource ID", 'permission': 'edit_user_st', 'type': 'list'},
+            'site': {'title': "Material Site", 'permission': 'edit_material', 'type': 'str'},
         }
         self.protected_values += [
             'password',

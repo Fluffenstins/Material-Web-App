@@ -1859,6 +1859,73 @@ def api_transfer_material():
     }), 200
 
 
+@app.route('/api/dispenseMaterial', methods=['POST'])
+@permission_required(['edit_material', 'edit_all'])
+def api_dispense_material():
+    data = request.get_json()
+
+    source = data.get('source')
+    recipient = data.get('recipient')
+    project = data.get('project')
+    item = data.get('item')
+    qty = data.get('qty')
+
+    source_obj = MATERIAL_APP.find_site(source)
+    recipient_obj = MATERIAL_APP.find_user(recipient)
+    project_obj = MATERIAL_APP.find_project(project)
+    item_obj = MATERIAL_APP.find_item(item)
+
+    user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
+
+    if source is None or source_obj is None:
+        return jsonify({
+            "error": f"Source site \"{source}\" not found."
+        }), 404
+    if project is not None and project_obj is None:
+        return jsonify({
+            "error": f"Project \"{project}\" not found."
+        }), 404
+    if recipient is not None and recipient_obj is None:
+        return jsonify({
+            "error": f"User \"{recipient}\" not found."
+        }), 404
+    if item is None or (not item):
+        return jsonify({
+            "error": "No item provided."
+        }), 404
+    if item_obj is None:
+        return jsonify({
+            "error": f"Item \"{item}\" not found."
+        }), 404
+    if qty is None:
+        return jsonify({
+            "error": "Qty not provided."
+        }), 400
+
+    user_site_obj = MATERIAL_APP.ensure_user_site(recipient_obj.id)
+    project_site_obj = MATERIAL_APP.ensure_project_site(project_obj.id)
+
+    target_material_obj = MATERIAL_APP.transfer_material(
+        user_id=user_obj.id,
+        target_id=user_site_obj.id,
+        source_id=source_obj.id,
+        qty=qty,
+        item_id=item_obj.id
+    )
+
+    mat_allocation_ret = MATERIAL_APP.create_material_allocation(
+        parent_material_id=target_material_obj.id,
+        target_site_id=project_site_obj.id,
+        qty=qty,
+        user_id=user_obj.id
+    )
+
+    return jsonify({
+        "message": "Item dispensed successfully!",
+        "data": {"id": mat_allocation_ret.id}
+    }), 200
+
+
 @app.route('/api/setInventory', methods=['POST'])
 @permission_required(['edit_material', 'perform_inventory', 'edit_all'])
 def api_set_inventory():

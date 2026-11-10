@@ -253,6 +253,13 @@ class CoreMaterialManager:
             return self.users[user_str]
         except KeyError:
             pass
+        try:
+            obj = self.lookup(user_str)
+            if isinstance(obj, User):
+                return obj
+            return None
+        except KeyError:
+            pass
         user_str = user_str.replace(" - Training", "")
 
         def simplify_str(text):
@@ -1557,6 +1564,57 @@ class CoreMaterialManager:
 
     def connect_northumberland(self):
         northumberland_site = self.find_site('24-176')
+
+    def ensure_user_site(self, target_user_id, user_id=None):
+        """
+        :param target_user_id: id of the user object that should have a material site associated with them
+        :param user_id: the id of the user calling the function
+        :return: site object
+        """
+        target_user_obj = self.find_user(target_user_id)
+        if target_user_obj is None:
+            return None
+        site_obj = self.find_site(target_user_obj.site)
+        if site_obj is not None:
+            return site_obj
+
+        new_site_obj = self.create_site(
+            site_id=f"User {target_user_obj.id} Material",
+            site_type="User",
+            user_id=user_id
+        )
+
+        target_user_obj.site = new_site_obj.id
+
+        return new_site_obj
+
+    def ensure_project_site(self, project_id, user_id=None):
+        """
+        :param project_id: id of the project_id object that should have a material site associated with them
+        :param user_id: the id of the user calling the function
+        :return: site object
+        """
+        project_obj = self.find_project(project_id)
+        if project_obj is None:
+            return None
+        site_obj = self.find_site(project_obj.site)
+        if site_obj is not None:
+            return site_obj
+
+        potential_match = self.find_site(project_obj.customer_id)
+        if potential_match is not None:
+            project_obj.site = potential_match.id
+            return potential_match
+
+        new_site_obj = self.create_site(
+            site_id=f"Project {project_obj.id} Material",
+            site_type="Project",
+            user_id=user_id
+        )
+
+        project_obj.site = new_site_obj.id
+
+        return new_site_obj
 
 
 class ContinuousMaterialManager(CoreMaterialManager):

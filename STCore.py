@@ -39,6 +39,7 @@ class Project(CoreObj):
             'location': {'title': "Location", 'permission': 'edit_project', 'type': 'str'},
             'parent_project': {'title': "Parent Project", 'permission': 'edit_project', 'type': 'str'},
             'child_projects': {'title': "Child Projects", 'permission': 'edit_project', 'type': 'list'},
+            'site': {'title': "Material Site", 'permission': 'edit_material', 'type': 'str'},
         }
         self.protected_values += [
             'parent_project',
