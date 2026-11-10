@@ -14,7 +14,7 @@ import bcrypt
 from MatAppUtils import AppTableData, MaterialTableData, \
     ItemTableData, ActionTableData, ProjectTableData, \
     TimeEntryTableData, FileTableData, STFileTableData, \
-    SiteTableData
+    SiteTableData, AllocatedMaterialTableData
 
 from SiteTracker import SiteTrackerExplorer
 from GraphAPI import MSDrive
@@ -121,6 +121,25 @@ def list_all_projects():
     project_objs = [{'id': key, 'text': project.display_name} for key, project in MATERIAL_APP.projects.items()]
     project_objs = sorted(project_objs, key=lambda x: x['text'])
     return project_objs
+
+
+def generate_field_material_table(user_id, target_site_id=None):
+    try:
+        user_obj = MATERIAL_APP.find_user(user_id)
+        user_site = MATERIAL_APP.find_site(user_obj.site)
+        if user_site is None:
+            return None
+    except AttributeError:
+        return None
+
+    if target_site_id is not None:
+        target_site_id = MATERIAL_APP.find_site(target_site_id).id
+
+    material_list = [MATERIAL_APP.lookup(i) for i in user_site.material_children]
+
+    table_data = AllocatedMaterialTableData(material_list, target_site_id=target_site_id)
+
+    return table_data
 
 
 def deprecated_list_action_history_breakdown(obj):
@@ -937,7 +956,7 @@ def dispense_material_page():
     target_obj = MATERIAL_APP.find_site(target_site_id)
     catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
 
-    print(source_obj, target_obj, catalogue_obj)
+    print(source_obj.path, target_obj, catalogue_obj)
 
     site_objs = list_all_sites()
     person_objs = list_all_people()
@@ -1919,6 +1938,8 @@ def api_dispense_material():
         qty=qty,
         user_id=user_obj.id
     )
+
+    print(mat_allocation_ret, mat_allocation_ret.id)
 
     return jsonify({
         "message": "Item dispensed successfully!",
@@ -2937,11 +2958,15 @@ def field_home_url():
 
     my_projects = ProjectTableData(projects)
 
+    # get a table of the users material
+    field_material_table = generate_field_material_table(user_id=user_obj.id, target_site_id=None)
+
     return render_template(
         "FieldHome.html",
         user_obj=user_obj,
         my_projects=my_projects,
         current_tab="Home",
+        field_material_table=field_material_table,
         header_options=list_header_options(user_obj.id)
     )
 
@@ -3129,25 +3154,15 @@ def field_material_url():
     except AttributeError:
         user_obj = None
 
-    # note that this needs to be changed to a grid update instead
-
     project_obj = MATERIAL_APP.lookup(project_id)
 
-    parent_site_id = 'IYNYJhZiMhrc'
-
-    parent_site_obj = MATERIAL_APP.find_site(parent_site_id)
-    if parent_site_obj is not None:
-        site_material = [MATERIAL_APP.lookup(i) for i in parent_site_obj.material_children]
-        possible_material = [{'id': i.id, 'text': i.display_name} for i in site_material]
-    else:
-        return redirect('/fieldhome')
-
-    allocations = []
+    project_site_id = project_obj.site
+    field_material_table = generate_field_material_table(user_id=user_obj.id, target_site_id=project_site_id)
 
     return render_template(
-        "SubMaterial.html",
-        possible_material=possible_material,
+        "FieldMaterial.html",
         current_tab="Log Material",
+        field_material_table=field_material_table,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )

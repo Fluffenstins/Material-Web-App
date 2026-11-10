@@ -63,12 +63,11 @@ const {{search_list_id}}_input = document.querySelector(".{{search_list_id}}_sea
 const {{search_list_id}}_dropdown = document.getElementById("{{search_list_id}}_dropdown");
 const {{search_list_id}}_items = document.querySelectorAll(".{{search_list_id}}_dropdown-item");
 const {{search_list_id}}_hiddenInput = document.getElementById("{{search_list_id}}_selectedEmployeeId");
-let {{search_list_id}}_selectedValue = null;
 
 
 if ({{search_list_id}}_input.value != "") {
 {{search_list_id}}_items.forEach(item => {
-        const match = item.textContent.includes({{search_list_id}}_input.value);
+        const match = item.textContent == {{search_list_id}}_input.value;
 		
 		if (match) {
 			{{search_list_id}}_select_item(item);

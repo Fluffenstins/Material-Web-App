@@ -997,7 +997,7 @@ class CoreMaterialManager:
     def _create_material_allocation(self, action):
         parent_material_id = action.data['parent_material_id']
         target_site_id = action.data['target_site_id']
-        qty = action.data['qty']
+        qty = int(action.data['qty'])
         user_id = action.data['user']
 
         user_obj = self.find_user(user_id)
@@ -1029,6 +1029,8 @@ class CoreMaterialManager:
             )
             material_allocation_obj.set_parent_material(parent_material_obj.id)
             material_allocation_obj.set_target_site(target_site_obj.id)
+        else:
+            material_allocation_obj.add_allocation(qty)
 
         self.material_allocations[material_allocation_obj.id] = material_allocation_obj
 
@@ -1600,6 +1602,8 @@ class CoreMaterialManager:
         site_obj = self.find_site(project_obj.site)
         if site_obj is not None:
             return site_obj
+
+        print(f"Nothing found for {project_obj.id}")
 
         potential_match = self.find_site(project_obj.customer_id)
         if potential_match is not None:

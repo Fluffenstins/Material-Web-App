@@ -23,7 +23,6 @@ body {
   align-items: center;
   padding: 12px;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .container {
@@ -36,6 +35,15 @@ body {
   margin-bottom: 12px;
 }
 
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+
 </style>
 </head>
 
@@ -45,11 +53,16 @@ body {
 <div class="container">
 
 
-    <div class="field">
+    <div class="card">
       <div class="header">My Projects</div>
 	{% set table_id, table_data = "table_1", my_projects %}
 	{% include "SearchableSubitemsTable.html" %}
 	
+    </div>
+	
+	
+    <div class="card">
+	{% include "FieldMaterialView.html" %}
     </div>
 
 </div>

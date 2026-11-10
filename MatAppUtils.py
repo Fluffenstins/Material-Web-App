@@ -41,6 +41,34 @@ class MaterialTableData(AppTableData):
             self.add_row(row, row_link=f'/?obj_id={mat_obj.id}')
 
 
+class AllocatedMaterialTableData(AppTableData):
+    def __init__(self, material_list, target_site_id=None):
+        table_name = 'Material'
+        if target_site_id is None:
+            columns = ('Item ID', 'Qty on Hand', 'Shorthand', 'MPN', 'Description')
+        else:
+            columns = ('Item ID', 'Qty on Hand', 'Remaining Allocation', 'Shorthand', 'MPN', 'Description')
+        super().__init__(table_name=table_name, columns=columns)
+
+        for mat_obj in material_list:
+            remaining_allocation = 0
+            for allocation_id in mat_obj.material_allocations:
+                allocation_obj = mat_obj.lookup(allocation_id)
+                if allocation_obj is None:
+                    continue
+                print(f"Testing matapputils : {allocation_obj.target_site}")
+                if target_site_id is not None and target_site_id != allocation_obj.target_site:
+                    continue
+                remaining_allocation += allocation_obj.qty_remaining
+                print(f"Testing matapputils : {remaining_allocation}")
+
+            if target_site_id is None:
+                row = [mat_obj.item.item_id, mat_obj.qty, mat_obj.item.shorthand, mat_obj.item.mpn, mat_obj.item.description]
+            else:
+                row = [mat_obj.item.item_id, mat_obj.qty, remaining_allocation, mat_obj.item.shorthand, mat_obj.item.mpn, mat_obj.item.description]
+            self.add_row(row, row_link=f'/?obj_id={mat_obj.id}')
+
+
 class ItemTableData(AppTableData):
     def __init__(self, catalogue_item_list):
         table_name = 'Item'

@@ -346,9 +346,15 @@ class MaterialAllocation(CoreObj):
         if save_data is not None:
             self.load_from_json(save_data)
 
+    @staticmethod
+    def _force_int(val):
+        if isinstance(val, int):
+            return val
+        return int(val)
+
     @property
     def qty_remaining(self):
-        return self.qty_allocated - self.qty_fulfilled
+        return self._force_int(self.qty_allocated) - self._force_int(self.qty_fulfilled)
 
     def set_parent_material(self, material_id):
         material_obj = self.lookup(material_id)
@@ -377,4 +383,9 @@ class MaterialAllocation(CoreObj):
             pass
         site_obj.material_allocations.append(self.id)
         self.target_site = site_obj.id
+
+    def add_allocation(self, qty):
+        qty = self._force_int(qty)
+        self.qty_allocated = self._force_int(self.qty_allocated) + qty
+        return self.qty_allocated
 
