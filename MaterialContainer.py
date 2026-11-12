@@ -191,6 +191,8 @@ class CoreMaterialManager:
         return item
 
     def find_site(self, site_id):
+        if not site_id:
+            return None
         try:
             obj = self.lookup(site_id)
             if type(obj) is Site:
@@ -231,11 +233,15 @@ class CoreMaterialManager:
                     return project
 
     def find_material(self, site, item_id):
+        if not item_id:
+            return None
         item_id = item_id.strip()
         material_obj = site.find_material(item_id)
         return material_obj
 
     def find_item(self, item_id):
+        if not item_id:
+            return None
         try:
             item_obj = self.lookup(item_id)
             return item_obj
