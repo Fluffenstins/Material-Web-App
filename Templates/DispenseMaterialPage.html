@@ -198,9 +198,9 @@ border-bottom: none;
     </div>
   
     <div class="field">
-      <div class="label">Item</div>
+      <div class="label">Material</div>
 	
-	{% with search_list_id="catalogue_item", item_type="Item", material_children=catalogue_objs, hide_by_default=true, default_text=catalogue_obj.item_id %}
+	{% with search_list_id="material", item_type="Material", material_children=material_objects, hide_by_default=true, default_text=catalogue_obj.display_name %}
     {% include "SearchableDropdown2.0.html" %}
 	{% endwith %}
 	
@@ -236,11 +236,13 @@ async function submitTransfer() {
 	const qty_elem = document.getElementById("qty_input");
 	console.log(qty_elem.value);
 	
+	
+	console.log("Test!", material_hiddenInput.value);
 	const data = {
 	"source": source_hiddenInput.value,
 	"recipient": recipient_hiddenInput.value,
 	"project": project_hiddenInput.value,
-	"item": catalogue_item_hiddenInput.value,
+	"material": material_hiddenInput.value,
 	"qty": qty_elem.value
 	};
 	let ret = await post_request("/api/dispenseMaterial", data);

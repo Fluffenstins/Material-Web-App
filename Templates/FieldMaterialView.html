@@ -15,14 +15,46 @@
   padding: 12px;
   background: #ffffff;
 }
+.{{table_id}}-edit-row {
+	margin: 10px;
+	display: flex;
+	gap: 20px;
+}
+
+.{{table_id}}-edit-column {
+	flex: 1;
+}
+
+.{{table_id}}-edit-submit-btn {
+	width: 100%;
+	height: 40px;
+	line-height: 40px; 
+	text-align: center;
+	border-radius: 12px;
+	border: 1px solid #ccc;
+	background-color: #77ee77;
+	cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
+<div class="{{table_id}}-edit-row">
+	<div class="{{table_id}}-edit-column" style="flex: 2;">
+		{% with search_list_id="source", item_type="Project", material_children=project_objs, hide_by_default=true, default_text=default_material_target.display_name|d("") %}
+		{% include "SearchableDropdown2.0.html" %}
+		{% endwith %}
+	</div>
+	<div class="{{table_id}}-edit-column" style="flex: 0.75;">
+		<div class="{{table_id}}-edit-submit-btn">Consume Material</div>
+	</div>
+</div>
+
+
 <div class="field">
 	<div class="header">Material</div>
-{% set table_id, table_data = "table_field_material", field_material_table %}
+{% set table_id, table_data, allow_input = "table_field_material", field_material_table, true %}
 {% include "SearchableSubitemsTable.html" %}
 
 </div>

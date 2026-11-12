@@ -240,9 +240,11 @@ class Site(CoreObj):
             if ret is not None:
                 return ret
 
-    def find_material(self, item_id):
+    def find_material(self, item_id, allow_unique=False):
         for material_id in self.material_children:
             material_obj = self.lookup(material_id)
+            if not allow_unique and material_obj.unique_id is not None:
+                continue
             if material_obj.item_match(item_id):
                 return material_obj
 

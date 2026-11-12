@@ -93,6 +93,11 @@ th.filtered .filter-indicator {
   cursor: pointer;
   margin: 20px;
 }
+
+.row-input {
+  width: 100px;
+}
+
 </style>
 </head>
 <body>
@@ -124,6 +129,12 @@ th.filtered .filter-indicator {
 						<span class="sort-indicator" style="display: none;">⇅</span>
 					</th>
 				{% endif %}
+				{% if allow_input | default(false) %}
+					<th>
+						Qty
+						<span class="sort-indicator" style="display: none;">⇅</span>
+					</th>
+				{% endif %}
 				{% for column in table_data.columns %}
 					<th onclick="{{table_id}}_sortTable({{ loop.index0 + header_offset }})">
 						{{ column }}
@@ -134,6 +145,9 @@ th.filtered .filter-indicator {
 
             <tr class="filters">
 				{% if allow_selection | default(false) %}
+					<th><input type="text" data-column="0" placeholder="Filter Selected" style="display: none;"></th>
+				{% endif %}
+				{% if allow_input | default(false) %}
 					<th><input type="text" data-column="0" placeholder="Filter Selected" style="display: none;"></th>
 				{% endif %}
 				{% for column in table_data.columns %}
@@ -149,6 +163,9 @@ th.filtered .filter-indicator {
 			<tr style="display: none">
 				{% if allow_selection | default(false) %}
 					<td><input type="checkbox" id="row-checkbox" class="row-checkbox"></td>
+				{% endif %}
+				{% if allow_input | default(false) %}
+					<td><input type="number" id="row-input" class="row-input"></td>
 				{% endif %}
 				{% set outer_loop = loop %}
 				{% for val in row %}

@@ -161,7 +161,7 @@ class CoreMaterialManager:
 
     def ensure_material(self, site, item_id, user_id=None):
         item_id = item_id.strip()
-        material_obj = site.find_material(item_id)
+        material_obj = site.find_material(item_id, allow_unique=False)
         if material_obj is not None:
             return material_obj
         material_obj = self.create_material(site, item_id, user_id=user_id)
@@ -565,6 +565,20 @@ class CoreMaterialManager:
         action.description = "Object data changed."
         ret = self.enact_action(action)
         return ret
+    
+    def dispense_material(self, user_id, source, recipient, project, material, qty):
+        action = Action(
+            action_type='dispense_material',
+            user=user_id, 
+            source=source, 
+            recipient=recipient, 
+            project=project, 
+            material=material, 
+            qty=qty
+        )
+        action.description = "Material dispensed to field."
+        ret = self.enact_action(action)
+        return ret
 
     def deprecate_item(self, user_id, item_id, correct_item_id):
         action = Action(
@@ -619,7 +633,8 @@ class CoreMaterialManager:
             'create_time_entry': self._create_time_entry,
             'create_material_allocation': self._create_material_allocation,
             'fulfill_material_allocation': self._fulfill_material_allocation,
-            'patch_object': self._patch_generic_obj
+            'patch_object': self._patch_generic_obj,
+            'dispense_material': self._dispense_material
         }
         ret = None
         try:
@@ -1529,6 +1544,64 @@ class CoreMaterialManager:
         action.add_output('time_entry_id', time_entry_obj.id)
 
         return time_entry_obj
+
+    def _dispense_material(self, action):
+        source = action.data['source']
+        recipient = action.data['recipient']
+        project = action.data['project']
+        material = action.data['material']
+        user = action.data['user']
+        qty = action.data['qty']
+
+        source_obj = self.find_site(source)
+        recipient_obj = self.find_user(recipient)
+        project_obj = self.find_project(project)
+        material_obj = self.lookup(material)
+
+        user_obj = self.find_user(user)
+
+        user_site_obj = self.ensure_user_site(recipient_obj.id)
+        project_site_obj = self.ensure_project_site(project_obj.id)
+
+        recipient_obj.add_action(action)
+        material_obj.add_action(action)
+        project_obj.add_action(action)
+        source_obj.add_action(action)
+        user_obj.add_action(action)
+        project_site_obj.add_action(action)
+
+        if material_obj.unique_id:
+            self.set_material_parent(
+                user_id=user_obj.id,
+                material_id=material_obj.id,
+                parent_site_id=user_site_obj.id
+            )
+            target_material_obj = material_obj
+            if not qty:
+                qty = material_obj.qty
+        else:
+            target_material_obj = self.transfer_material(
+                user_id=user_obj.id,
+                target_id=user_site_obj.id,
+                source_id=source_obj.id,
+                qty=qty,
+                item_id=material_obj.item.id
+            )
+            target_material_obj.add_action(action)
+
+        mat_allocation_ret = self.create_material_allocation(
+            parent_material_id=target_material_obj.id,
+            target_site_id=project_site_obj.id,
+            qty=qty,
+            user_id=user_obj.id
+        )
+
+        action.add_output('target_material_id', target_material_obj.id)
+        action.add_output('mat_allocation', mat_allocation_ret.id)
+        action.add_output('user_site_obj', user_site_obj.id)
+        action.add_output('project_site_obj', project_site_obj.id)
+
+        return mat_allocation_ret
 
     def _deprecate_item(self, action):
         user_id = action.data['user']

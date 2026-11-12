@@ -960,7 +960,8 @@ def dispense_material_page():
 
     site_objs = list_all_sites()
     person_objs = list_all_people()
-    catalogue_objs = list_all_catalogue_items()
+    # catalogue_objs = list_all_catalogue_items()
+    material_objects = [{'id': i, 'text': MATERIAL_APP.lookup(i).display_name} for i in source_obj.material_children]
     project_objs = list_all_projects()
 
     return render_template(
@@ -972,7 +973,7 @@ def dispense_material_page():
         site_objs=site_objs,
         person_objs=person_objs,
         project_objs=project_objs,
-        catalogue_objs=catalogue_objs,
+        material_objects=material_objects,
         current_tab="Dispense Material",
         header_options=list_header_options(user_obj.id)
     )
@@ -1886,13 +1887,15 @@ def api_dispense_material():
     source = data.get('source')
     recipient = data.get('recipient')
     project = data.get('project')
-    item = data.get('item')
+    material = data.get('material')
     qty = data.get('qty')
+
+    print(f"source: {source}, material: {material}")
 
     source_obj = MATERIAL_APP.find_site(source)
     recipient_obj = MATERIAL_APP.find_user(recipient)
     project_obj = MATERIAL_APP.find_project(project)
-    item_obj = MATERIAL_APP.find_item(item)
+    material_obj = MATERIAL_APP.lookup(material)
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
@@ -1908,38 +1911,35 @@ def api_dispense_material():
         return jsonify({
             "error": f"User \"{recipient}\" not found."
         }), 404
-    if item is None or (not item):
+    if material is None:
         return jsonify({
-            "error": "No item provided."
-        }), 404
-    if item_obj is None:
+            "error": "No material provided."
+        }), 400
+    if material_obj is None:
         return jsonify({
-            "error": f"Item \"{item}\" not found."
+            "error": f"Material \"{material}\" not found."
         }), 404
+    if not isinstance(material_obj, Material):
+        return jsonify({
+            "error": f"Object \"{material}\" is not a material object."
+        }), 406
     if qty is None:
         return jsonify({
             "error": "Qty not provided."
         }), 400
+    if not material_obj.unique_id and qty is None:
+        return jsonify({
+            "error": "Qty not provided."
+        }), 400
 
-    user_site_obj = MATERIAL_APP.ensure_user_site(recipient_obj.id)
-    project_site_obj = MATERIAL_APP.ensure_project_site(project_obj.id)
-
-    target_material_obj = MATERIAL_APP.transfer_material(
+    mat_allocation_ret = MATERIAL_APP.dispense_material(
         user_id=user_obj.id,
-        target_id=user_site_obj.id,
-        source_id=source_obj.id,
-        qty=qty,
-        item_id=item_obj.id
+        source=source_obj.id,
+        recipient=recipient_obj.id,
+        project=project_obj.id,
+        material=material_obj.id,
+        qty=qty
     )
-
-    mat_allocation_ret = MATERIAL_APP.create_material_allocation(
-        parent_material_id=target_material_obj.id,
-        target_site_id=project_site_obj.id,
-        qty=qty,
-        user_id=user_obj.id
-    )
-
-    print(mat_allocation_ret, mat_allocation_ret.id)
 
     return jsonify({
         "message": "Item dispensed successfully!",
@@ -2956,6 +2956,9 @@ def field_home_url():
 
     projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
 
+    project_objs = [{'id': project.id, 'text': project.display_name} for project in projects]
+    project_objs = sorted(project_objs, key=lambda x: x['text'])
+
     my_projects = ProjectTableData(projects)
 
     # get a table of the users material
@@ -2966,6 +2969,8 @@ def field_home_url():
         user_obj=user_obj,
         my_projects=my_projects,
         current_tab="Home",
+        project_objs=project_objs,
+        default_material_target=None,
         field_material_table=field_material_table,
         header_options=list_header_options(user_obj.id)
     )
@@ -3159,10 +3164,13 @@ def field_material_url():
     project_site_id = project_obj.site
     field_material_table = generate_field_material_table(user_id=user_obj.id, target_site_id=project_site_id)
 
+    project_objs = list_all_projects()
+
     return render_template(
         "FieldMaterial.html",
         current_tab="Log Material",
         field_material_table=field_material_table,
+        default_material_target=project_obj,
         user_obj=user_obj,
         header_options=list_header_options(user_obj.id)
     )
