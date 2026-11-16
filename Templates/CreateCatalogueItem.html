@@ -281,7 +281,9 @@ console.log("Attempting to create catalogue item.");
 	console.log(mpn_elem.value);
 	console.log(description_elem.value);
 	console.log(shorthand_elem.value);
-	console.log(tracked_elem.value);
+	console.log(tracked_elem.checked);
+	
+	return;
 	
 	const data = {
 	"item_type": item_type_elem.value,
@@ -290,7 +292,7 @@ console.log("Attempting to create catalogue item.");
 	"mpn": mpn_elem.value,
 	"description": description_elem.value,
 	"shorthand": shorthand_elem.value,
-	"tracked": tracked_elem.value
+	"tracked": tracked_elem.checked
 	};
 	let ret = await post_request("/api/createCatalogueItem", data);
 	let response_data = await ret.json();

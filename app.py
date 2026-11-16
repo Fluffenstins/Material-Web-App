@@ -2181,7 +2181,7 @@ def api_create_catalogue_item():
     mpn = data.get('mpn')
     description = data.get('description')
     shorthand = data.get('shorthand')
-    tracked = data.get('tracked') == 'yes'
+    tracked = data.get('tracked')
 
     user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
 
@@ -2956,8 +2956,9 @@ def field_home_url():
 
     projects = sorted([i for i in projects if i], key=lambda x: x.nb_id)
 
-    project_objs = [{'id': project.id, 'text': project.display_name} for project in projects]
-    project_objs = sorted(project_objs, key=lambda x: x['text'])
+    # project_objs = [{'id': project.id, 'text': project.display_name} for project in projects]
+    # project_objs = sorted(project_objs, key=lambda x: x['text'])
+    project_objs = list_all_projects()
 
     my_projects = ProjectTableData(projects)
 
@@ -3008,7 +3009,7 @@ def field_time_entries_url():
     try:
         project_obj = MATERIAL_APP.lookup(project_id)
     except KeyError:
-            return redirect('/')
+        return redirect('/')
 
     time_entries = [time_entry for _, time_entry in MATERIAL_APP.time_entries.items() if time_entry.project == project_obj.id]
 
