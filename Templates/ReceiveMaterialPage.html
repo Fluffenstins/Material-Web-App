@@ -174,7 +174,7 @@ border-bottom: none;
       <div class="label">Location</div>
 	
 	{% with search_list_id="location", item_type="Location", material_children=site_objs, hide_by_default=true, default_text=location_obj.path %}
-    {% include "SimpleDropdown.html" %}
+    {% include "SearchableDropdown2.0.html" %}
 	{% endwith %}
 	
     </div>
@@ -183,8 +183,10 @@ border-bottom: none;
       <div class="label">Project</div>
 	
 	{% with search_list_id="project", item_type="Project", material_children=site_objs, hide_by_default=true, default_text=project_obj.path %}
-    {% include "SimpleDropdown.html" %}
+    {% include "SearchableDropdown2.0.html" %}
 	{% endwith %}
+	
+	
 	
     </div>
   
@@ -192,7 +194,7 @@ border-bottom: none;
       <div class="label">Item</div>
 	
 	{% with search_list_id="catalogue_item", item_type="Item", material_children=catalogue_objs, hide_by_default=true, default_text=catalogue_obj.item_id %}
-    {% include "SimpleDropdown.html" %}
+    {% include "SearchableDropdown2.0.html" %}
 	{% endwith %}
 	
     </div>
@@ -292,16 +294,16 @@ console.log("Attempting to receive.");
 	const item_elem = document.getElementById("catalogue_item_input");
 	const qty_elem = document.getElementById("qty_input");
 	const id_elem = document.getElementById("id_input");
-	console.log(location_elem.value);
-	console.log(project_elem.value);
-	console.log(item_elem.value);
+	console.log(location_hiddenInput.value);
+	console.log(project_hiddenInput.value);
+	console.log(catalogue_item_hiddenInput.value);
 	console.log(qty_elem.value);
 	console.log(id_elem.value);
 	
 	const data = {
-	"location": location_elem.value,
-	"project": project_elem.value,
-	"item": item_elem.value,
+	"location": location_hiddenInput.value,
+	"project": project_hiddenInput.value,
+	"item": catalogue_item_hiddenInput.value,
 	"qty": qty_elem.value,
 	"unique_id": id_elem.value
 	};

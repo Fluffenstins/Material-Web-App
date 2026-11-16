@@ -112,7 +112,7 @@ def list_all_people():
 
 def list_all_catalogue_items():
     valid_ids = {val.get_item().id for key, val in MATERIAL_APP.items.items()}
-    catalogue_objs = [{'id': key, 'text': MATERIAL_APP.items[key].item_id} for key in valid_ids]
+    catalogue_objs = [{'id': key, 'text': f"{MATERIAL_APP.items[key].nubuild_id} : {MATERIAL_APP.items[key].item_id}"} for key in valid_ids]
     catalogue_objs = sorted(catalogue_objs, key=lambda x: x['text'])
     return catalogue_objs
 
@@ -1702,6 +1702,8 @@ def api_receive_material():
     location_obj = MATERIAL_APP.find_site(location)
     project_obj = MATERIAL_APP.find_site(project)
     item_obj = MATERIAL_APP.find_item(item)
+
+    print(f"Finding existing item: {item} : {item_obj}")
 
     if item_obj.tracked and not unique_id:
         return jsonify({

@@ -37,7 +37,10 @@ class MaterialTableData(AppTableData):
         columns = ('Item ID', 'Qty', 'Shorthand', 'MPN', 'Description')
         super().__init__(table_name=table_name, columns=columns)
         for mat_obj in material_list:
-            row = [mat_obj.item.item_id, mat_obj.qty, mat_obj.item.shorthand, mat_obj.item.mpn, mat_obj.item.description]
+            item_id = mat_obj.item.item_id
+            if mat_obj.item.tracked:
+                item_id = f"{mat_obj.item.item_id} : {mat_obj.unique_id}"
+            row = [item_id, mat_obj.qty, mat_obj.item.shorthand, mat_obj.item.mpn, mat_obj.item.description]
             self.add_row(row, row_link=f'/?obj_id={mat_obj.id}')
 
 
