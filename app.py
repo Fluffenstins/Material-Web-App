@@ -945,7 +945,7 @@ def transfer_material_page():
 def dispense_material_page():
     source_site_id = request.args.get('source_id', default="")
     target_site_id = request.args.get('target_id', default="")
-    catalogue_id = request.args.get('item_id', default="")
+    material_id = request.args.get('mat_id', default="")
 
     try:
         user_obj = MATERIAL_APP.find_user(flask_login.current_user.id)
@@ -954,9 +954,9 @@ def dispense_material_page():
 
     source_obj = MATERIAL_APP.find_site(source_site_id)
     target_obj = MATERIAL_APP.find_site(target_site_id)
-    catalogue_obj = MATERIAL_APP.find_item(catalogue_id)
+    material_obj = MATERIAL_APP.find_item(material_id)
 
-    print(source_obj.path, target_obj, catalogue_obj)
+    print(source_obj.path, target_obj, material_obj)
 
     site_objs = list_all_sites()
     person_objs = list_all_people()
@@ -968,7 +968,7 @@ def dispense_material_page():
         "DispenseMaterialPage.html",
         source_obj=source_obj,
         target_obj=target_obj,
-        catalogue_obj=catalogue_obj,
+        material_obj=material_obj,
         user_obj=user_obj,
         site_objs=site_objs,
         person_objs=person_objs,

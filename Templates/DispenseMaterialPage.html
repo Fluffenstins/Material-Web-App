@@ -200,7 +200,7 @@ border-bottom: none;
     <div class="field">
       <div class="label">Material</div>
 	
-	{% with search_list_id="material", item_type="Material", material_children=material_objects, hide_by_default=true, default_text=catalogue_obj.display_name %}
+	{% with search_list_id="material", item_type="Material", material_children=material_objects, hide_by_default=true, default_text=material_obj.display_name %}
     {% include "SearchableDropdown2.0.html" %}
 	{% endwith %}
 	
